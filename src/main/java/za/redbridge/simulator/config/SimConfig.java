@@ -141,27 +141,29 @@ public class SimConfig extends Config {
             }
         }
 
+        configNumber = (Integer) config.get("config");
+
         // Robots
         String robot_input = "";
         Map bots = (Map) config.get("robots");
         if (checkFieldPresent(bots, "robots")) {
-            boolean valid = false;
-            while(!valid)
-            {
-                System.out.println("Enter number of robots (1 - 20) - default 20");
-                robot_input = inputReader.readLine();
-                if (robot_input.equalsIgnoreCase("")) robot_input = "20";
-                robots = Integer.parseInt(robot_input);
-                if(robots > 20 || robots <1)
-                {
-                    System.out.println("Please enter a number in range!");
-                }
-                else valid = true;
-            }
-//            Integer robotsField = (Integer) bots.get("numRobots");
-//            if (checkFieldPresent(robotsField, "robots:numRobots")) {
-//                robots = robotsField;
-//            }
+            // boolean valid = false;
+            // while(!valid)
+            // {
+            //     System.out.println("Enter number of robots (1 - 20) - default 20");
+            //     robot_input = inputReader.readLine();
+            //     if (robot_input.equalsIgnoreCase("")) robot_input = "20";
+            //     robots = Integer.parseInt(robot_input);
+            //     if(robots > 20 || robots <1)
+            //     {
+            //         System.out.println("Please enter a number in range!");
+            //     }
+            //     else valid = true;
+            // }
+           Integer robotsField = (Integer) bots.get("numRobots");
+           if (checkFieldPresent(robotsField, "robots:numRobots")) {
+               robots = robotsField;
+           }
             Double botRadius = (Double) bots.get("radius");
             if (checkFieldPresent(botRadius, "robots:radius")) {
                 rRadius = botRadius.floatValue();
@@ -194,13 +196,6 @@ public class SimConfig extends Config {
                     if (!(o instanceof ResourceFactory)) {
                         throw new InvalidClassException("");
                     }
-
-                    //get quantity of resource objects
-                    System.out.println("Enter config number (1-10) - default 1");
-                    res_input = inputReader.readLine();
-
-                    if (res_input.equalsIgnoreCase("")) res_input = "0";
-                    configNumber = Integer.parseInt(res_input)-1;
 
                     resFactory = (ResourceFactory) o;
                     Map resources = (Map) config.get("resources");

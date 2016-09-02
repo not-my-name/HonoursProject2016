@@ -17,8 +17,9 @@ public class HomogeneousRobotFactory implements RobotFactory {
     protected Phenotype phenotype;
     protected int numRobots;
 
+    //this phenotype is meant to be the hyperneat phenotype that you coded
     public HomogeneousRobotFactory(Phenotype phenotype, float mass, float radius, Color color,
-                                   int numRobots) {
+                                   int numRobots) { 
         this.phenotype = phenotype;
         this.mass = mass;
         this.radius = radius;

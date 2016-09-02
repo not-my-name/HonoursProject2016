@@ -13,6 +13,8 @@ import org.jbox2d.dynamics.joints.JointDef;
 import org.jbox2d.dynamics.joints.WeldJointDef;
 import sim.engine.SimState;
 
+import za.redbridge.simulator.object.RobotObject;
+
 /*
  *  The construction task class
  *
@@ -23,8 +25,9 @@ public class ConstructionTask implements Steppable{
     private SchemaConfig schema;
     private HashMap<ResourceObject, ArrayList<ResourceObject>> weldMap;
     private World physicsWorld;
+    private ArrayList<RobotObject> currentRobots;
 
-    public ConstructionTask(String path, ArrayList<ResourceObject> r, World world){
+    public ConstructionTask(String path, ArrayList<ResourceObject> r, World world, ArrayList<RobotObject> robots){
         schema = new SchemaConfig(path,1,3);
         resources = r;
         weldMap = new HashMap<ResourceObject, ArrayList<ResourceObject>>();
@@ -32,6 +35,9 @@ public class ConstructionTask implements Steppable{
             ArrayList<ResourceObject> temp = new ArrayList<ResourceObject>();
             weldMap.put(resources.get(i), temp);
         }
+
+        currentRobots = robots;
+
         physicsWorld = world;
         update();
     }
@@ -40,6 +46,11 @@ public class ConstructionTask implements Steppable{
         schema = new SchemaConfig("configs/schemaConfig.yml",1,3);
         physicsWorld = world;
         weldMap = new HashMap<ResourceObject, ArrayList<ResourceObject>>();
+    }
+
+    public void getFitness() {
+        //calculate the fitness of the robot team 
+        //calculate the average distances between the robots and the resources
     }
 
     public void addResources(ArrayList<ResourceObject> r){

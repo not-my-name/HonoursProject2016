@@ -58,7 +58,7 @@ public class MorphologyConfig extends Config {
             Map morph = (Map) config.get(id);
             if (checkFieldPresent(morph,id)){
                 Map sensorMeta = (Map) morph.get("meta");
-                Number noSensors = (Number) sensorMeta.get("numSensors");
+                Number noSensors = (Number) sensorMeta.get("numSensor");
                 sensors = noSensors.intValue();
             }
 

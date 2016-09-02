@@ -3,7 +3,7 @@ meta:
 1m:
   meta:
     numSensor: 5
-  s1:
+  1s:
     type: za.redbridge.simulator.sensor.FilteredProximityAgentSensor
     whiteList: za.redbridge.simulator.object.ResourceObject
     readingSize: 1
@@ -11,6 +11,5 @@ meta:
     orientation: 40.0
     fieldOfView: 10.0
     range: 1.0
-  s2:
     
 
