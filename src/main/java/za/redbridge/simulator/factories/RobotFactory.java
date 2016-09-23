@@ -7,6 +7,8 @@ import za.redbridge.simulator.config.SimConfig;
 import za.redbridge.simulator.object.RobotObject;
 import za.redbridge.simulator.object.TargetAreaObject;
 
+import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Map;
 
@@ -16,5 +18,5 @@ public interface RobotFactory {
 
     int getNumRobots();
     void setNumRobots(int numRobots);
-
+    ArrayList<RobotObject> getPlacedRobots();
 }

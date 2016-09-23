@@ -1,15 +1,49 @@
 meta:
-  numMorph: 10
-1m:
+  numMorph: 1
+m1:
   meta:
-    numSensor: 5
-  1s:
-    type: za.redbridge.simulator.sensor.FilteredProximityAgentSensor
-    whiteList: za.redbridge.simulator.object.ResourceObject
-    readingSize: 1
-    bearing: 51.0
-    orientation: 40.0
-    fieldOfView: 10.0
-    range: 1.0
-    
-
+    numSensor: 9
+  s1:
+    type: ProximitySensor
+    bearing: 40.0
+    orientation: 0.0
+  s2:
+    type: ProximitySensor
+    bearing: -40.0
+    orientation: 0.0
+  s3:
+    type: ProximitySensor
+    bearing: 140.0
+    orientation: 0.0
+  s4:
+    type: ProximitySensor
+    bearing: -140.0
+    orientation: 0.0
+  s5:
+    type: ProximitySensor
+    bearing: 180.0
+    orientation: 0.0
+  s6:
+    type: BottomProximitySensor
+    bearing: -140.0
+    orientation: 0.0
+  s7:
+    type: UltrasonicSensor
+    bearing: 0.0
+    orientation: 0.0
+  s8:
+    type: UltrasonicSensor
+    bearing: 90
+    orientation: 0.0
+  s7:
+    type: UltrasonicSensor
+    bearing: 0.0
+    orientation: 0.0
+  s8:
+    type: ColourRangedSensor
+    bearing: 15
+    orientation: 0.0
+  s9:
+    type: LowResCameraSensor
+    bearing: -15.0
+    orientation: 0.0

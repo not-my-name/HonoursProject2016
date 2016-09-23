@@ -21,6 +21,11 @@ public class FitnessStats {
         this.maxSteps = maxSteps;
     }
 
+    public FitnessStats(int maxSteps) {
+        this.maxSteps = maxSteps;
+        this.totalResourceValue = 10;
+    }
+
     /**
      * Increment a phenotype's fitness.
      * @param phenotype the phenotype who's score will be adjusted

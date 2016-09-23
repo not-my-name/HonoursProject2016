@@ -15,6 +15,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.ArrayList;
+//CONCURRENCY CHANGES
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Iterator;
 
 import sim.engine.SimState;
 import za.redbridge.simulator.Simulation;
@@ -237,7 +240,8 @@ public class ResourceObject extends PhysicalObject {
         weldList.add(bottomWeldPoints);
     }
 
-    public void updateAdjacent(ArrayList<ResourceObject> resourceArray){
+    //CONCURRENCY CHANGES
+    public void updateAdjacent(CopyOnWriteArrayList<ResourceObject> resourceArray){
         for(int i=0;i<adjacentResources.length;i++){
             adjacentResources[i] = "0";
         }

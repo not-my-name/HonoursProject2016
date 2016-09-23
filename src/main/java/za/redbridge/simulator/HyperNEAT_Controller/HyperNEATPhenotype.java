@@ -13,26 +13,32 @@ import sim.util.Double2D;
 import za.redbridge.simulator.phenotype.Phenotype;
 import za.redbridge.simulator.sensor.AgentSensor;
 
+import za.redbridge.simulator.NEATPhenotype;
+
 public class HyperNEATPhenotype implements Phenotype {
 
 	private final NEATNetwork network;
-    private final SensorMorphology morphology;
+    private final Morphology morphology;
 
     private final MLData input;
     private final List<AgentSensor> sensors;
 
-    public HyperNEATPhenotype(NEATNetwork network, SensorMorphology morphology) { //need to change the SensorMorpholgy to just Morphology that Daniel made
+    public HyperNEATPhenotype(NEATNetwork network, Morphology morphology) { //need to change the SensorMorpholgy to just Morphology that Daniel made
         this.network = network;
         this.morphology = morphology;
+
+        //System.out.println("HyperNEATPhenotype: network input = " + network.getInputCount());
+        //System.out.println("HyperNEATPhenotype: network output = " + network.getOutputCount());
 
         // Initialise sensors
         final int numSensors = morphology.getNumSensors();
         sensors = new ArrayList<>(numSensors);
         for (int i = 0; i < numSensors; i++) {
-            sensors.add(morphology.getSensor(i));
-        }
+            sensors.add(morphology.getSensorList().get(i)); //reading in the sensors from the current assigned morphology 
+        }                                         //remember that there is a different collection of sensors for each experiment                  
 
         input = new BasicMLData(numSensors);
+        //System.out.println("HyperNEATPhenotype: number sensors = " + numSensors);
     }
 
     @Override
@@ -47,14 +53,19 @@ public class HyperNEATPhenotype implements Phenotype {
             input.setData(i, sensorReadings.get(i).get(0)); //assigning the sensor inputs to the input nodes
         }
 
+        //System.out.println("HyperNEATPhenotype: size of input = " + input.size());
+        //System.out.println("HyperNEATPhenotype: size of network input = " + network.getInputCount());
+
         MLData output = network.compute(input); //sending the inputs from the robot sensors to the network
+
+        //System.out.println("HyperNEATPhenotype step method: printing the output for the network  " + new Double2D(output.getData(0) * 2.0 - 1.0, output.getData(1) * 2.0 - 1.0));
 
         return new Double2D(output.getData(0) * 2.0 - 1.0, output.getData(1) * 2.0 - 1.0);
     }
 
     @Override
     public Phenotype clone() {
-        return new NEATPhenotype(network, morphology);
+        return new HyperNEATPhenotype(network, this.morphology.clone());
     }
 
     @Override

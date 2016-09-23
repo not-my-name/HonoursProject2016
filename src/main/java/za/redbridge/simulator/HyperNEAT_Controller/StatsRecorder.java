@@ -1,12 +1,15 @@
-package za.redbridge.experiment;
+package za.redbridge.simulator;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.encog.ml.ea.genome.Genome;
 import org.encog.ml.ea.train.EvolutionaryAlgorithm;
 import org.encog.neural.neat.NEATNetwork;
 import org.encog.neural.neat.training.NEATGenome;
+import org.encog.neural.hyperneat.HyperNEATGenome;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.encog.ml.ea.population.Population;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -17,11 +20,12 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
-import za.redbridge.experiment.NEAT.NEATPopulation;
+//import za.redbridge.experiment.NEAT.NEATPopulation;
+import org.encog.neural.neat.NEATPopulation;
+import za.redbridge.simulator.ScoreCalculator;
 
-
-import static za.redbridge.experiment.Utils.getLoggingDirectory;
-import static za.redbridge.experiment.Utils.saveObjectToFile;
+import static za.redbridge.simulator.Utils.getLoggingDirectory;
+import static za.redbridge.simulator.Utils.saveObjectToFile;
 
 /**
  * Class for recording stats each epoch.
@@ -34,7 +38,7 @@ public class StatsRecorder {
 
     private final EvolutionaryAlgorithm trainer;
     private final ScoreCalculator calculator;
-    private final boolean evolvingMorphology;
+    //private final boolean evolvingMorphology;
 
     private Genome currentBestGenome;
 
@@ -49,7 +53,7 @@ public class StatsRecorder {
     public StatsRecorder(EvolutionaryAlgorithm trainer, ScoreCalculator calculator) {
         this.trainer = trainer;
         this.calculator = calculator;
-        this.evolvingMorphology = calculator.isEvolvingMorphology();
+        //this.evolvingMorphology = calculator.isEvolvingMorphology();
 
         initFiles();
     }
@@ -85,10 +89,10 @@ public class StatsRecorder {
         scoreStatsFile = rootDirectory.resolve("scores.csv");
         initStatsFile(scoreStatsFile);
 
-        if (evolvingMorphology) {
-            sensorStatsFile = rootDirectory.resolve("sensors.csv");
-            initStatsFile(sensorStatsFile);
-        }
+        // if (evolvingMorphology) {
+        //     sensorStatsFile = rootDirectory.resolve("sensors.csv");
+        //     initStatsFile(sensorStatsFile);
+        // }
     }
 
     private static void initStatsFile(Path path) {
@@ -100,47 +104,52 @@ public class StatsRecorder {
     }
 
     public void recordIterationStats() {
-        int epoch = trainer.getIteration();
-        log.info("Epoch " + epoch + " complete");
+        int generation = trainer.getIteration();
+        log.info("generation " + generation + " complete");
 
-        recordStats(calculator.getPerformanceStatistics(), epoch, performanceStatsFile);
+        recordStats(calculator.getPerformanceStatistics(), generation, performanceStatsFile);
 
-        recordStats(calculator.getScoreStatistics(), epoch, scoreStatsFile);
+        recordStats(calculator.getScoreStatistics(), generation, scoreStatsFile);
 
-        if (evolvingMorphology) {
+        /*if (evolvingMorphology) {
             recordStats(calculator.getSensorStatistics(), epoch, sensorStatsFile);
-        }
+        }*/
 
-        savePopulation((NEATPopulation) trainer.getPopulation(), epoch);
+        NEATPopulation tempPop = (NEATPopulation)trainer.getPopulation();
+
+        //savePopulation((NEATPopulation)trainer.getPopulation(), generation);
 
         // Check if new best network and save it if so
-        NEATGenome newBestGenome = (NEATGenome) trainer.getBestGenome();
+        //System.out.println("StatsRecorder: printing the best genome = " + trainer.getBestGenome());
+        HyperNEATGenome newBestGenome = (HyperNEATGenome) trainer.getBestGenome(); //MUST THIS BE CHANGED TO HYPERNEAT GENOME?
         if (newBestGenome != currentBestGenome) {
-            saveGenome(newBestGenome, epoch);
+            saveGenome(newBestGenome, generation);
             currentBestGenome = newBestGenome;
         }
     }
 
-    private void savePopulation(NEATPopulation population, int epoch) {
-        String filename = "epoch-" + epoch + ".ser";
+    private void savePopulation(NEATPopulation population, int generation) {
+        String filename = "generation-" + generation + ".ser";
         Path path = populationDirectory.resolve(filename);
-        saveObjectToFile(population, path);
+        //System.out.println("StatsRecorder: the object being save = " + population);
+        saveObjectToFile(population, path); //remember to possibly remove .getSubstrate()
     }
 
-    private void saveGenome(NEATGenome genome, int epoch) {
+    private void saveGenome(NEATGenome genome, int epoch) { //change NEATGenome -> HyperNEATGenome
+        //System.out.println("StatsRecorder: genome being saved = " + genome);
         Path directory = bestNetworkDirectory.resolve("epoch-" + epoch);
         initDirectory(directory);
 
         String txt;
-        if (evolvingMorphology) {
-            log.info("New best genome! Epoch: " + epoch + ", score: " + genome.getScore()
-                    + ", num sensors: " + genome.getInputCount());
-            txt = String.format("epoch: %d, fitness: %f, sensors: %d", epoch, genome.getScore(),
-                    genome.getInputCount());
-        } else {
-            log.info("New best genome! Epoch: " + epoch + ", score: "  + genome.getScore());
-            txt = String.format("epoch: %d, fitness: %f", epoch, genome.getScore());
-        }
+        // if (evolvingMorphology) {
+        //     log.info("New best genome! Epoch: " + epoch + ", score: " + genome.getScore()
+        //             + ", num sensors: " + genome.getInputCount());
+        //     txt = String.format("epoch: %d, fitness: %f, sensors: %d", epoch, genome.getScore(),
+        //             genome.getInputCount());
+        // } else {
+        log.info("New best genome! Epoch: " + epoch + ", score: "  + genome.getScore());
+        txt = String.format("epoch: %d, fitness: %f", epoch, genome.getScore());
+        //}
         Path txtPath = directory.resolve("info.txt");
         try (BufferedWriter writer = Files.newBufferedWriter(txtPath, Charset.defaultCharset())) {
             writer.write(txt);
@@ -151,7 +160,7 @@ public class StatsRecorder {
         NEATNetwork network = decodeGenome(genome);
         saveObjectToFile(network, directory.resolve("network.ser"));
 
-        GraphvizEngine.saveGenome(genome, directory.resolve("graph.dot"));
+        //GraphvizEngine.saveGenome(genome, directory.resolve("graph.dot"));
     }
 
     private void recordStats(DescriptiveStatistics stats, int epoch, Path filepath) {
@@ -165,6 +174,7 @@ public class StatsRecorder {
         saveStats(filepath, epoch, max, min, mean, sd);
     }
 
+    //for HyperNEAT, the CPPN is the produced/decoded NEAT network (decoded from Substrate)
     private NEATNetwork decodeGenome(Genome genome) {
         return (NEATNetwork) trainer.getCODEC().decode(genome);
     }

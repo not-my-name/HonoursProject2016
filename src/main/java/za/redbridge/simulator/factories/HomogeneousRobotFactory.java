@@ -10,12 +10,16 @@ import za.redbridge.simulator.config.SimConfig;
 import za.redbridge.simulator.object.RobotObject;
 import za.redbridge.simulator.phenotype.Phenotype;
 
+import java.util.ArrayList;
+
 public class HomogeneousRobotFactory implements RobotFactory {
     protected float mass;
     protected float radius;
     protected Color color;
     protected Phenotype phenotype;
     protected int numRobots;
+
+    private ArrayList<RobotObject> placedRobots;
 
     //this phenotype is meant to be the hyperneat phenotype that you coded
     public HomogeneousRobotFactory(Phenotype phenotype, float mass, float radius, Color color,
@@ -25,6 +29,10 @@ public class HomogeneousRobotFactory implements RobotFactory {
         this.radius = radius;
         this.color = color;
         this.numRobots = numRobots;
+
+        //System.out.println("HomogeneousRobotFactory: number of robots = " + numRobots);
+
+        placedRobots = new ArrayList<RobotObject>();
     }
 
     @Override
@@ -41,6 +49,8 @@ public class HomogeneousRobotFactory implements RobotFactory {
 
             RobotObject robot = new RobotObject(world, space.getPosition(), space.getAngle(),
                 radius, mass, color, phenotype, targetAreaPlacement);
+
+            placedRobots.add(robot);
 
             placementArea.placeObject(space, robot);
         }
@@ -144,6 +154,8 @@ public class HomogeneousRobotFactory implements RobotFactory {
 
         }
     }
+
+    public ArrayList<RobotObject> getPlacedRobots() {return placedRobots;}
 
     public void setNumRobots(int numRobots) { this.numRobots = numRobots; }
 

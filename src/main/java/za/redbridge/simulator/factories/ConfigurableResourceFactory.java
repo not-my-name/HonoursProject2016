@@ -13,6 +13,9 @@ import java.util.Map;
 import org.jbox2d.common.Vec2;
 import java.util.ArrayList;
 
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Iterator;
+
 /**
  * Created by shsu on 2014/08/29.
  */
@@ -48,7 +51,8 @@ public class ConfigurableResourceFactory extends Config implements ResourceFacto
     private ResourceSpec mediumResourceSpec;
     private ResourceSpec largeResourceSpec;
 
-    private ArrayList<ResourceObject> placedResources;
+    //CONCURRENCY
+    private CopyOnWriteArrayList<ResourceObject> placedResources;
 
     public ConfigurableResourceFactory() {
         smallResourceSpec = new ResourceSpec(DEFAULT_SMALL_QUANTITY, DEFAULT_SMALL_WIDTH,
@@ -63,12 +67,13 @@ public class ConfigurableResourceFactory extends Config implements ResourceFacto
                 DEFAULT_LARGE_HEIGHT, DEFAULT_LARGE_MASS, DEFAULT_LARGE_PUSHING_BOTS,
                 DEFAULT_LARGE_VALUE, TYPE_THIRD);
 
-        placedResources = new ArrayList<ResourceObject>();
+        placedResources = new CopyOnWriteArrayList<ResourceObject>();
     }
 
     @Override
     public void placeInstances(PlacementArea.ForType<ResourceObject> placementArea, World world) {
         // Place resources randomly
+        placedResources.clear();
         placeInstances(smallResourceSpec, placementArea, world);
         placeInstances(mediumResourceSpec, placementArea, world);
         placeInstances(largeResourceSpec, placementArea, world);
@@ -242,7 +247,8 @@ public class ConfigurableResourceFactory extends Config implements ResourceFacto
         largeResourceSpec.setQuantity(n[2]);
     }
 
-    public ArrayList<ResourceObject> getPlacedResources(){
+    public CopyOnWriteArrayList<ResourceObject> getPlacedResources(){
+        //System.out.println("ConifgurableResourceFactory: number of placed resources = " + placedResources.size());
         return placedResources;
     }
 

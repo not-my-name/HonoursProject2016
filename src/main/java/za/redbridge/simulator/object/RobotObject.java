@@ -77,6 +77,8 @@ public class RobotObject extends PhysicalObject {
     private float consumption_modifier = 0;
     private float motor_consumption;
 
+    private double numPickups;
+
     public RobotObject(World world, Vec2 position, float angle, double radius, double mass,
             Color color, Phenotype phenotype, SimConfig.Direction targetAreaPlacement) {
         super(createPortrayal(radius, color), createBody(world, position, angle, radius, mass));
@@ -85,7 +87,7 @@ public class RobotObject extends PhysicalObject {
         this.defaultColor = color;
         directionPortrayal.setPaint(invertColor(color));
 
-        heuristicPhenotype = new HeuristicPhenotype(phenotype, this, targetAreaPlacement);
+        heuristicPhenotype = new HeuristicPhenotype(phenotype, this);
         initSensors();
 
         float wheelDistance = (float) (radius * WHEEL_DISTANCE);
@@ -97,13 +99,28 @@ public class RobotObject extends PhysicalObject {
 
         energy_level = init_energy_level;
         motor_consumption = default_motor_consumption;
+
+        numPickups = 0;
+
+    }
+
+    public String getActiveHeuristic() {
+        return heuristicPhenotype.getActiveHeuristic();
+    }
+
+    public void incPickups() {
+        numPickups++;
+    }
+
+    public double getNumPickups() {
+        return numPickups;
     }
 
     private void initSensors() {
 
         for (AgentSensor sensor : phenotype.getSensors())
         {
-           sensor.attach(this); // Bug is fixed :)
+            sensor.attach(this); // Bug is fixed :)
         }
 
         getPortrayal().setChildDrawable(new Drawable() {
@@ -160,6 +177,8 @@ public class RobotObject extends PhysicalObject {
         //moves robot
         super.step(sim);
 
+        // System.out.println(getBody().getPosition().x+", "+getBody().getPosition().y);
+
         if(energy_level <= 0) return;
         List<AgentSensor> sensors = phenotype.getSensors();
         List<List<Double>> readings = new ArrayList<>(sensors.size());
@@ -167,6 +186,9 @@ public class RobotObject extends PhysicalObject {
 
         // get readings from heuristic phenotype
         Double2D wheelDrives = heuristicPhenotype.step(readings);
+
+        //get readings just from phenotype
+        // Double2D wheelDrives = phenotype.step(readings);
 
         if (Math.abs(wheelDrives.x) > 1.0 || Math.abs(wheelDrives.y) > 1.0) {
             throw new RuntimeException("Invalid force applied: " + wheelDrives);
@@ -178,7 +200,6 @@ public class RobotObject extends PhysicalObject {
         updateFriction();
 
         if (sim.schedule.getSteps() % 50 == 0 && !heuristicPhenotype.getActiveHeuristic().equalsIgnoreCase("none")) {
-
             SpatialPoint sample = new SpatialPoint(this.getBody().getPosition(), samplePoints);
             samplePoints.add(sample);
             //after collecting 4 points (or something), calculate area and flush sample point buffer
@@ -189,6 +210,8 @@ public class RobotObject extends PhysicalObject {
                 samplePoints.clear();
             }
         }
+
+        // System.out.println("Pos: "+this.getBody().getPosition().x+" "+this.getBody().getPosition().y);
 //        consumeEnergy();
     }
 
@@ -284,6 +307,7 @@ public class RobotObject extends PhysicalObject {
     }
 
     public void setColor(Color color) {
+        System.out.println("RobotObject: the colour is = " + color);
         if (color == null) {
             color = defaultColor;
         }
@@ -405,6 +429,7 @@ public class RobotObject extends PhysicalObject {
         List<List<Double>> readings = new ArrayList<>(sensors.size());
         sensors.forEach(s -> readings.add(s.sense()));
         Double2D wheelDrives = heuristicPhenotype.step(readings);
+        // Double2D wheelDrives = phenotype.step(readings);
 
         if(wheelDrives == null){
             energy_level -= sensor_consumption;

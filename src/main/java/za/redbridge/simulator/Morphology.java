@@ -23,7 +23,6 @@ public class Morphology{
     private Map<String,Object> yamlCache;
 
     public Morphology(List<AgentSensor> sensorList, int numSensors) {
-
         this.sensorList = sensorList;
         this.numSensors = numSensors;
 

@@ -11,10 +11,12 @@ dependencies {
   compile 'args4j:args4j:2.0.29'
   compile 'org.apache.commons:commons-math3:3.3'
   compile 'org.encog:encog-core:3.3.0'
+  compile 'com.beust:jcommander:1.35'
+  compile 'ch.qos.logback:logback-classic:1.1.2'
 }
 
 apply plugin:'application'
-mainClassName = "za.redbridge.simulator.experiment.Main"
+mainClassName = "za.redbridge.simulator.Main"
 
 apply plugin: 'maven'
 install {
@@ -35,7 +37,7 @@ task fatJar(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'Redbridge Mining Crew Simulator',
             /*'Implementation-Version': '1.0',*/
-            'Main-Class': 'za.redbridge.simulator.experiment.Main'
+            'Main-Class': 'za.redbridge.simulator.Main'
     }
     baseName = project.name + '-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }

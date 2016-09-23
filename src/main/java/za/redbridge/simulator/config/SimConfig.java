@@ -283,4 +283,6 @@ public class SimConfig extends Config {
 
     public ResourceFactory getResourceFactory() { return resourceFactory; }
 
+    //public void setRobotCount(int count) {this.objectsRobots = count;}
+
 }

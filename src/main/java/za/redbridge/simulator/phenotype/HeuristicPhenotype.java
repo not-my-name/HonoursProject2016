@@ -36,17 +36,16 @@ public class HeuristicPhenotype implements Phenotype, Drawable {
 
     private final Phenotype controllerPhenotype;
     private final RobotObject robot;
-    private final SimConfig.Direction targetAreaPlacement;
+    //private final SimConfig.Direction targetAreaPlacement;
     private final HeuristicSchedule schedule;
 
     private CollisionSensor collisionSensor;
     private PickupSensor pickupSensor;
 
-    public HeuristicPhenotype(Phenotype controllerPhenotype, RobotObject robot,
-            SimConfig.Direction targetAreaPlacement) {
+    public HeuristicPhenotype(Phenotype controllerPhenotype, RobotObject robot) {
         this.controllerPhenotype = controllerPhenotype;
         this.robot = robot;
-        this.targetAreaPlacement = targetAreaPlacement;
+        //this.targetAreaPlacement = targetAreaPlacement;
 
         schedule = new HeuristicSchedule();
         initHeuristics(robot);
@@ -61,13 +60,13 @@ public class HeuristicPhenotype implements Phenotype, Drawable {
         if (PICKUP_HEURISTIC_ENABLED) {
             pickupSensor = new PickupSensor(PICKUP_SENSOR_WIDTH, PICKUP_SENSOR_HEIGHT);
             pickupSensor.attach(robot);
-            schedule.addHeuristic(new PickupHeuristic(pickupSensor, robot, targetAreaPlacement));
+            schedule.addHeuristic(new PickupHeuristic(pickupSensor, robot));
         }
     }
 
     @Override
     public HeuristicPhenotype clone() {
-        return new HeuristicPhenotype(controllerPhenotype.clone(), robot, targetAreaPlacement);
+        return new HeuristicPhenotype(controllerPhenotype.clone(), robot);
     }
 
     @Override
@@ -98,9 +97,11 @@ public class HeuristicPhenotype implements Phenotype, Drawable {
     @Override
     public void draw(Object object, Graphics2D graphics, DrawInfo2D info) {
         if (COLLISION_HEURISTIC_ENABLED) {
+            //System.out.println("HeuristicPhenotype: the collision heuristic");
             collisionSensor.getPortrayal().draw(object, graphics, info);
         }
         if (PICKUP_HEURISTIC_ENABLED) {
+            //System.out.println("HeuristicPhenotype: the pickup heuristic");
             pickupSensor.getPortrayal().draw(object, graphics, info);
         }
     }

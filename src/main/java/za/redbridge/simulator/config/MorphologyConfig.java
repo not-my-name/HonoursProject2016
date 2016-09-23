@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import za.redbridge.simulator.khepera.*;
 
 /**
  * Created by shsu on 2014/09/08.
@@ -54,22 +55,23 @@ public class MorphologyConfig extends Config {
             int sensors = 0;
             int totalReadingSize = 0;
 
-            String id = i + "m";
+            String id = "m"+ i;
             Map morph = (Map) config.get(id);
             if (checkFieldPresent(morph,id)){
                 Map sensorMeta = (Map) morph.get("meta");
+                // change here
                 Number noSensors = (Number) sensorMeta.get("numSensor");
                 sensors = noSensors.intValue();
             }
 
             for (int j=1;j<=sensors;j++) {
-                String sid = j + "s";
+                String sid = "s"+j;
                 String type = null;
                 float bearing, orientation, fieldOfView, range;
 
                 AgentSensor agentSensor = null;
 
-                Map sensor = (Map) config.get(sid);
+                Map sensor = (Map) morph.get(sid);
                 if (checkFieldPresent(sensor, sid)) {
                     Number bear = (Number) sensor.get("bearing");
                     if (checkFieldPresent(bear, sid + ":bearing")) {
@@ -80,68 +82,32 @@ public class MorphologyConfig extends Config {
                     }
 
                     Number orient = (Number) sensor.get("orientation");
-                    if (checkFieldPresent(bear, sid + ":orientation")) {
+                    if (checkFieldPresent(orient, sid + ":orientation")) {
                         orientation = orient.floatValue();
                     }
                     else {
                         throw new ParseException("No orientation found for sensor " + sid, j);
                     }
 
-                    Number fov = (Number) sensor.get("fieldOfView");
-                    if (checkFieldPresent(bear, sid + ":fieldOfView")) {
-                        fieldOfView = fov.floatValue();
-                    }
-                    else {
-                        throw new ParseException("No field of view found for sensor " + sid, j);
-                    }
-
-                    Number ran = (Number) sensor.get("range");
-                    if (checkFieldPresent(bear, sid + ":range")) {
-                        range = ran.floatValue();
-                    }
-                    else {
-                        throw new ParseException("No sensor range found for sensor " + sid, j);
-                    }
-
                     type = (String) sensor.get("type");
                     if (checkFieldPresent(type, sid+":type")) {
-                        try {
-                            Class sensorType = Class.forName(type.trim());
-
-                            Object o = sensorType.getConstructor(Float.TYPE, Float.TYPE, Float.TYPE, Float.TYPE)
-                                    .newInstance((float) Math.toRadians(bearing), (float) Math.toRadians(orientation),
-                                            range, (float) Math.toRadians(fieldOfView));
-
-                            if (!(o instanceof AgentSensor)) {
-                                throw new InvalidClassException("Not Agent Sensor.");
-                            }
-
-                            agentSensor = (AgentSensor) o;
-                            // not sure if implemented
-                            // agentSensor.readAdditionalConfigs(sensor);
+                        if(type.equalsIgnoreCase("ProximitySensor")){
+                            agentSensor = new ProximitySensor((float) Math.toRadians(bearing), orientation);
                         }
-                        catch (ClassNotFoundException c) {
-                            System.out.println("AgentSensor Class not found for " + type);
-                            c.printStackTrace();
-                            System.exit(-1);
+                        else if(type.equalsIgnoreCase("BottomProximitySensor")){
+                            agentSensor = new BottomProximitySensor();
                         }
-                        catch (InvalidClassException x) {
-                            System.out.println("Invalid specified agent sensor class. " + type);
-                            x.printStackTrace();
-                            System.exit(-2);
+                        else if(type.equalsIgnoreCase("UltrasonicSensor")){
+                            agentSensor = new UltrasonicSensor((float) Math.toRadians(bearing), orientation);
                         }
-                        catch (NoSuchMethodException n) {
-                            n.printStackTrace();
+                        else if(type.equalsIgnoreCase("ColourProximitySensor")){
+                            agentSensor = new ColourProximitySensor((float) Math.toRadians(bearing), orientation);
                         }
-                        catch (InvocationTargetException inv) {
-                            inv.getCause();
-                            inv.printStackTrace();
+                        else if(type.equalsIgnoreCase("ColourRangedSensor")){
+                            agentSensor = new ColourRangedSensor((float) Math.toRadians(bearing), orientation);
                         }
-                        catch (InstantiationException ins) {
-                            ins.printStackTrace();
-                        }
-                        catch (IllegalAccessException ill) {
-                            ill.printStackTrace();
+                        else if(type.equalsIgnoreCase("LowResCameraSensor")){
+                            agentSensor = new LowResCameraSensor((float) Math.toRadians(bearing), orientation);
                         }
 
                     }
@@ -166,6 +132,6 @@ public class MorphologyConfig extends Config {
     }
 
     public Morphology getMorphology(int i){
-        return morphologyList.get(i);
+        return morphologyList.get(i-1);
     }
 }
