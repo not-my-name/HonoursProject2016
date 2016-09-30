@@ -14,7 +14,7 @@ import java.util.ArrayList;
 
 public class SchemaConfig extends Config{
     private Config [] configs;
-    private String [] resourceArray = {"A","B","C","D","E"};
+    private String [] resourceArray = {"A","B","C"};
 
     public SchemaConfig(String filepath, int n, int k){
         Map<String, Object> config = null;
@@ -49,7 +49,7 @@ public class SchemaConfig extends Config{
         }
     }
 
-    public boolean checkConfig(int i, String type ,String [] adjacent){
+    public int checkConfig(int i, String type ,String [] adjacent){
         return configs[i].checkSchema(type, adjacent);
     }
 
@@ -80,21 +80,21 @@ public class SchemaConfig extends Config{
             return resQuantityArray;
         }
 
-        public boolean checkSchema(String type, String [] adjacent){
-            boolean correct = false;
-            if(adjacent.length==4){
-                if(schema.get(type).checkLeft(adjacent[0]) && schema.get(type).checkRight(adjacent[1]) &&
-                schema.get(type).checkUp(adjacent[2]) && schema.get(type).checkDown(adjacent[3])){
-                    return true;
-                }
+        public int checkSchema(String type, String [] adjacent){
+            int correctSides = 0;
+            if(schema.get(type).checkLeft(adjacent[0])){
+                correctSides++;
             }
-            else{
-                if(schema.get(type).checkLeft(adjacent[0]) && schema.get(type).checkRight(adjacent[1]) &&
-                schema.get(type).checkDown(adjacent[2])){
-                    return true;
-                }
+            if(schema.get(type).checkRight(adjacent[1])){
+                correctSides++;
             }
-            return false;
+            if(schema.get(type).checkUp(adjacent[2])){
+                correctSides++;
+            }
+            if(schema.get(type).checkDown(adjacent[3])){
+                correctSides++;
+            }
+            return correctSides;
         }
     }
 

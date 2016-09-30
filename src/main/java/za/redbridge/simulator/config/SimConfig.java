@@ -27,12 +27,6 @@ public class SimConfig extends Config {
     private static final float DEFAULT_ROBOT_RADIUS = 0.15f;
     private static final Color DEFAULT_ROBOT_COLOUR = new Color(255,0,0);
 
-
-    private static final ResourceFactory DEFAULT_RESOURCE_FACTORY = new ConfigurableResourceFactory();
-    private static final String DEFAULT_ROBOT_FACTORY =
-        "za.redbridge.simulator.factories.HomogeneousRobotFactory";
-
-
     public enum Direction {
         NORTH, SOUTH, EAST, WEST
     }
@@ -51,26 +45,22 @@ public class SimConfig extends Config {
     private final Direction targetAreaPlacement;
     private final int targetAreaThickness;
 
-    private ResourceFactory resourceFactory;
-    private String robotFactoryName;
     private int configNumber = 0;
 
     public static String agentLocation = "";
-
+    private Map resources;
 
     //default config
     public SimConfig() {
         this(DEFAULT_SIMULATION_SEED, DEFAULT_SIMULATION_ITERATIONS, DEFAULT_ENVIRONMENT_WIDTH,
             DEFAULT_ENVIRONMENT_HEIGHT, DEFAULT_TARGET_AREA_PLACEMENT,
             DEFAULT_TARGET_AREA_THICKNESS, DEFAULT_OBJECTS_ROBOTS, DEFAULT_ROBOT_MASS,
-            DEFAULT_ROBOT_RADIUS, DEFAULT_ROBOT_COLOUR, DEFAULT_RESOURCE_FACTORY,
-            DEFAULT_ROBOT_FACTORY);
+            DEFAULT_ROBOT_RADIUS, DEFAULT_ROBOT_COLOUR);
     }
 
     public SimConfig(long simulationSeed, int simulationIterations, int environmentWidth,
                      int environmentHeight, Direction targetAreaPlacement, int targetAreaThickness,
-                     int objectsRobots, float robotMass, float robotRadius, Color robotColour,
-                     ResourceFactory resourceFactory, String robotFactoryName) {
+                     int objectsRobots, float robotMass, float robotRadius, Color robotColour) {
 
         this.simulationSeed = simulationSeed;
         this.simulationIterations = simulationIterations;
@@ -85,9 +75,6 @@ public class SimConfig extends Config {
         this.robotMass = robotMass;
         this.robotRadius = robotRadius;
         this.robotColour = robotColour;
-
-        this.resourceFactory = resourceFactory;
-        this.robotFactoryName = robotFactoryName;
     }
 
     @SuppressWarnings("unchecked")
@@ -112,9 +99,6 @@ public class SimConfig extends Config {
         float rMass = DEFAULT_ROBOT_MASS;
         float rRadius = DEFAULT_ROBOT_RADIUS;
         Color robotColour = DEFAULT_ROBOT_COLOUR;
-
-        ResourceFactory resFactory = DEFAULT_RESOURCE_FACTORY;
-        String robotFactory = DEFAULT_ROBOT_FACTORY;
 
         //get inputs from user
         BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
@@ -141,25 +125,13 @@ public class SimConfig extends Config {
             }
         }
 
-        configNumber = (Integer) config.get("config");
+        configNumber = (Integer)(config.get("config"));
+        resources = (Map) config.get("resources");
 
         // Robots
         String robot_input = "";
         Map bots = (Map) config.get("robots");
         if (checkFieldPresent(bots, "robots")) {
-            // boolean valid = false;
-            // while(!valid)
-            // {
-            //     System.out.println("Enter number of robots (1 - 20) - default 20");
-            //     robot_input = inputReader.readLine();
-            //     if (robot_input.equalsIgnoreCase("")) robot_input = "20";
-            //     robots = Integer.parseInt(robot_input);
-            //     if(robots > 20 || robots <1)
-            //     {
-            //         System.out.println("Please enter a number in range!");
-            //     }
-            //     else valid = true;
-            // }
            Integer robotsField = (Integer) bots.get("numRobots");
            if (checkFieldPresent(robotsField, "robots:numRobots")) {
                robots = robotsField;
@@ -182,46 +154,7 @@ public class SimConfig extends Config {
             }
 
         }
-
-        //factories
-        String trash_input ="", res_input ="";
-        Map factories = (Map) config.get("factories");
-        if (checkFieldPresent(factories, "factories")) {
-            String rFactory = (String) factories.get("resourceFactory");
-            if (checkFieldPresent(resFactory, "factories:resourceFactory")) {
-                try {
-                    Class f = Class.forName(rFactory);
-                    Object o = f.newInstance();
-
-                    if (!(o instanceof ResourceFactory)) {
-                        throw new InvalidClassException("");
-                    }
-
-                    resFactory = (ResourceFactory) o;
-                    Map resources = (Map) config.get("resources");
-                    String [] resQuantity = {"0","0","0"};
-                    resFactory.configure(resources,resQuantity);
-
-                } catch (ClassNotFoundException c) {
-                    System.out.println("Invalid class name specified in SimConfig: " + rFactory + ". Using default resource factory.");
-                    c.printStackTrace();
-                } catch (InvalidClassException i) {
-                    System.out.println("Invalid resource factory specified: " + rFactory + ". Using default resource factory.");
-                    i.printStackTrace();
-                } catch (InstantiationException | IllegalAccessException ins) {
-                    ins.printStackTrace();
-                }
-            }
-
-            // System.out.println("Number of robots : " + robot_input);
-            // System.out.println("Number of resources : " + res_input);
-            String robFactory = (String) factories.get("robotFactory");
-            if (checkFieldPresent(robFactory, "factories:robotFactory")) {
-                robotFactory = robFactory;
-            }
-            agentLocation = "";
-        }
-
+        
         inputReader.close();
         this.simulationSeed = seed;
         this.simulationIterations = iterations;
@@ -233,11 +166,11 @@ public class SimConfig extends Config {
         this.robotMass = rMass;
         this.robotRadius = rRadius;
         this.robotColour = robotColour;
-        this.resourceFactory = resFactory;
-        this.robotFactoryName = robotFactory;
     }
 
-
+    public Map getResources(){
+        return resources;
+    }
 
     public long getSimulationSeed() {
         return simulationSeed;
@@ -280,9 +213,4 @@ public class SimConfig extends Config {
     public float getRobotMass() { return robotMass; }
 
     public float getRobotRadius() { return robotRadius; }
-
-    public ResourceFactory getResourceFactory() { return resourceFactory; }
-
-    //public void setRobotCount(int count) {this.objectsRobots = count;}
-
 }

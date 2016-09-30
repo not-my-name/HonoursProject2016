@@ -2,7 +2,7 @@ meta:
   numMorph: 1
 m1:
   meta:
-    numSensor: 9
+    numSensor: 10
   s1:
     type: ProximitySensor
     bearing: 40.0
@@ -24,26 +24,22 @@ m1:
     bearing: 180.0
     orientation: 0.0
   s6:
-    type: BottomProximitySensor
-    bearing: -140.0
-    orientation: 0.0
-  s7:
     type: UltrasonicSensor
     bearing: 0.0
     orientation: 0.0
-  s8:
+  s7:
     type: UltrasonicSensor
     bearing: 90
     orientation: 0.0
-  s7:
-    type: UltrasonicSensor
+  s8:
+    type: ConstructionSensor
     bearing: 0.0
     orientation: 0.0
-  s8:
+  s9:
     type: ColourRangedSensor
     bearing: 15
     orientation: 0.0
-  s9:
+  s10:
     type: LowResCameraSensor
     bearing: -15.0
     orientation: 0.0

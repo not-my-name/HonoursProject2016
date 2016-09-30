@@ -1,6 +1,6 @@
 ---
 simulation:
-  iterations: 10
+  iterations: 1000
 config: 1
 environment:
   width: 20
@@ -33,7 +33,7 @@ factories:
   resourceFactory: za.redbridge.simulator.factories.ConfigurableResourceFactory
   robotFactory: za.redbridge.simulator.factories.HomogeneousRobotFactory
 robots:
-  numRobots: 2
+  numRobots: 15
   mass: 0.7
   radius: 0.15
   colour: 0, 0, 0

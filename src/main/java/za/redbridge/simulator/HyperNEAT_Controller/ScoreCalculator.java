@@ -37,25 +37,31 @@ public class ScoreCalculator implements CalculateScore {
     private final int simulationRuns;
     private final Morphology sensorMorphology;
 
+    private int schemaConfigNum;
+
     private final DescriptiveStatistics performanceStats = new SynchronizedDescriptiveStatistics();
     private final DescriptiveStatistics scoreStats = new SynchronizedDescriptiveStatistics();
     //private final DescriptiveStatistics sensorStats;
 
+    private Archive archive;
+
+    private ArrayList<AggregateBehaviour> currentPopulation; //list to store the novelty functions and the aggregate behaviours of the current generation
+    private int populationSize;
+
     public ScoreCalculator(SimConfig simConfig, int simulationRuns,
-            Morphology sensorMorphology) {
+            Morphology sensorMorphology, int populationSize) {
         this.simConfig = simConfig;
         this.simulationRuns = simulationRuns;
         this.sensorMorphology = sensorMorphology;
+        this.populationSize = populationSize;
+
+        currentPopulation = new ArrayList<AggregateBehaviour>();
+
+        schemaConfigNum = 0;
+
+        archive = null;
 
     }
-
-    /*
-    The network gets created and evolved by the encog library
-    The ML method then gets sent here (the network)
-    The simulation the gets setup according to specifications and the robots are created using
-    the decoded network for the controller
-    The robots are then tested in the simulator and are given a score based on their performance
-    */
 
     @Override
     public double calculateScore(MLMethod method) {
@@ -70,12 +76,18 @@ public class ScoreCalculator implements CalculateScore {
                     simConfig.getRobotMass(), simConfig.getRobotRadius(), simConfig.getRobotColour(),
                     simConfig.getObjectsRobots());
 
-        //FitnessMonitor fitnessMonitor = new FitnessMonitor(robotFactory.getNumRobots());
-
         // Create the simulation and run it
         //System.out.println("ScoreCalculator: creating the simulation and starting the GUI");
         Simulation simulation = new Simulation(simConfig, robotFactory);
         simulation.setStopOnceCollected(true);
+
+        //simulation.setNumIterations(simulationRuns);
+
+        simulation.setSchemaConfigNumber(schemaConfigNum);
+
+        if(this.archive != null) {
+            simulation.setArchive(this.archive);
+        }
 
         /*SimulationGUI video = new SimulationGUI(simulation);
         Console console = new Console(video);
@@ -85,11 +97,16 @@ public class ScoreCalculator implements CalculateScore {
         this is where the genomes get trained in the simulator using the robots
         */ 
 
+        AggregateBehaviour aggregateBehaviour = new AggregateBehaviour(simulationRuns, schemaConfigNum);
+
+        //System.out.println("ScoreCalculator: number of simulation runs = " + simulationRuns);
+
         double fitness = 0;
         for (int i = 0; i < simulationRuns; i++) {
             //System.out.println("ScoreCalculator: printing from inside the simulation loop");
-            simulation.run();
-            fitness += simulation.getFitness();
+            //simulation.run();
+            aggregateBehaviour.addSimBehaviour(simulation.run());
+            //fitness += simulation.getFitness();
             //System.out.println("ScoreCalculator: finished the simulation");
             //fitness += 1D / simulation.getRobotToNearestResourceDistances(); //the new fitness from Josh
             //fitness += simulation.performFitnessCalc();
@@ -99,9 +116,40 @@ public class ScoreCalculator implements CalculateScore {
             //System.out.println("ScoreCalculator: the fitness is = " + fitness);
         }
 
-        // Get the fitness and update the total score
-        double score = fitness / simulationRuns;
+        /**
+        this is for the objective fitness experiments
+        */
+        ObjectiveFitness objectiveFitness = new ObjectiveFitness(aggregateBehaviour);
+        double score = objectiveFitness.calculate();
         scoreStats.addValue(score);
+
+        /**
+        this is for the novelty fitness experiments
+        */
+
+        if(currentPopulation.size() < populationSize) {
+            currentPopulation.add(aggregateBehaviour);
+        }
+        else if(currentPopulation.size() == populationSize) {
+            for(int k = 0; k < populationSize; k++) {
+                NoveltyFitness noveltyFitness = new NoveltyFitness(currentPopulation.get(k), currentPopulation, k);
+            }
+        }
+
+        NoveltyFitness noveltyFitness = new NoveltyFitness(aggregateBehaviour);
+        double score = noveltyFitness.calculate();
+        scoreStats.addValue(score);
+
+        /**
+        this is for the hybrid search experiments
+        */
+        HybridFitness hybridFitness = new HybridFitness(aggregateBehaviour);
+        double score  = hybridFitness.calculate();
+        scoreStats.addValue(score);
+
+        // Get the fitness and update the total score
+        // double score = fitness / simulationRuns;
+        // scoreStats.addValue(score);
 
         log.debug("Score calculation completed: " + score);
 
@@ -115,8 +163,6 @@ public class ScoreCalculator implements CalculateScore {
 
     public void demo(MLMethod method) {
         // Create the robot and resource factories
-
-        System.out.println("ScoreCalculator: starting the demo method");
 
         NEATNetwork neat_network = null;
         BasicNetwork basic_network = null;
@@ -138,6 +184,14 @@ public class ScoreCalculator implements CalculateScore {
         //new console which displays this simulation
         Console console = new Console(video);
         console.setVisible(true);
+    }
+
+    public void setSchemaConfigNumber(int i) {
+        schemaConfigNum = i;
+    }
+
+    public void setArchive(Archive archive) {
+        this.archive = archive;
     }
 
     //HyperNEAT uses the NEATnetwork as well

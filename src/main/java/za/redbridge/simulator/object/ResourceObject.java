@@ -75,6 +75,8 @@ public class ResourceObject extends PhysicalObject {
     private String[] adjacentResources;
     private boolean connected;
 
+    private ResourceObject[] adjacentList;
+
     // is a hack
     // private ArrayList<ResourceObject> otherResources = new ArrayList<ResourceObject>();
 
@@ -110,6 +112,8 @@ public class ResourceObject extends PhysicalObject {
 
         joints = new HashMap<>(pushingRobots);
         pendingJoints = new HashMap<>(pushingRobots);
+
+        adjacentList = new ResourceObject[4];
 
         if (DEBUG) {
             getPortrayal().setChildDrawable(new DebugPortrayal(Color.BLACK, true));
@@ -244,6 +248,7 @@ public class ResourceObject extends PhysicalObject {
     public void updateAdjacent(CopyOnWriteArrayList<ResourceObject> resourceArray){
         for(int i=0;i<adjacentResources.length;i++){
             adjacentResources[i] = "0";
+            adjacentList[i] = null;
         }
 
         for(int j=0;j<resourceArray.size();j++){
@@ -292,6 +297,10 @@ public class ResourceObject extends PhysicalObject {
 
     public String [] getAdjacentResources(){
         return adjacentResources;
+    }
+
+    public ResourceObject[] getAdjacentList() {
+        return adjacentList;
     }
 
     public String getType(){
@@ -399,6 +408,8 @@ public class ResourceObject extends PhysicalObject {
         // Mark the anchor as taken and the robot as bound to a resource.
         closestAnchor.markTaken();
         robot.setBoundToResource(true, pushingRobots);
+
+        robot.incPickups();
 
         return true;
     }

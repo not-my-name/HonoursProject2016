@@ -19,6 +19,10 @@ import za.redbridge.simulator.object.RobotObject;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import java.util.Iterator;
+
+import za.redbridge.simulator.ConstructionZone;
+
 /*
  *  The construction task class
  *
@@ -35,32 +39,12 @@ public class ConstructionTask implements Steppable{
     private Vec2[] prevBotLocations;
 
     private FitnessStats fitnessStats;
-    private double teamFitness;
+    //private double teamFitness;
 
-    /*
-    these were the original constructors for this class
-    commented out and using the code from Daniel to fix the concurrent modification errors
+    private ConstructionZone constructionZone;
+    private int maxSteps = 0;
 
-    /*public ConstructionTask(String path, ArrayList<ResourceObject> r, World world, ArrayList<RobotObject> robots){
-        schema = new SchemaConfig(path,1,3);
-        resources = r;
-        weldMap = new HashMap<ResourceObject, ArrayList<ResourceObject>>();
-        for(int i=0;i<resources.size();i++){
-            ArrayList<ResourceObject> temp = new ArrayList<ResourceObject>();
-            weldMap.put(resources.get(i), temp);
-        }
-
-        currentRobots = robots;
-
-        physicsWorld = world;
-        update();
-    }
-
-    public ConstructionTask(String path, World world){
-        schema = new SchemaConfig("configs/schemaConfig.yml",1,3);
-        physicsWorld = world;
-        weldMap = new HashMap<ResourceObject, ArrayList<ResourceObject>>();
-    }*/
+    private boolean IS_FIRST_CONNECTED = true;
 
     public ConstructionTask(SchemaConfig schema, CopyOnWriteArrayList<ResourceObject> r, ArrayList<RobotObject> robots, World world, int maxSteps) {
         this.schema = schema;
@@ -72,16 +56,42 @@ public class ConstructionTask implements Steppable{
             weldMap.put(resources.get(k), temp);
         }
         physicsWorld = world;
-        update();
+        this.maxSteps = maxSteps;
+        constructionZone = new ConstructionZone(maxSteps);
         fitnessStats = new FitnessStats(maxSteps);
+        update();
+    }
+
+    public ConstructionTask(String path, World world, ArrayList<RobotObject> robots){
+        // System.out.println("THIS OTHER");
+        schema = new SchemaConfig(path,1,3);
+        weldMap = new HashMap<ResourceObject, ArrayList<ResourceObject>>();
+        for(int i=0;i<resources.size();i++){
+            ArrayList<ResourceObject> temp = new ArrayList<ResourceObject>();
+            weldMap.put(resources.get(i), temp);
+        }
+
+        //do same as above for robots
+
+        physicsWorld = world;
+        update();
     }
 
     public ConstructionTask(String path, ArrayList<RobotObject> robots, World world, int maxSteps) {
-        schema = new SchemaConfig("configs/schemaConfig.yml", 1, 3);
+        //schema = new SchemaConfig("configs/schemaConfig.yml", 1, 3);
+        schema = new SchemaConfig(path, 1, 3);
         physicsWorld = world;
         this.currentRobots = robots;
         weldMap = new HashMap<ResourceObject, ArrayList<ResourceObject>>();
         fitnessStats = new FitnessStats(maxSteps);
+    }
+
+    //not sure when this gets called
+    public ConstructionTask(String path, World world){
+        // System.out.println("THIS OTHER 2");
+        schema = new SchemaConfig("configs/schemaConfig.yml",1,3);
+        physicsWorld = world;
+        weldMap = new HashMap<ResourceObject, ArrayList<ResourceObject>>();
     }
 
     //CONCURRENCY
@@ -96,29 +106,9 @@ public class ConstructionTask implements Steppable{
         }
     }
 
-    /*public double getFitness() {
-        // //calculate the fitness of the robot team 
-        // //calculate the average distances between the robots and the resources
-
-        // for(RobotObject tempRobot : currentRobots) { //iterating over the current robots
-        //     //getting the world position of each robot
-        //     Vec2 currentBotPosition = tempRobot.getBody().getPosition(); //getBody() uses Vector2
-        //     for(ResourceObject currentResource : resources) { //iterating over all the resources left
-        //         //getting the word position of each resource
-        //         //resourceObjects use Vec2 for position
-        //         Body resObjectBody = currentResource.getBody();
-        //         Vec2 resourcePos = resObjectBody.getPosition();
-        //         //Vec2 worldPos = resObjectBody.getWorldPosition();
-        //         //Vector2 resourcePos = new Vector2(tempResPos.getX(), tempResPos.getY());
-        //         //Vector2 worldPos = new Vector2(tempWorldPos.getX(), tempWorldPos.getY());
-        //         System.out.println("ConstructionTask: the difference between positions");
-        //         System.out.println("ContsructionTask: resource position = " + resourcePos);
-        //         System.out.println("ConstructionTask: robot position: " + currentBotPosition);
-        //     }
-        // }
-
-        return 10;
-    }*/
+    public CopyOnWriteArrayList<ResourceObject> getSimulationResources() {
+        return resources;
+    }
 
     /*public void addResources(CopyOnWriteArrayList<ResourceObject> r){
         resources = r;
@@ -134,6 +124,7 @@ public class ConstructionTask implements Steppable{
 
     @Override
     public void step(SimState simState) {
+        Simulation s = (Simulation) simState;
         /*for(ResourceObject firstR : resources){
             for(ResourceObject secondR : resources){
                 if(firstR != secondR){
@@ -157,6 +148,10 @@ public class ConstructionTask implements Steppable{
                 }
             }
         }*/
+        //MIGHT HAVE TO UNCOMMENT THIS WITH THE UPDATE METHOD IN THE CONSTRUCTOR
+        // if(s.schedule.getSteps() > 0) {
+        //     update();
+        // }
     }
 
     public boolean checkPotentialWeld(ResourceObject r1, ResourceObject r2){
@@ -183,11 +178,47 @@ public class ConstructionTask implements Steppable{
         }
     }
 
-    public void update(){
+    public void update(){  
+        // System.out.println("Starting update"); 
         for(ResourceObject resource : resources){
             resource.updateAdjacent(resources);
+            String [] resAdjacentList = resource.getAdjacentResources();
+            for (int i = 0; i < resAdjacentList.length; i++) {
+                if (IS_FIRST_CONNECTED) {
+                    // System.out.println("FIRST");
+                    if (!resAdjacentList[i].equals("0")) {
+                        // System.out.println("CONNECTION!!");
+                        ResourceObject otherRes = resource.getAdjacentList()[i];
+                        // System.out.println("ConstructionZone: " + constructionZone + " RESOURCE: " + resource);
+                        constructionZone.addResource(resource);
+                        constructionZone.addResource(otherRes);
+                        // System.out.println(constructionZone.getFitnessStats().getTeamFitness());
+                        IS_FIRST_CONNECTED = false;
+                    }
+                }
+                else {
+                    // System.out.println("AFTER");
+                    if ((!resAdjacentList[i].equals("0"))&&(!constructionZone.isInConstructionZone(resource))) {
+                        ResourceObject otherRes = resource.getAdjacentList()[i];
+                        if (constructionZone.isInConstructionZone(otherRes)) {
+                            // System.out.println("NEW CONNECTION!!");
+                            constructionZone.addResource(resource);
+                        }
+                    }
+                }
+            }
         }
     }
+
+    public int getNumConnectedResources() {
+        return constructionZone.getNumberOfConnectedResources();
+    }
+
+    // public void update(){
+    //     for(ResourceObject resource : resources){
+    //         resource.updateAdjacent(resources);
+    //     }
+    // }
 
     public void printConnected(){
         for(ResourceObject resource : resources){
@@ -199,70 +230,73 @@ public class ConstructionTask implements Steppable{
         }
     }
 
-    public int checkSchema(int i){
-        System.out.println("ConstructionTask: This method actually gets called");
-        int correct = 0;
-        for(ResourceObject resource : resources){
-            if(schema.checkConfig(i,resource.getType(), resource.getAdjacentResources())){
-                System.out.print("Resource "+resource.getType()+" is correct -> ");
-                for(int j=0;j<resource.getAdjacentResources().length;j++){
-                    System.out.print(resource.getAdjacentResources()[j]+" ");
-                }
-                System.out.println();
-                correct++;
-            }
+    public int checkSchema(int i) {
+        int correctSides = 0;
+        for(ResourceObject resource : resources) {
+            correctSides += schema.checkConfig(i, resource.getType(), resource.getAdjacentResources());
         }
-        return correct;
+
+        return correctSides;
     }
+
+    // public int checkSchema(int i){
+    //     System.out.println("ConstructionTask: This method actually gets called");
+    //     int correct = 0;
+    //     for(ResourceObject resource : resources){
+    //         if(schema.checkConfig(i,resource.getType(), resource.getAdjacentResources())){
+    //             System.out.print("Resource "+resource.getType()+" is correct -> ");
+    //             for(int j=0;j<resource.getAdjacentResources().length;j++){
+    //                 System.out.print(resource.getAdjacentResources()[j]+" ");
+    //             }
+    //             System.out.println();
+    //             correct++;
+    //         }
+    //     }
+    //     return correct;
+    // }
 
     public int[] configResQuantity(int i){
         return schema.getResQuantity(i);
     }
 
-    private double calculateFitness() {
-        System.out.println("ConstructionTask: calculateFitness method called");
-        double fitness = calculateDistanceFitness();
-        //System.out.println("ConstructionTask: fitness value = " + fitness);
-        return fitness;
+    public ConstructionZone getConstructionZone() {
+        return constructionZone;
     }
 
-    private double calculateDistanceFitness() {
-        //System.out.println("ConstructionTask: calculateDistanceFitness method called");
-        double averageFitness = 0;
-        for(RobotObject robot : currentRobots) {
-            float smallestDistance = 10000;
-            for(ResourceObject resource : resources) {
-                float distanceBetween = robot.getBody().getPosition().sub(resource.getBody().getPosition()).length();
-                if(distanceBetween <= smallestDistance) {
-                    smallestDistance = distanceBetween;
-                }
-            }
-            averageFitness += 20*(1/(1+smallestDistance));
-        }
-        averageFitness = averageFitness/currentRobots.size();
+    // private double calculateFitness() {
+    //     System.out.println("ConstructionTask: calculateFitness method called");
+    //     double fitness = calculateDistanceFitness();
+    //     //System.out.println("ConstructionTask: fitness value = " + fitness);
+    //     return fitness;
+    // }
 
-        //System.out.println("ConstructionTask (calculateDistanceFitness): average team fitness = " + averageFitness);
-        return averageFitness;
-    }
+    // private double calculateDistanceFitness() {
+    //     //System.out.println("ConstructionTask: calculateDistanceFitness method called");
+    //     double averageFitness = 0;
+    //     for(RobotObject robot : currentRobots) {
+    //         float smallestDistance = 10000;
+    //         for(ResourceObject resource : resources) {
+    //             float distanceBetween = robot.getBody().getPosition().sub(resource.getBody().getPosition()).length();
+    //             if(distanceBetween <= smallestDistance) {
+    //                 smallestDistance = distanceBetween;
+    //             }
+    //         }
+    //         averageFitness += 20*(1/(1+smallestDistance));
+    //     }
+    //     averageFitness = averageFitness/currentRobots.size();
 
-    private double calculateConstructionFitness() {
-        double fitness = 0;
-        update();
-        int numberAdjacentResources = 0;
-        for(ResourceObject resource : resources) {
-            numberAdjacentResources += resource.getAdjacentResources().length;
-        }
-        fitness += numberAdjacentResources * 80;
-        return fitness;
-    }
+    //     //System.out.println("ConstructionTask (calculateDistanceFitness): average team fitness = " + averageFitness);
+    //     return averageFitness;
+    // }
 
-    private double calculateSchemaFitness() {
-        double fitness = 0;
-        return fitness;
-    }
-
-    public double getFitness() {
-        //System.out.println("ConstructionTask: getFitness method called");
-        return calculateFitness();
-    }
+    // private double calculateConstructionFitness() {
+    //     double fitness = 0;
+    //     update();
+    //     int numberAdjacentResources = 0;
+    //     for(ResourceObject resource : resources) {
+    //         numberAdjacentResources += resource.getAdjacentResources().length;
+    //     }
+    //     fitness += numberAdjacentResources * 80;
+    //     return fitness;
+    // }
 }

@@ -79,6 +79,8 @@ public class RobotObject extends PhysicalObject {
 
     private double numPickups;
 
+    private Vec2 positionHistory;
+
     public RobotObject(World world, Vec2 position, float angle, double radius, double mass,
             Color color, Phenotype phenotype, SimConfig.Direction targetAreaPlacement) {
         super(createPortrayal(radius, color), createBody(world, position, angle, radius, mass));
@@ -102,6 +104,8 @@ public class RobotObject extends PhysicalObject {
 
         numPickups = 0;
 
+        positionHistory = new Vec2(); //creating an empty Vec2 to store the updated positions of the robot
+
     }
 
     public String getActiveHeuristic() {
@@ -109,6 +113,7 @@ public class RobotObject extends PhysicalObject {
     }
 
     public void incPickups() {
+        System.out.println("RobotObject: resource picked up");
         numPickups++;
     }
 
@@ -172,8 +177,15 @@ public class RobotObject extends PhysicalObject {
         return (float) ((CirclePortrayal) getPortrayal()).getRadius();
     }
 
+    public Vec2 getPreviousPosition() {
+        return positionHistory;
+    }
+
     @Override
     public void step(SimState sim) {
+
+        positionHistory = new Vec2(getBody().getPosition()); //storing the previous position of the robot
+
         //moves robot
         super.step(sim);
 
@@ -307,7 +319,6 @@ public class RobotObject extends PhysicalObject {
     }
 
     public void setColor(Color color) {
-        System.out.println("RobotObject: the colour is = " + color);
         if (color == null) {
             color = defaultColor;
         }

@@ -14,16 +14,20 @@ import org.encog.ml.MLMethod;
 import java.util.*;
 import za.redbridge.simulator.Behaviour;
 
+/**
+check if there will be concurrency issues with accessing the archive
+*/
+
 public class Archive {
 
-	private HashMap<MLMethod,Behaviour> history;
+	private ArrayList<Behaviour> history;
 	private int archiveLength;
 
 
 	public Archive() {
 
 		archiveLength = 0;
-		history = new HashMap<MLMethod,Behaviour>();
+		history = new ArrayList<Behaviour>();
 
 	}
 
@@ -34,10 +38,15 @@ public class Archive {
 		//iterate over all the previous behaviours and 
 		//compare to new one
 
+		//will need to call the checkNovelty methods in the behaviour class for each
+		//item in the history
+		//the behaviour class will store different types of behaviours that can be measured
+		//for novelty
+
 		double noveltyScore = 0;
 
-		for(Behaviour b : history.values()) {
-			noveltyScore += b.compareTo(newStructure);
+		for(Behaviour b : history) { //iterate over past novel behaviours
+			noveltyScore += b.compareStructure(newStructure);
 		}
 
 		return noveltyScore;
@@ -46,8 +55,8 @@ public class Archive {
 	/*
 	method to add
 	*/
-	public void addToArchive(MLMethod network, Behaviour newBehaviour) {
-		history.put(network, newBehaviour);
+	public void addToArchive(Behaviour newBehaviour) {
+		history.add(newBehaviour);
 		archiveLength++;
 	}
 
@@ -59,8 +68,8 @@ public class Archive {
 	method to return the Behaviour associated with a
 	specific network
 	*/
-	public Behaviour getBehaviour(MLMethod network) {
-		return history.get(network);
+	public Behaviour getBehaviour(int index) {
+		return history.get(index);
 	}
 	
 }

@@ -92,22 +92,25 @@ public class MorphologyConfig extends Config {
                     type = (String) sensor.get("type");
                     if (checkFieldPresent(type, sid+":type")) {
                         if(type.equalsIgnoreCase("ProximitySensor")){
-                            agentSensor = new ProximitySensor((float) Math.toRadians(bearing), orientation);
+                            agentSensor = new ProximitySensor((float) Math.toRadians(bearing), orientation, 3);
                         }
                         else if(type.equalsIgnoreCase("BottomProximitySensor")){
                             agentSensor = new BottomProximitySensor();
                         }
                         else if(type.equalsIgnoreCase("UltrasonicSensor")){
-                            agentSensor = new UltrasonicSensor((float) Math.toRadians(bearing), orientation);
+                            agentSensor = new UltrasonicSensor((float) Math.toRadians(bearing), orientation, 3);
                         }
                         else if(type.equalsIgnoreCase("ColourProximitySensor")){
-                            agentSensor = new ColourProximitySensor((float) Math.toRadians(bearing), orientation);
+                            agentSensor = new ColourProximitySensor((float) Math.toRadians(bearing), orientation, 3);
                         }
                         else if(type.equalsIgnoreCase("ColourRangedSensor")){
-                            agentSensor = new ColourRangedSensor((float) Math.toRadians(bearing), orientation);
+                            agentSensor = new ColourRangedSensor((float) Math.toRadians(bearing), orientation, 4);
                         }
                         else if(type.equalsIgnoreCase("LowResCameraSensor")){
-                            agentSensor = new LowResCameraSensor((float) Math.toRadians(bearing), orientation);
+                            agentSensor = new LowResCameraSensor((float) Math.toRadians(bearing), orientation, 1);
+                        }
+                        else if(type.equalsIgnoreCase("ConstructionSensor")){
+                            agentSensor = new ConstructionSensor((float) Math.toRadians(bearing), orientation, 4);
                         }
 
                     }

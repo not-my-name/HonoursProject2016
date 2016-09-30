@@ -38,6 +38,10 @@ public class HomogeneousRobotFactory implements RobotFactory {
     @Override
     public void placeInstances(PlacementArea.ForType<RobotObject> placementArea, World world,
                                SimConfig.Direction targetAreaPlacement) {
+        placedRobots.clear();
+        if(numRobots != 15) {
+            System.out.println("HomogeneousRobotFactory: SOMETHING WENT WRONG");
+        }
         for (int i = 0; i < numRobots; i++) {
             PlacementArea.Space space = null;
             String agentLocaiton = za.redbridge.simulator.config.SimConfig.agentLocation;
