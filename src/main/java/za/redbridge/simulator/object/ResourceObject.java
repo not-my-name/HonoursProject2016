@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.Iterator;
 
+import java.util.*;
+
 import sim.engine.SimState;
 import za.redbridge.simulator.Simulation;
 import za.redbridge.simulator.physics.BodyBuilder;
@@ -50,10 +52,13 @@ public class ResourceObject extends PhysicalObject {
     private final AnchorPoint[] topAnchorPoints;
     private final AnchorPoint[] bottomAnchorPoints;
 
-    private final WeldPoint[] leftWeldPoints;
-    private final WeldPoint[] rightWeldPoints;
-    private final WeldPoint[] topWeldPoints;
-    private final WeldPoint[] bottomWeldPoints;
+    // private final WeldPoint[] leftWeldPoints;
+    // private final WeldPoint[] rightWeldPoints;
+    // private final WeldPoint[] topWeldPoints;
+    // private final WeldPoint[] bottomWeldPoints;
+
+    private final WeldPoint [] weldPoints;
+
     private final int weldPointN = 2;
     private final ArrayList<WeldPoint[]> weldList;
 
@@ -68,6 +73,10 @@ public class ResourceObject extends PhysicalObject {
     private double adjustedValue;
     private boolean isCollected = false;
 
+    private boolean fullyWelded;
+    private boolean isConstructed; //if it is part of the construction zone
+    private boolean hasMoved; //if the robot has moved it
+
     private final Map<RobotObject, JointDef> pendingJoints;
     private final Map<RobotObject, Joint> joints;
 
@@ -76,6 +85,8 @@ public class ResourceObject extends PhysicalObject {
     private boolean connected;
 
     private ResourceObject[] adjacentList;
+
+    private LinkedList<Vec2> resourceTrajectory = new LinkedList<Vec2>();
 
     // is a hack
     // private ArrayList<ResourceObject> otherResources = new ArrayList<ResourceObject>();
@@ -90,6 +101,10 @@ public class ResourceObject extends PhysicalObject {
         this.value = value;
         this.type = type;
 
+        this.fullyWelded = false;
+        this.isConstructed = false;
+        this.hasMoved = false;
+
         adjustedValue = value;
 
         leftAnchorPoints = new AnchorPoint[pushingRobots];
@@ -98,11 +113,13 @@ public class ResourceObject extends PhysicalObject {
         bottomAnchorPoints = new AnchorPoint[pushingRobots];
         initAnchorPoints();
 
-        leftWeldPoints = new WeldPoint[weldPointN];
-        rightWeldPoints = new WeldPoint[weldPointN];
-        topWeldPoints = new WeldPoint[weldPointN];
-        bottomWeldPoints = new WeldPoint[weldPointN];
+        // leftWeldPoints = new WeldPoint[weldPointN];
+        // rightWeldPoints = new WeldPoint[weldPointN];
+        // topWeldPoints = new WeldPoint[weldPointN];
+        // bottomWeldPoints = new WeldPoint[weldPointN];
         weldList = new ArrayList<WeldPoint[]>();
+
+        weldPoints = new WeldPoint[4];
         initWeldPoints();
 
         detectionPoints = new DetectionPoint[4];
@@ -152,10 +169,6 @@ public class ResourceObject extends PhysicalObject {
                 .setFilterCategoryBits(FilterConstants.CategoryBits.RESOURCE)
                 .build(world);
     }
-
-    // public void initResources(ArrayList<ResourceObject> resources){
-    //     otherResources = resources;
-    // }
 
     private void initAnchorPoints() {
         float halfWidth = (float) width / 2;
@@ -208,87 +221,107 @@ public class ResourceObject extends PhysicalObject {
     }
 
     private void initWeldPoints(){
+
         float halfWidth = (float) width / 2;
         float halfHeight = (float) height / 2;
-        float horizontalSpacing = (float) (width / weldPointN);
-        float verticalSpacing = (float) (height / weldPointN);
+        float xspacing = 0.1f;
+        float yspacing = 0.1f;
 
-        float x, y;
-        for(int i=0;i<weldPointN;i++){
-            x = -halfWidth;
-            y = -halfHeight + verticalSpacing * (i + 0.5f);
-            leftWeldPoints[i] = new WeldPoint(new Vec2(x,y));
-        }
+        Vec2 leftPos = new Vec2(-halfWidth-xspacing, 0);
+        Vec2 rightPos = new Vec2(halfWidth+xspacing, 0);
+        Vec2 topPos = new Vec2(0, halfHeight+yspacing);
+        Vec2 bottomPos = new Vec2(0, -halfHeight-yspacing);
 
-        for(int i=0;i<weldPointN;i++){
-            x = halfWidth;
-            y = -halfHeight + verticalSpacing * (i + 0.5f);
-            rightWeldPoints[i] = new WeldPoint(new Vec2(x,y));
-        }
+        WeldPoint leftPoint = new WeldPoint(leftPos);
+        WeldPoint rightPoint = new WeldPoint(rightPos);
+        WeldPoint topPoint = new WeldPoint(topPos);
+        WeldPoint bottomPoint = new WeldPoint(bottomPos);
 
-        for(int i=0;i<weldPointN;i++){
-            x = -halfWidth + horizontalSpacing * (i + 0.5f);
-            y = halfHeight;
-            topWeldPoints[i] = new WeldPoint(new Vec2(x,y));
-        }
-
-        for(int i=0;i<weldPointN;i++){
-            x = -halfWidth + horizontalSpacing * (i + 0.5f);
-            y = -halfHeight;
-            bottomWeldPoints[i] = new WeldPoint(new Vec2(x,y));
-        }
-
-        weldList.add(leftWeldPoints);
-        weldList.add(rightWeldPoints);
-        weldList.add(topWeldPoints);
-        weldList.add(bottomWeldPoints);
+        weldPoints[0] = leftPoint;
+        weldPoints[1] = rightPoint;
+        weldPoints[2] = topPoint;
+        weldPoints[3] = bottomPoint;
     }
 
-    //CONCURRENCY CHANGES
-    public void updateAdjacent(CopyOnWriteArrayList<ResourceObject> resourceArray){
+    public void updateAdjacent(ArrayList<ResourceObject> resourceArray){
+        // for(int i=0;i<adjacentResources.length;i++){
+        //     adjacentResources[i] = "0";
+        //     adjacentList[i] = null;
+        // }
+
+        // for(int j=0;j<resourceArray.size();j++){
+        //     if(this != resourceArray.get(j)){
+        //         Body resourceBody = resourceArray.get(j).getBody();
+        //         Vec2 resourcePosition = resourceBody.getPosition();
+        //         Vec2 resourcePositionLocal = getCachedLocalPoint(resourcePosition);
+        //         for(int i=0;i<adjacentResources.length;i++){
+        //             if (resourcePositionLocal.sub(detectionPoints[i].position).length() < 0.4f) {
+        //                 adjacentResources[i] = resourceArray.get(j).getType();
+        //             }
+        //         }
+        //     }
+        // }
+
         for(int i=0;i<adjacentResources.length;i++){
             adjacentResources[i] = "0";
-            adjacentList[i] = null;
         }
 
         for(int j=0;j<resourceArray.size();j++){
             if(this != resourceArray.get(j)){
                 Body resourceBody = resourceArray.get(j).getBody();
                 Vec2 resourcePosition = resourceBody.getPosition();
-                Vec2 resourcePositionLocal = getCachedLocalPoint(resourcePosition);
-                for(int i=0;i<adjacentResources.length;i++){
-                    if (resourcePositionLocal.sub(detectionPoints[i].position).length() < 0.4f) {
+                for(int i=0;i<detectionPoints.length;i++){
+                    if (resourcePosition.sub(detectionPoints[i].getRelativePosition(this.getBody().getPosition())).length() < 0.3f) {
                         adjacentResources[i] = resourceArray.get(j).getType();
                     }
                 }
             }
         }
+
     }
 
-    // checks if another resource is aligned with one side
-    public boolean checkPotentialWeld(ResourceObject other){
-        boolean t = false;
-        int [] points = {0,0,0,0};
-        Body resourceBody = other.getBody();
-        Vec2 resourcePosition = resourceBody.getPosition();
-        Vec2 resourcePositionLocal = getCachedLocalPoint(resourcePosition);
-        // System.out.println(resourcePositionLocal.sub(weldList.get(0)[0].position).length());
-        // System.out.println(resourcePositionLocal.sub(weldList.get(0)[1].position).length());
-        for(int j=0;j<weldList.size();j++){
-            for(int i=0;i<weldPointN;i++){
-                if (resourcePositionLocal.sub(weldList.get(j)[i].position).length() < 0.6f) {
-                    points[j] += 1;
+    public boolean isFullyWelded(){
+        return fullyWelded;
+    }
+
+    public boolean hasMoved(){
+        return this.hasMoved;
+    }
+
+    public boolean checkPotentialWeld(ResourceObject otherResource){
+
+        for(int i=0;i<weldPoints.length;i++){
+            for(int j=0;j<otherResource.getWeldPoints().length;j++){
+                Vec2 otherResourcePosition = otherResource.getWeldPoints()[j].getRelativePosition();
+                Vec2 otherResourcePositionLocal = getCachedLocalPoint(otherResourcePosition);
+                float distance = weldPoints[i].getPosition().sub(otherResourcePositionLocal).length();
+                if(weldPoints[i].getTaken()==false && otherResource.getWeldPoints()[j].getTaken()==false && distance < 0.5){
+                    return true;
                 }
             }
         }
+        return false;
+    }
 
-        for(int i=0;i<4;i++){
-            if(points[i]==2){
-                t = true;
-            }
-        }
+    public WeldPoint [] getWeldPoints(){
+        return weldPoints;
+    }
 
-        return t;
+    public String getType(){
+        return type;
+    }
+
+    public void setStatic(){
+        getBody().setType(BodyType.STATIC);
+        this.isConstructed = true;
+    }
+
+    public boolean isConstructed(){
+        return this.isConstructed;
+    }
+
+    public void setConstructed(){
+        this.isConstructed = true;
     }
 
     public void updateAlignment(){
@@ -301,10 +334,6 @@ public class ResourceObject extends PhysicalObject {
 
     public ResourceObject[] getAdjacentList() {
         return adjacentList;
-    }
-
-    public String getType(){
-        return type;
     }
 
     private AnchorPoint[] getAnchorPointsForSide(Side side) {
@@ -354,6 +383,30 @@ public class ResourceObject extends PhysicalObject {
             }
             joints.clear();
         }
+
+        // check if all weld points have been taken
+        if(fullyWelded == false){
+            for(int i=0;i<weldPoints.length;i++){
+                int n = 0;
+                if(weldPoints[i].taken){
+                    n++;
+                }
+                if(n==4){
+                    fullyWelded = true;
+                }
+            }
+        }
+
+        //to get the position of the resource every 5 timesteps
+        //add the position of the resource to the collection
+        if( (simState.schedule.getSteps() % 5 == 0) && (!isConstructed) ) {
+            Vec2 currentPosition = this.getBody().getPosition();
+            resourceTrajectory.add(currentPosition);
+        }
+    }
+
+    public LinkedList<Vec2> getTrajectory() {
+        return this.resourceTrajectory;
     }
 
 
@@ -442,14 +495,41 @@ public class ResourceObject extends PhysicalObject {
      * @param robot The resource to weld to
      * @param anchorPoint The local point on the resource to create the weld
      */
-    private WeldJointDef createResourceWeldJoint(ResourceObject resource){
+    public WeldJointDef createResourceWeldJoint(ResourceObject resource){
+        // Creates weld joint attached to the center of each resource
+        getBody().setTransform(getBody().getPosition(), 0);
+        resource.getBody().setTransform(resource.getBody().getPosition(), 0);
+        int n = 0;
+        int m = 0;
+        Vec2 weldJointPos1 = new Vec2(0,0);
+        Vec2 weldJointPos2 = new Vec2(0,0);
+        float shortestDistance = Float.MAX_VALUE;
+        for(int i=0;i<weldPoints.length;i++){
+            for(int j=0;j<resource.getWeldPoints().length;j++){
+                if(weldPoints[i].getTaken()==false && resource.getWeldPoints()[j].getTaken()==false){
+                    Vec2 otherResourcePosition = resource.getWeldPoints()[j].getRelativePosition();
+                    Vec2 otherResourcePositionLocal = getCachedLocalPoint(otherResourcePosition);
+                    float distance = weldPoints[i].getPosition().sub(otherResourcePositionLocal).length();
+                    if(distance < shortestDistance){
+                        shortestDistance = distance;
+                        weldJointPos1 = weldPoints[i].position;
+                        weldJointPos2 = resource.getWeldPoints()[j].getPosition();
+                        n = i;
+                        m = j;
+                    }
+                }
+            }
+        }
+
+        weldPoints[n].setTaken();
+        resource.getWeldPoints()[m].setTaken();
+
         // Creates weld joint attached to the center of each resource
         WeldJointDef wjd = new WeldJointDef();
         wjd.bodyA = getBody();
         wjd.bodyB = resource.getBody();
-        wjd.referenceAngle = getReferenceAngle();
-        wjd.localAnchorA.set(wjd.bodyA.getPosition());
-        wjd.localAnchorB.set(wjd.bodyB.getPosition());
+        wjd.localAnchorA.set(weldJointPos1);
+        wjd.localAnchorB.set(weldJointPos2);
         wjd.collideConnected = true;
 
         return wjd;
@@ -742,6 +822,10 @@ public class ResourceObject extends PhysicalObject {
             return position;
         }
 
+        public Vec2 getRelativePosition(Vec2 resourcePos){
+            return position.add(resourcePos);
+        }
+
         public Vec2 getWorldPosition() {
             if (worldPosition == null) {
                 worldPosition = getBody().getWorldPoint(position);
@@ -756,13 +840,13 @@ public class ResourceObject extends PhysicalObject {
 
     public class WeldPoint {
         private final Vec2 position;
-        private boolean aligned = false;
         private Vec2 worldPosition = null;
         private ResourceObject alignedResource;
+        private boolean taken;
 
-        /** @param position position local to the resource */
-        private WeldPoint(Vec2 position) {
+        public WeldPoint(Vec2 position) {
             this.position = position;
+            this.taken = false;
         }
 
         public Vec2 getPosition() {
@@ -777,16 +861,16 @@ public class ResourceObject extends PhysicalObject {
             return worldPosition;
         }
 
-        public void alignWeld(ResourceObject resource){
-            alignedResource = resource;
+        public Vec2 getRelativePosition(){
+            return position.add(getBody().getPosition());
         }
 
-        public ResourceObject getAlignedResource(){
-            return alignedResource;
+        public boolean getTaken(){
+            return taken;
         }
 
-        public boolean isAligned() {
-            return aligned;
+        public void setTaken(){
+            this.taken = true;
         }
     }
 

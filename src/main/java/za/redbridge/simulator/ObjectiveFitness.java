@@ -6,6 +6,10 @@ a class that will manage all the necessary calculations for the objective fitnes
 
 public class ObjectiveFitness {
 
+	/**
+	remember to add the code to normalise these values before being sent back to the simulation
+	*/
+
 	private AggregateBehaviour aggregateBehaviour;
 
 	private float robToResDistWeight;
@@ -21,6 +25,7 @@ public class ObjectiveFitness {
 	private float connectionCWeight;
 
 	public ObjectiveFitness(AggregateBehaviour aggregateBehaviour) {
+
 		this.aggregateBehaviour = aggregateBehaviour;
 
 		robToResDistWeight = 1;
@@ -50,6 +55,29 @@ Method to evaluate the overall objective fitness of a simulation run:
     E - the number of adjacent resources that are in the correct schema (check which of the connected resources are in the correct schema) checkSchemaFitness()
     F - average distance between resources and the construction starting area (calculate the avg distance between )
 */
+
+    /**
+    this is the code to normalise the values for the fitness function
+    */
+
+    /*
+    aveRobotDistance = (maxDistance - getAveRobotDistance())/maxDistance;
+    avePickupCount = getAveRobotPickups()/schema.getTotalRobotsRequired(schemaNumber);
+    aveResDistance = (maxDistance - getAveResourceDistance())/maxDistance;
+    numAdjacentResources = (double)getNumAdjacentResources()/resources.size();
+    numCorrectlyConnected = (double)constructionZone.getNumCorrectlyConnected(schema, schemaNumber)/constructionZone.getNumberOfConnectedResources();
+    if (getAveDistanceFromCZ() < 0) {
+        // System.out.println(aveRobotDistance + " " + avePickupCount + " " + aveResDistance + " " + numAdjacentResources);
+        return w[0]*aveRobotDistance + w[1]*avePickupCount + w[2]*aveResDistance + w[3]*numAdjacentResources;
+    }
+    else {
+        aveResDistanceFromCZ = 1/(1 + getAveDistanceFromCZ());
+        // System.out.println(aveRobotDistance + " " + avePickupCount + " " + aveResDistance + " " + numAdjacentResources + " " + numCorrectlyConnected + " " + aveResDistanceFromCZ);
+        // double constructionZoneFitness = constructionZone.getFitnessStats().getTeamFitness();
+        // constructionFitness += constructionZoneFitness;
+
+        return w[0]*aveRobotDistance + w[1]*avePickupCount + w[2]*aveResDistance + w[3]*numAdjacentResources + w[4]*numCorrectlyConnected + w[5]*aveResDistanceFromCZ;
+    */
 
     /**
     remember to check all the calculations for the following methods

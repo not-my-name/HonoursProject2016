@@ -104,7 +104,7 @@ public abstract class KheperaIIIPhenotype_simple implements Phenotype {
 
     /** Method can be overridden to customize proximity sensor */
     protected AgentSensor createProximitySensor(float bearing, float orientation) {
-        return new ProximitySensor(bearing, orientation);
+        return new ProximitySensor(bearing, orientation, 1);
     }
 
     /** Method can be overridden to customize bottom proximity sensor */
@@ -114,20 +114,20 @@ public abstract class KheperaIIIPhenotype_simple implements Phenotype {
 
     /** Method can be overridden to customize ultrasonic sensor */
     protected AgentSensor createUltrasonicSensor(float bearing, float orientation) {
-        return new UltrasonicSensor(bearing, orientation);
+        return new UltrasonicSensor(bearing, orientation, 1);
     }
 
     /** Method can be overridden to customize colour proximity sensor */
     protected AgentSensor createColourProximitySensor(float bearing, float orientation){
-        return new ColourProximitySensor(bearing, orientation);
+        return new ColourProximitySensor(bearing, orientation, 1);
     }
 
     protected AgentSensor createColourRangedSensor(float bearing, float orientation){
-        return new ColourRangedSensor(bearing, orientation);
+        return new ColourRangedSensor(bearing, orientation, 1);
     }
 
     protected AgentSensor createLowResCameraSensor(float bearing, float orientation){
-        return new LowResCameraSensor(bearing, orientation);
+        return new LowResCameraSensor(bearing, orientation, 1);
     }
 
     /** Returns a copy of the current configuration */

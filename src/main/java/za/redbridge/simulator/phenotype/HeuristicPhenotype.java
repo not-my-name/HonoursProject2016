@@ -17,6 +17,8 @@ import za.redbridge.simulator.portrayal.Drawable;
 import za.redbridge.simulator.sensor.AgentSensor;
 import za.redbridge.simulator.sensor.CollisionSensor;
 import za.redbridge.simulator.sensor.PickupSensor;
+import za.redbridge.simulator.khepera.WallCollisionSensor;
+import za.redbridge.simulator.phenotype.heuristics.CollisionHeuristic;
 
 /**
  * Phenotype that applies any relevant heuristics first before falling through to the controller
@@ -27,6 +29,7 @@ public class HeuristicPhenotype implements Phenotype, Drawable {
 
     private static final boolean PICKUP_HEURISTIC_ENABLED = true;
     private static final boolean COLLISION_HEURISTIC_ENABLED = false;
+    private static final boolean WALL_HEURISTIC_ENABLED = true;
 
     private static final float PICKUP_SENSOR_WIDTH = 0.1f;
     private static final float PICKUP_SENSOR_HEIGHT = 0.2f;
@@ -36,16 +39,15 @@ public class HeuristicPhenotype implements Phenotype, Drawable {
 
     private final Phenotype controllerPhenotype;
     private final RobotObject robot;
-    //private final SimConfig.Direction targetAreaPlacement;
     private final HeuristicSchedule schedule;
 
     private CollisionSensor collisionSensor;
     private PickupSensor pickupSensor;
+    private WallCollisionSensor wallSensor;
 
     public HeuristicPhenotype(Phenotype controllerPhenotype, RobotObject robot) {
         this.controllerPhenotype = controllerPhenotype;
         this.robot = robot;
-        //this.targetAreaPlacement = targetAreaPlacement;
 
         schedule = new HeuristicSchedule();
         initHeuristics(robot);
@@ -57,10 +59,17 @@ public class HeuristicPhenotype implements Phenotype, Drawable {
             collisionSensor.attach(robot);
             schedule.addHeuristic(new CollisionAvoidanceHeuristic(collisionSensor, robot));
         }
+
         if (PICKUP_HEURISTIC_ENABLED) {
             pickupSensor = new PickupSensor(PICKUP_SENSOR_WIDTH, PICKUP_SENSOR_HEIGHT);
             pickupSensor.attach(robot);
             schedule.addHeuristic(new PickupHeuristic(pickupSensor, robot));
+        }
+
+        if(WALL_HEURISTIC_ENABLED){
+            wallSensor = new WallCollisionSensor(0, 0, 1);
+            wallSensor.attach(robot);
+            schedule.addHeuristic(new CollisionHeuristic(wallSensor, robot));
         }
     }
 
@@ -97,12 +106,13 @@ public class HeuristicPhenotype implements Phenotype, Drawable {
     @Override
     public void draw(Object object, Graphics2D graphics, DrawInfo2D info) {
         if (COLLISION_HEURISTIC_ENABLED) {
-            //System.out.println("HeuristicPhenotype: the collision heuristic");
             collisionSensor.getPortrayal().draw(object, graphics, info);
         }
         if (PICKUP_HEURISTIC_ENABLED) {
-            //System.out.println("HeuristicPhenotype: the pickup heuristic");
             pickupSensor.getPortrayal().draw(object, graphics, info);
+        }
+        if(WALL_HEURISTIC_ENABLED){
+            wallSensor.getPortrayal().draw(object, graphics, info);
         }
     }
 
@@ -113,6 +123,9 @@ public class HeuristicPhenotype implements Phenotype, Drawable {
         }
         if (PICKUP_HEURISTIC_ENABLED) {
             pickupSensor.getPortrayal().setTransform(transform);
+        }
+        if(WALL_HEURISTIC_ENABLED){
+            wallSensor.getPortrayal().setTransform(transform);
         }
     }
 

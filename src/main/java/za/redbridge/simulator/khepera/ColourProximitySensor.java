@@ -28,32 +28,45 @@ public class ColourProximitySensor extends AgentSensor {
     public static final float FIELD_OF_VIEW = 3.0f; // This is a guess
 
     private final GammaDistribution function = new GammaDistribution(2.5, 2.0);
+    private int readingSize;
 
-    public ColourProximitySensor(float bearing, float orientation) {
-        this(bearing, orientation, COLOUR_PROXIMITY_SENSOR_RANGE, COLOUR_PROXIMITY_SENSOR_FOV);
+    public ColourProximitySensor(float bearing, float orientation, int readingSize) {
+        this(bearing, orientation, COLOUR_PROXIMITY_SENSOR_RANGE, COLOUR_PROXIMITY_SENSOR_FOV, readingSize);
     }
 
-    public ColourProximitySensor(float bearing, float orientation, float range, float fieldOfView) {
+    public ColourProximitySensor(float bearing, float orientation, float range, float fieldOfView, int readingSize) {
         super(bearing, orientation, range, fieldOfView);
+        this.readingSize = readingSize;
     }
 
     @Override
     protected void provideObjectReading(List<SensedObject> sensedObjects, List<Double> output) {
         if (!sensedObjects.isEmpty()) {
-            output.add(readingCurve(sensedObjects.get(0).getDistance()));
+            for(int i=0;i<readingSize;i++){
+                if(i<sensedObjects.size()){
+                    output.add(readingCurve(sensedObjects.get(0).getDistance()));
+                }
+                else{
+                    output.add(0.0);
+                }
+            }
         } else {
-            output.add(0.0);
+            for(int i=0;i<readingSize;i++){
+                output.add(0.0);
+            }
         }
+        // System.out.println("Colour proximity sensor expected output: "+readingSize);
+        // System.out.println("Colour proximity sensor: "+output.size());
     }
 
     @Override
     public AgentSensor clone() {
-        return new ColourProximitySensor(bearing, orientation, range, fieldOfView);
+        return new ColourProximitySensor(bearing, orientation, range, fieldOfView, readingSize);
     }
 
     @Override
     public int getReadingSize() {
-        return 1;
+        return this.readingSize;
     }
 
     @Override

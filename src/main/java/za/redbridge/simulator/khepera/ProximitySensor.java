@@ -32,45 +32,52 @@ public class ProximitySensor extends AgentSensor {
     private static final Paint color = new Color(255, 0, 0, 50);
 
     private final GammaDistribution function = new GammaDistribution(2.5, 2.0);
+    private int readingSize;
 
-    public ProximitySensor(float bearing, float orientation) {
-        this(bearing, orientation, PROXIMITY_SENSOR_RANGE, PROXIMITY_SENSOR_FOV);
+    public ProximitySensor(float bearing, float orientation, int readingSize) {
+        this(bearing, orientation, PROXIMITY_SENSOR_RANGE, PROXIMITY_SENSOR_FOV, readingSize);
     }
 
-    public ProximitySensor(float bearing, float orientation, float range, float fieldOfView) {
+    public ProximitySensor(float bearing, float orientation, float range, float fieldOfView, int readingSize) {
         super(bearing, orientation, range, fieldOfView);
+        this.readingSize = readingSize;
     }
 
     @Override
     protected void provideObjectReading(List<SensedObject> sensedObjects, List<Double> output) {
         if (!sensedObjects.isEmpty())
         {
-            //return only the closest object
-            //output.add(readingCurve(sensedObjects.get(0).getDistance()));
+            for(int i=0;i<readingSize;i++){
+                if(i<sensedObjects.size()){
+                    SensedObject closestObject = sensedObjects.get(i);
+                    float closestDistance = closestObject.getDistance();
+                    double value = 1.0 - closestDistance / PROXIMITY_SENSOR_RANGE;
 
-            SensedObject closestObject = sensedObjects.get(0);
-
-            float closestDistance = closestObject.getDistance();
-
-            double value = 1.0 - closestDistance / PROXIMITY_SENSOR_RANGE;
-
-            if(value < 0) value = 0;
-            else if(value >1) value = 1;
-            output.add(value);
-
+                    if(value < 0) value = 0;
+                    else if(value >1) value = 1;
+                    output.add(value);
+                }
+                else{
+                    output.add(0.0);
+                }
+            }
         } else {
-            output.add(0.0);
+            for(int i=0;i<readingSize;i++){
+                output.add(0.0);
+            }
         }
+        // System.out.println("Proximity sensor expected: "+readingSize);
+        // System.out.println("Proximity sensor: "+output.size());
     }
 
     @Override
     public AgentSensor clone() {
-        return new ProximitySensor(bearing, orientation, range, fieldOfView);
+        return new ProximitySensor(bearing, orientation, range, fieldOfView, readingSize);
     }
 
     @Override
     public int getReadingSize() {
-        return 1;
+        return this.readingSize;
     }
 
     @Override

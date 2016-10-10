@@ -1,4 +1,4 @@
-package za.redbridge.simulator.Novelty; //just changed the package so that id get errors wherever the fitnessmonitor gets used need to remove all FitnessMonitor references
+package za.redbridge.simulator; //just changed the package so that id get errors wherever the fitnessmonitor gets used need to remove all FitnessMonitor references
 
 import org.jbox2d.common.Vec2;
 import za.redbridge.simulator.factories.RobotFactory;
@@ -48,7 +48,7 @@ public class FitnessMonitor {
 	private int schemaConfigNumber;
 	private int noveltyThreshHold;
 
-	private CopyOnWriteArrayList<ResourceObject> placedResources;
+	private ArrayList<ResourceObject> placedResources;
 
 	private Behaviour behaviour;
 
@@ -70,7 +70,7 @@ public class FitnessMonitor {
 		archive = null;
 		behaviour = null;
 
-		placedResources = new CopyOnWriteArrayList<ResourceObject>();
+		placedResources = new ArrayList<ResourceObject>();
 
 		noveltyThreshHold = 10;
 		schemaConfigNumber = -1; //made this negative
@@ -119,7 +119,7 @@ public class FitnessMonitor {
 	}
 
 	//method to get the resources and their respective locations at the end of the simulation
-	public void setPlacedResources(CopyOnWriteArrayList<ResourceObject> placedResources) {
+	public void setPlacedResources(ArrayList<ResourceObject> placedResources) {
 		for(ResourceObject rO : placedResources) {
 			this.placedResources.add(rO);
 		}
@@ -206,17 +206,17 @@ public class FitnessMonitor {
 		return sFitness;
 	} 
 
-	private double calculateNoveltyFitness() {
-		double novelFitness = 0;
-		System.out.println("FitnessMonitor: number of connected resources = " + constructionZone.getNumberOfConnectedResources());
-		Behaviour behaviour = new Behaviour(this.constructionZone);
-		novelFitness = this.archive.checkNovelty(behaviour);
-		if(novelFitness >= noveltyThreshHold) {
-			this.archive.addToArchive(behaviour);
-			System.out.println("FitnessMonitor: A NEW NOVEL BEHAVIOUR FOUND");
-		}
-		return novelFitness;
-	}
+	// private double calculateNoveltyFitness() {
+	// 	double novelFitness = 0;
+	// 	System.out.println("FitnessMonitor: number of connected resources = " + constructionZone.getNumberOfConnectedResources());
+	// 	Behaviour behaviour = new Behaviour(this.constructionZone);
+	// 	novelFitness = this.archive.checkNovelty(behaviour);
+	// 	if(novelFitness >= noveltyThreshHold) {
+	// 		this.archive.addToArchive(behaviour);
+	// 		System.out.println("FitnessMonitor: A NEW NOVEL BEHAVIOUR FOUND");
+	// 	}
+	// 	return novelFitness;
+	// }
 
 	//method to take the total displacement of each robot
 	//after each simulation step and average it over the number of generations

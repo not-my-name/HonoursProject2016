@@ -38,7 +38,7 @@ public class BottomProximitySensor extends ProximitySensor {
     private RobotObject robot;
 
     public BottomProximitySensor() {
-        super(0f, 0f);
+        super(0f, 0f, 1);
     }
 
     @Override

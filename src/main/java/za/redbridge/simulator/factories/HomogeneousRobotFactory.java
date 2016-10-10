@@ -9,7 +9,6 @@ import za.redbridge.simulator.PlacementArea;
 import za.redbridge.simulator.config.SimConfig;
 import za.redbridge.simulator.object.RobotObject;
 import za.redbridge.simulator.phenotype.Phenotype;
-
 import java.util.ArrayList;
 
 public class HomogeneousRobotFactory implements RobotFactory {
@@ -18,30 +17,21 @@ public class HomogeneousRobotFactory implements RobotFactory {
     protected Color color;
     protected Phenotype phenotype;
     protected int numRobots;
+    protected ArrayList<RobotObject> placedRobots;
 
-    private ArrayList<RobotObject> placedRobots;
-
-    //this phenotype is meant to be the hyperneat phenotype that you coded
     public HomogeneousRobotFactory(Phenotype phenotype, float mass, float radius, Color color,
-                                   int numRobots) { 
+                                   int numRobots) {
         this.phenotype = phenotype;
         this.mass = mass;
         this.radius = radius;
         this.color = color;
         this.numRobots = numRobots;
-
-        //System.out.println("HomogeneousRobotFactory: number of robots = " + numRobots);
-
         placedRobots = new ArrayList<RobotObject>();
     }
 
     @Override
     public void placeInstances(PlacementArea.ForType<RobotObject> placementArea, World world,
                                SimConfig.Direction targetAreaPlacement) {
-        placedRobots.clear();
-        if(numRobots != 15) {
-            System.out.println("HomogeneousRobotFactory: SOMETHING WENT WRONG");
-        }
         for (int i = 0; i < numRobots; i++) {
             PlacementArea.Space space = null;
             String agentLocaiton = za.redbridge.simulator.config.SimConfig.agentLocation;
@@ -54,12 +44,11 @@ public class HomogeneousRobotFactory implements RobotFactory {
             RobotObject robot = new RobotObject(world, space.getPosition(), space.getAngle(),
                 radius, mass, color, phenotype, targetAreaPlacement);
 
-            placedRobots.add(robot);
-
             placementArea.placeObject(space, robot);
+            placedRobots.add(robot);
         }
 
-        // placeTestInstances(placementArea, world, targetAreaPlacement,"robot_pushing");
+        // placeTestInstances(placementArea, world, targetAreaPlacement,"welding0");
     }
 
     public void placeTestInstances(PlacementArea.ForType<RobotObject> placementArea, World world, SimConfig.Direction targetAreaPlacement, String demo){
@@ -87,7 +76,8 @@ public class HomogeneousRobotFactory implements RobotFactory {
             pos9 = new Vec2(9.3f,8);
         }
         else if(demo.equals("welding0")){
-            pos1 = new Vec2(9.7f,5);
+            pos1 = new Vec2(3f,7);
+            pos2 = new Vec2(3f,10);
         }
         else if(demo.equals("welding1")){
             pos1 = new Vec2(9.25f,3);
@@ -97,8 +87,8 @@ public class HomogeneousRobotFactory implements RobotFactory {
 
         }
 
-        PlacementArea.Space space1 = placementArea.getCircularSpace(0.15f, pos1, 1.5f);
-        PlacementArea.Space space2 = placementArea.getCircularSpace(0.15f, pos2, 1.5f);
+        PlacementArea.Space space1 = placementArea.getCircularSpace(0.15f, pos1, 0f);
+        PlacementArea.Space space2 = placementArea.getCircularSpace(0.15f, pos2, 0f);
         PlacementArea.Space space3 = placementArea.getCircularSpace(0.15f, pos3, 1.5f);
         PlacementArea.Space s1 = placementArea.getCircularSpace(0.15f, pos4, 1.5f);
         PlacementArea.Space s2 = placementArea.getCircularSpace(0.15f, pos5, 1.5f);
@@ -149,6 +139,7 @@ public class HomogeneousRobotFactory implements RobotFactory {
         }
         else if(demo.equals("welding0")){
             placementArea.placeObject(space1, robot1);
+            placementArea.placeObject(space2, robot2);
         }
         else if(demo.equals("welding1")){
             placementArea.placeObject(space1, robot1);
@@ -159,9 +150,9 @@ public class HomogeneousRobotFactory implements RobotFactory {
         }
     }
 
-    public ArrayList<RobotObject> getPlacedRobots() {return placedRobots;}
-
     public void setNumRobots(int numRobots) { this.numRobots = numRobots; }
 
     public int getNumRobots() { return numRobots; }
+
+    public ArrayList<RobotObject> getPlacedRobots(){ return placedRobots; }
 }

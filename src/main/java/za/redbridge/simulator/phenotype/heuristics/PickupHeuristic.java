@@ -33,7 +33,7 @@ public class PickupHeuristic extends Heuristic {
     public PickupHeuristic(PickupSensor pickupSensor, RobotObject robot) {
         super(robot);
         this.pickupSensor = pickupSensor;
-        setPriority(3);
+        setPriority(2);
     }
 
     @Override
@@ -51,37 +51,42 @@ public class PickupHeuristic extends Heuristic {
             currentResource = resource;
             // Try pick it up
             if (resource.tryPickup(robot)) {
+                //robot.addPickupCounter();
                 // Success!
                 // set the current number of robots pushing this resource
-//                CurrentNumPushingRobots = currentResource.getNumberPushingRobots();
+            //    CurrentNumPushingRobots = currentResource.getNumberPushingRobots();
                 resetCounter(currentResource);
                 // Head for the target zone
                 // return wheelDriveForTargetAngle(targetAreaAngle());
-                Double2D forward = new Double2D(1.0,1.0);
-                return forward;
+                return null;
             }
         }
 
         if (robot.isBoundToResource()) {
             // check that the robot has not been holding onto the resource for too long (or it can hold into it
             // for long if there are enough pushers)
-            if(SimStepCount >= MaxStepCounter){
+            if(SimStepCount < MaxStepCounter){
+                if(currentResource.pushedByMaxRobots()){
+                    // Go for the target area if we've managed to attach to a resource
+                    return null;
+                }else{
+                    // reset the counter if a new robot has attached to the resource
+                    updateCounter(currentResource);
+                    return null;
+                }
+            }else if(SimStepCount >= MaxStepCounter){
+                // been holding this resourse for too long, detach from it and drive away
                 currentResource.forceDetach();
                 resetCounter(currentResource);
                 return wheelDriveForTargetAngle(awayResourceTargetAngle());
             }
         }
 
-        // TRY FIX
-        try{
-            if (!resource.canBePickedUp()) {
-                // no longer has resource, reset the counter
-                resetCounter(currentResource);
-                return null; // No viable resource, nothing to do
-            }
-        }
-        catch(NullPointerException e){
-            return null;
+        if (!resource.canBePickedUp()) {
+            // no longer has resource, reset the counter
+            resetCounter(currentResource);
+            //  chuck : todo Check if sensor directly above target area
+            return null; // No viable resource, nothing to do
         }
 
         return null;

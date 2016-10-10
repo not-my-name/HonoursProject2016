@@ -12,7 +12,7 @@ package za.redbridge.simulator;
 
 import org.encog.ml.MLMethod;
 import java.util.*;
-import za.redbridge.simulator.Behaviour;
+import za.redbridge.simulator.NoveltyBehaviour;
 
 /**
 check if there will be concurrency issues with accessing the archive
@@ -20,14 +20,14 @@ check if there will be concurrency issues with accessing the archive
 
 public class Archive {
 
-	private ArrayList<Behaviour> history;
+	private ArrayList<NoveltyBehaviour> history;
 	private int archiveLength;
 
 
 	public Archive() {
 
 		archiveLength = 0;
-		history = new ArrayList<Behaviour>();
+		history = new ArrayList<NoveltyBehaviour>();
 
 	}
 

@@ -79,7 +79,8 @@ public abstract class Heuristic implements Comparable<Heuristic> {
         } else {
             if (targetAngle < -HALF_PI) {
                 // Third
-                left = -1;
+                // left = -1;
+                left = 0;
                 right = (targetAngle + HALF_PI) / HALF_PI;
             } else {
                 // Fourth

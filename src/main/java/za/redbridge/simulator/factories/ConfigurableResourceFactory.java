@@ -12,8 +12,6 @@ import java.io.InputStreamReader;
 import java.util.Map;
 import org.jbox2d.common.Vec2;
 import java.util.ArrayList;
-
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.Iterator;
 
 /**
@@ -51,8 +49,7 @@ public class ConfigurableResourceFactory extends Config implements ResourceFacto
     private ResourceSpec mediumResourceSpec;
     private ResourceSpec largeResourceSpec;
 
-    //CONCURRENCY
-    private CopyOnWriteArrayList<ResourceObject> placedResources;
+    private ArrayList<ResourceObject> placedResources;
 
     public ConfigurableResourceFactory() {
         smallResourceSpec = new ResourceSpec(DEFAULT_SMALL_QUANTITY, DEFAULT_SMALL_WIDTH,
@@ -67,13 +64,12 @@ public class ConfigurableResourceFactory extends Config implements ResourceFacto
                 DEFAULT_LARGE_HEIGHT, DEFAULT_LARGE_MASS, DEFAULT_LARGE_PUSHING_BOTS,
                 DEFAULT_LARGE_VALUE, TYPE_THIRD);
 
-        placedResources = new CopyOnWriteArrayList<ResourceObject>();
+        placedResources = new ArrayList<ResourceObject>();
     }
 
     @Override
     public void placeInstances(PlacementArea.ForType<ResourceObject> placementArea, World world) {
         // Place resources randomly
-        placedResources.clear();
         placeInstances(smallResourceSpec, placementArea, world);
         placeInstances(mediumResourceSpec, placementArea, world);
         placeInstances(largeResourceSpec, placementArea, world);
@@ -102,11 +98,10 @@ public class ConfigurableResourceFactory extends Config implements ResourceFacto
 
 
         if(demo.equals("robot_pushing")){
-            pos1 = new Vec2(6,7);
-            pos2 = new Vec2(9,7);
-            pos3 = new Vec2(12,7);
-            pos4 = new Vec2(6,11);
-            pos5 = new Vec2(9,11);
+            pos1 = new Vec2(8,7);
+            pos2 = new Vec2(11,7);
+            pos3 = new Vec2(10,10);
+            pos4 = new Vec2(13,10);
         }
         else if(demo.equals("welding0")){
             pos1 = new Vec2(10,8);
@@ -124,7 +119,7 @@ public class ConfigurableResourceFactory extends Config implements ResourceFacto
         PlacementArea.Space mediumSpace = placementArea.getRectangularSpace(mediumSpec.width, mediumSpec.height, pos2, 0);
         PlacementArea.Space largeSpace = placementArea.getRectangularSpace(largeSpec.width, largeSpec.height, pos3, 0);
         PlacementArea.Space s1 = placementArea.getRectangularSpace(mediumSpec.width, mediumSpec.height, pos4, 0);
-        PlacementArea.Space s2 = placementArea.getRectangularSpace(largeSpec.width, largeSpec.height, pos5, 0);
+        // PlacementArea.Space s2 = placementArea.getRectangularSpace(largeSpec.width, largeSpec.height, pos5, 0);
 
         ResourceObject smallResource = new ResourceObject(world, smallSpace.getPosition(),
                 smallSpace.getAngle(), smallSpec.width, smallSpec.height, smallSpec.mass, smallSpec.pushingBots,
@@ -133,27 +128,22 @@ public class ConfigurableResourceFactory extends Config implements ResourceFacto
                 mediumSpace.getAngle(), mediumSpec.width, mediumSpec.height, mediumSpec.mass, mediumSpec.pushingBots,
                 mediumSpec.value, mediumSpec.type);
         ResourceObject largeResource = new ResourceObject(world, largeSpace.getPosition(),
-                largeSpace.getAngle(), largeSpec.width, largeSpec.height, largeSpec.mass, largeSpec.pushingBots,
-                largeSpec.value, largeSpec.type);
+                largeSpace.getAngle(), smallSpec.width, smallSpec.height, smallSpec.mass, smallSpec.pushingBots,
+                smallSpec.value, smallSpec.type);
         ResourceObject r1 = new ResourceObject(world, s1.getPosition(),
                 s1.getAngle(), mediumSpec.width, mediumSpec.height, mediumSpec.mass, mediumSpec.pushingBots,
                 mediumSpec.value, mediumSpec.type);
-        ResourceObject r2 = new ResourceObject(world, s2.getPosition(),
-                s2.getAngle(), largeSpec.width, largeSpec.height, largeSpec.mass, largeSpec.pushingBots,
-                largeSpec.value, largeSpec.type);
 
         if(demo.equals("robot_pushing")){
             placementArea.placeObject(smallSpace, smallResource);
             placementArea.placeObject(mediumSpace, mediumResource);
             placementArea.placeObject(largeSpace, largeResource);
             placementArea.placeObject(s1, r1);
-            placementArea.placeObject(s2,r2);
 
             placedResources.add(smallResource);
             placedResources.add(mediumResource);
             placedResources.add(largeResource);
             placedResources.add(r1);
-            placedResources.add(r2);
         }
         else if(demo.equals("welding0")){
             placementArea.placeObject(smallSpace, smallResource);
@@ -183,8 +173,7 @@ public class ConfigurableResourceFactory extends Config implements ResourceFacto
         Map<String, Object> largeConfig = (Map<String, Object>) resourceConfigs.get("large");
 
         smallResourceSpec = readConfig(smallConfig, "resourceConfig:small:", DEFAULT_SMALL_VALUE, Integer.parseInt(resQuantity[0]));
-        mediumResourceSpec =
-                readConfig(mediumConfig, "resourceConfig:medium:", DEFAULT_MEDIUM_VALUE, Integer.parseInt(resQuantity[1]));
+        mediumResourceSpec = readConfig(mediumConfig, "resourceConfig:medium:", DEFAULT_MEDIUM_VALUE, Integer.parseInt(resQuantity[1]));
         largeResourceSpec = readConfig(largeConfig, "resourceConfig:large:", DEFAULT_LARGE_VALUE, Integer.parseInt(resQuantity[2]));
     }
 
@@ -247,8 +236,7 @@ public class ConfigurableResourceFactory extends Config implements ResourceFacto
         largeResourceSpec.setQuantity(n[2]);
     }
 
-    public CopyOnWriteArrayList<ResourceObject> getPlacedResources(){
-        //System.out.println("ConifgurableResourceFactory: number of placed resources = " + placedResources.size());
+    public ArrayList<ResourceObject> getPlacedResources(){
         return placedResources;
     }
 

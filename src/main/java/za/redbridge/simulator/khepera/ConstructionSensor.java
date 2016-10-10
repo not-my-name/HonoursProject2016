@@ -14,10 +14,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by jae on 2015/10/10.
- * Sensor responsible for detecting the type of object
+ *  Sensor responsible for detecting the construction resources
  */
-public class ColourRangedSensor extends AgentSensor
+public class ConstructionSensor extends AgentSensor
 {
     private static final float COLOR_SENSOR_RANGE = 3.0f;
     private static final float COLOR_SENSOR_FOV = 1.5f; // This is a guess
@@ -25,16 +24,15 @@ public class ColourRangedSensor extends AgentSensor
     public static final float RANGE = 3.0f;
     public static final float FIELD_OF_VIEW = 1.5f; // This is a guess
 
-    private static final Paint color = new Color(255, 4, 187, 112);
+    private static final Paint color = new Color(255, 50, 187, 112);
     private int readingSize;
 
-    //constructor
-    public ColourRangedSensor(float bearing, float orientation, int readingSize)
+    public ConstructionSensor(float bearing, float orientation, int readingSize)
     {
         this(bearing, orientation, COLOR_SENSOR_RANGE, COLOR_SENSOR_FOV, readingSize);
     }
 
-    public ColourRangedSensor(float bearing, float orientation, float range, float fieldOfView, int readingSize)
+    public ConstructionSensor(float bearing, float orientation, float range, float fieldOfView, int readingSize)
     {
         super(bearing, orientation, range, fieldOfView);
         this.readingSize = readingSize;
@@ -53,32 +51,16 @@ public class ColourRangedSensor extends AgentSensor
         if (!sensedObjects.isEmpty()) {
             for(int i=0;i<readingSize;i++){
                 if(i<sensedObjects.size()){
-                    //returns higher number for obstacles and trash
                     SensedObject closest = sensedObjects.get(i);
                     if (closest.getObject() instanceof ResourceObject)
                     {
-                        // System.out.println("Resource detected");
                         ResourceObject temp = (ResourceObject) closest.getObject();
-                        if(temp.getType().equals("A")){
-                            output.add(0.2);
-                            // System.out.println("Type A detected");
+                        if(temp.isConstructed()){
+                            output.add(1.0);
                         }
-                        else if(temp.getType().equals("B")){
-                            output.add(0.4);
-                            // System.out.println("Type B detected");
+                        else{
+                            output.add(0.0);
                         }
-                        else if(temp.getType().equals("C")){
-                            output.add(0.6);
-                            // System.out.println("Type C detected");
-                        }
-                    }
-                    else if (closest.getObject() instanceof RobotObject)
-                    {
-                        output.add(0.8);
-                    }
-                    else if (closest.getObject() instanceof WallObject)
-                    {
-                        output.add(1.0);
                     }
                     else output.add(0.0);
                 }
@@ -93,8 +75,8 @@ public class ColourRangedSensor extends AgentSensor
                 output.add(0.0);
             }
         }
-        // System.out.println("Colour ranged sensor expected: "+readingSize);
-        // System.out.println("Colour ranged sensor: "+output.size());
+        // System.out.println("Construction sensor expected: "+readingSize);
+        // System.out.println("Construction sensor: "+output.size());
     }
 
     @Override

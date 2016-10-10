@@ -42,14 +42,10 @@ public class Morphology{
     public int getNumSensors() { return numSensors; }
 
     public Morphology clone() {
-
         List<AgentSensor> newSensorList = new ArrayList<>();
-
         for (AgentSensor sensor: sensorList) {
-
             newSensorList.add(sensor.clone());
         }
-
         return new Morphology(newSensorList, numSensors);
     }
 

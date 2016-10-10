@@ -205,7 +205,7 @@ public class SimConfig extends Config {
     }
 
     public int getConfigNumber(){
-        return configNumber;
+        return configNumber - 1;
     }
 
     public Color getRobotColour() { return robotColour; }

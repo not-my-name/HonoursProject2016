@@ -50,6 +50,28 @@ public class Main {
 
 	public static void main(String args[]) throws IOException, ParseException{
 
+		/**
+		look for all the bright pink hilights to check what still needs to be done
+
+		make sure you have the correct number of inputs for the different updated sensors
+
+		check that all the heuristics are in place
+
+		check that all the calculations are executed in the correct order as each others
+		since there aer so many different ways of implementing it
+
+		check you have all the welding code from daniel
+
+		check you have all the novelty methods from josh
+
+		fix the savePopulation error that crashes
+
+		robots should only be able to move a resource when enough of them have attached
+		does this affect the total resource pickup count in some way? should probably add some sort of check
+
+		check you have the isAligned and isConnected checks for the resources and the constructionZone 
+		*/
+
 		Args options = new Args();
 		new JCommander(options, args);
 
@@ -83,6 +105,9 @@ public class Main {
 		archive = new Archive();
 		scoreCalculator.setArchive(archive);
 
+		/**
+		might not need to set the schema number from here
+		*/
 		schemaConfigIndex = 1;
 		scoreCalculator.setSchemaConfigNumber(schemaConfigIndex);
 

@@ -117,6 +117,10 @@ public class StatsRecorder {
 
         NEATPopulation tempPop = (NEATPopulation)trainer.getPopulation();
 
+        /**
+        remember to fix this issue with saving the population
+        */
+
         //savePopulation((NEATPopulation)trainer.getPopulation(), generation);
 
         // Check if new best network and save it if so

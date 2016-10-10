@@ -7,9 +7,7 @@ import za.redbridge.simulator.object.ResourceObject;
 
 import java.util.Map;
 import java.util.ArrayList;
-
 import java.util.Iterator;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Factory for resource objects
@@ -31,7 +29,8 @@ public interface ResourceFactory {
      */
     int getNumberOfResources();
 
-    CopyOnWriteArrayList<ResourceObject> getPlacedResources();
+    // CONCURRENCY - changed return type
+    ArrayList<ResourceObject> getPlacedResources();
 
     void setResQuantity(int [] n);
 

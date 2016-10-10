@@ -27,46 +27,60 @@ public class UltrasonicSensor extends AgentSensor {
     public static final float FIELD_OF_VIEW = 1.22f; // 35 degrees
 
     private static final Paint color = new Color(0, 255, 0, 50);
+    private int readingSize;
 
-    public UltrasonicSensor(float bearing, float orientation) {
-        this(bearing, orientation, ULTRASONIC_SENSOR_MAX_RANGE, ULTRASONIC_SENSOR_FOV);
+    public UltrasonicSensor(float bearing, float orientation, int readingSize) {
+        this(bearing, orientation, ULTRASONIC_SENSOR_MAX_RANGE, ULTRASONIC_SENSOR_FOV, readingSize);
     }
 
-    public UltrasonicSensor(float bearing, float orientation, float range, float fieldOfView) {
+    public UltrasonicSensor(float bearing, float orientation, float range, float fieldOfView, int readingSize) {
         super(bearing, orientation, range, fieldOfView);
+        this.readingSize = readingSize;
     }
 
     @Override
     protected void provideObjectReading(List<SensedObject> sensedObjects, List<Double> output) {
         if (!sensedObjects.isEmpty()) {
-            SensedObject closestObject = sensedObjects.get(0);
+            for(int i=0;i<readingSize;i++){
+                if(i<sensedObjects.size()){
+                    SensedObject closestObject = sensedObjects.get(i);
 
-            float closestDistance = closestObject.getDistance();
-            if (closestDistance > ULTRASONIC_SENSOR_MIN_RANGE) {
-                float range = ULTRASONIC_SENSOR_MAX_RANGE - ULTRASONIC_SENSOR_MIN_RANGE;
-                float distance = closestDistance - ULTRASONIC_SENSOR_MIN_RANGE;
-                double value = 1.0 - distance / range;
+                    float closestDistance = closestObject.getDistance();
+                    if (closestDistance > ULTRASONIC_SENSOR_MIN_RANGE) {
+                        float range = ULTRASONIC_SENSOR_MAX_RANGE - ULTRASONIC_SENSOR_MIN_RANGE;
+                        float distance = closestDistance - ULTRASONIC_SENSOR_MIN_RANGE;
+                        double value = 1.0 - distance / range;
 
-                if(value < 0) value = 0;
-                else if(value >1) value = 1;
-                output.add(value);
-            } else {
-                // Objects closer than the minimum range just return 1.0
-                output.add(1.0);
+                        if(value < 0) value = 0;
+                        else if(value >1) value = 1;
+                        output.add(value);
+                    } else {
+                        // Objects closer than the minimum range just return 1.0
+                        output.add(1.0);
+                    }
+                }
+                else{
+                    output.add(0.0);
+                }
             }
-        } else {
-            output.add(0.0);
         }
+        else {
+            for(int i=0;i<readingSize;i++){
+                output.add(0.0);
+            }
+        }
+        // System.out.println("Ultrasonic sensor expected: "+readingSize);
+        // System.out.println("Ultrasonic sensor: "+output.size());
     }
 
     @Override
     public AgentSensor clone() {
-        return new UltrasonicSensor(bearing, orientation, range, fieldOfView);
+        return new UltrasonicSensor(bearing, orientation, range, fieldOfView, readingSize);
     }
 
     @Override
     public int getReadingSize() {
-        return 1;
+        return this.readingSize;
     }
 
     @Override

@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import java.util.LinkedList;
+
 import sim.engine.SimState;
 import sim.portrayal.DrawInfo2D;
 import sim.util.Double2D;
@@ -80,6 +82,8 @@ public class RobotObject extends PhysicalObject {
     private double numPickups;
 
     private Vec2 positionHistory;
+
+    private LinkedList<Vec2> robotTrajectory = new LinkedList<Vec2>();
 
     public RobotObject(World world, Vec2 position, float angle, double radius, double mass,
             Color color, Phenotype phenotype, SimConfig.Direction targetAreaPlacement) {
@@ -223,8 +227,18 @@ public class RobotObject extends PhysicalObject {
             }
         }
 
+        //storing the position of the robot every 5 timesteps to be used for novelty calculation
+        if( sim.schedule.getSteps() % 5 == 0 ) {
+            Vec2 currentPosition = this.getBody().getPosition();
+            robotTrajectory.add(currentPosition);
+        }
+
         // System.out.println("Pos: "+this.getBody().getPosition().x+" "+this.getBody().getPosition().y);
 //        consumeEnergy();
+    }
+
+    public LinkedList<Vec2> getTrajectory() {
+        return this.robotTrajectory;
     }
 
     private void applyWheelDrive(float wheelDrive, Vec2 wheelPosition) {

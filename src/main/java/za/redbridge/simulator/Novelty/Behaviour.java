@@ -5,6 +5,9 @@ import za.redbridge.simulator.ConstructionTask;
 import za.redbridge.simulator.object.ResourceObject;
 import java.util.Arrays;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.*;
+import za.redbridge.simulator.object.RobotObject;
+import org.jbox2d.common.Vec2;
 
 /*
 use this class to manage and monitor all the different behaviours that are needed to find the novelty
@@ -25,7 +28,7 @@ public class Behaviour {
 
 	private double distanceTravelled; //the total distance travelled by a team of robots in a single simulation
 
-	private CopyOnWriteArrayList<ResourceObject> placedResources; //positions of all the resources at the end of the simulation
+	private ArrayList<ResourceObject> placedResources; //positions of all the resources at the end of the simulation
 	private ArrayList<RobotObject> placedRobots;
 
 	//private ArrayList<double> robToResDist; //array to store the distance from each robot to its nearest resource
@@ -39,10 +42,11 @@ public class Behaviour {
 	private int connectedB;
 	private int connectedC;
 
-	public Behaviour(ConstructionTask constructionTask, ArrayList<RobotObject> currentRobots, CopyOnWriteArrayList<ResourceObject> currentResources, int distanceTravelled) {
+	public Behaviour(ConstructionTask constructionTask, ArrayList<RobotObject> currentRobots, ArrayList<ResourceObject> currentResources, double distanceTravelled) {
 		
 		this.constructionTask = constructionTask;
 		this.constructionZone = this.constructionTask.getConstructionZone();
+		//this.distanceTravelled = distanceTravelled;
 
 		int [] czTypeCount = this.constructionZone.getResourceTypeCount();
 		AConnections = new String [czTypeCount[0]][4];
@@ -51,7 +55,7 @@ public class Behaviour {
 
 		populateConnections();
 
-		placedResources = new CopyOnWriteArrayList<ResourceObject>();
+		placedResources = new ArrayList<ResourceObject>();
 		placedRobots = new ArrayList<RobotObject>();
 
 		numPickups = 0;
@@ -64,6 +68,7 @@ public class Behaviour {
 		connectedB = 0;
 		connectedC = 0;
 
+		//using methods to initialise values
 		setPlacedRobots(currentRobots);
 		setPlacedResources(currentResources);
 		setDistanceTravelled(distanceTravelled);
@@ -117,18 +122,19 @@ public class Behaviour {
 	}
 
 	private void setDistanceTravelled(double distanceTravelled) {
+		System.out.println("Behaviour: The setDistanceTravelled method is being called");
 		this.distanceTravelled = distanceTravelled;
 	}
 
 	//method to get the resources and their respective locations at the end of the simulation
-	private void setPlacedResources(CopyOnWriteArrayList<ResourceObject> placedResources) {
+	private void setPlacedResources(ArrayList<ResourceObject> placedResources) {
 		for(ResourceObject rO : placedResources) {
 			this.placedResources.add(rO);
 		}
 
 	}
 
-	private void setPlacedRobots(ArrayList<RobotOBject> placedRobots) {
+	private void setPlacedRobots(ArrayList<RobotObject> placedRobots) {
 
 		for(RobotObject r : placedRobots) {
 			this.placedRobots.add(r);
@@ -150,7 +156,7 @@ public class Behaviour {
 	}
 
 	/**
-	need to make sure that this is the what Geoff meant by counting the number of connected blocks
+	need to make sure that this is what Geoff meant by counting the number of connected blocks
 	currently only checking the connected blocks in the construction zone
 	should probably check on all connected blocks somehow
 	*/
@@ -218,64 +224,64 @@ public class Behaviour {
         double secondX = destLocation.x;
         double secondY = destLocation.y;
 
-        //System.out.println("FitnessMonitor: the locations = " + firstX + "," + firstY + " -> " + secondX + "," + secondY);
-
         float distance = (float) Math.sqrt(
                         Math.pow(firstX-secondX, 2) +
                         Math.pow(firstY-secondY, 2));
-
-        //System.out.println("FitnessMonitor: distance calculated = " + distance);
 
         return distance;
 
     }
 
     public double getRobToResDist() {
-    	return avgRobToResDist;
+    	return this.avgRobToResDist;
     }
 
     public int getNumRobots() {
-    	return placedRobots.size();
+    	return this.placedRobots.size();
     }
 
 	public ConstructionZone getConstructionZone() {
-		return constructionZone;
+		return this.constructionZone;
 	}
 
-	public CopyOnWriteArrayList<ResourceObject> getPlacedResources() {
-		return placedResources;
+	public ConstructionTask getConstructionTask() {
+		return this.constructionTask;
+	}
+
+	public ArrayList<ResourceObject> getPlacedResources() {
+		return this.placedResources;
 	}
 
 	public int getNumPickups() {
-		return numPickups;
+		return this.numPickups;
 	}
 
 	public double getDistanceTravelled() {
-		return distanceTravelled;
+		return this.distanceTravelled;
 	}
 
 	public double getAvgResToResDist() {
-		return avgResToResDist;
+		return this.avgResToResDist;
 	}
 
 	public double getAvgRobToResDist() {
-		return avgRobToResDist;
+		return this.avgRobToResDist;
 	}
 
 	public double getAvgResToCZoneDist() {
-		return avgResToCZoneDist;
+		return this.avgResToCZoneDist;
 	}
 
 	public int getConnectedA() {
-		return connectedA;
+		return this.connectedA;
 	}
 
 	public int getConnectedB() {
-		return connectedB;
+		return this.connectedB;
 	}
 
 	public int getConnectedC() {
-		return connnectedC;
+		return this.connectedC;
 	}
 
 	public int compareStructure (Behaviour newBehaviour) {

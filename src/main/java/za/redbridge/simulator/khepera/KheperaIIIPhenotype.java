@@ -52,10 +52,10 @@ public abstract class KheperaIIIPhenotype implements Phenotype {
 
         if (configuration.enableProximitySensor90Degrees) {
             sensors.add(createProximitySensor((float) Math.toRadians(90), 0f));}
-         
+
         if (configuration.enableProximitySensor135Degrees) {
             sensors.add(createProximitySensor((float) Math.toRadians(135), 0f));}
-        
+
         if (configuration.enableProximitySensor180Degrees) {
             sensors.add(createProximitySensor((float) Math.toRadians(180), 0f));}
 
@@ -107,7 +107,7 @@ public abstract class KheperaIIIPhenotype implements Phenotype {
 
     /** Method can be overridden to customize proximity sensor */
     protected AgentSensor createProximitySensor(float bearing, float orientation) {
-        return new ProximitySensor(bearing, orientation);
+        return new ProximitySensor(bearing, orientation, 1);
     }
 
     /** Method can be overridden to customize bottom proximity sensor */
@@ -117,12 +117,12 @@ public abstract class KheperaIIIPhenotype implements Phenotype {
 
     /** Method can be overridden to customize ultrasonic sensor */
     protected AgentSensor createUltrasonicSensor(float bearing, float orientation) {
-        return new UltrasonicSensor(bearing, orientation);
+        return new UltrasonicSensor(bearing, orientation, 1);
     }
 
     /** Method can be overridden to customize colour proximity sensor */
     protected AgentSensor createColourProximitySensor(float bearing, float orientation){
-        return new ColourProximitySensor(bearing, orientation);
+        return new ColourProximitySensor(bearing, orientation, 1);
     }
 
     /** Returns a copy of the current configuration */
@@ -218,10 +218,10 @@ public abstract class KheperaIIIPhenotype implements Phenotype {
             this.enableBottomProximitySensor = other.enableBottomProximitySensor;
 
         }
-        
+
         public int getNumberOfSensors() {
             int numSensors = 0;
-            
+
             // Proximity Sensors
             if(enableProximitySensor45Degrees) numSensors += 1;
             if(enableProximitySensor90Degrees) numSensors += 1;
@@ -248,7 +248,7 @@ public abstract class KheperaIIIPhenotype implements Phenotype {
 
             // Bottom Proximity Sensor
             if(enableBottomProximitySensor) numSensors +=1;
-            
+
             return numSensors;
         }
     }

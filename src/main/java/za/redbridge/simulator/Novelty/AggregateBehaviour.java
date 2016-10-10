@@ -1,7 +1,7 @@
 package za.redbridge.simulator;
 
 import za.redbridge.simulator.Behaviour;
-import java.utils.*;
+import java.util.*;
 
 /*
 a class that stores and manages the behaviour of an individual over a number of runs
@@ -13,7 +13,7 @@ public class AggregateBehaviour {
 	private int numBehaviours; //a variable to count the number of behaviours that have been added to the collection
 	private int totalPickups; //variable to store the total number of times robots connected to resources over all the simulation runs
 	private double sumResToResDist; //variable to store the sum of the average distance between resources fpr each simulation rin
-	private double sumRobToResDist;
+	private double sumRobToResDist; //average distance between a robot and its nearest resource
 	private double sumConnectedResources; //variable to store the number of connected resources summed for all simulation runs
 	private double sumAvgResToCZoneDist; //variable to store the sum of average distance between construction zone and resource for each simulation run
 
@@ -39,8 +39,8 @@ public class AggregateBehaviour {
 		sumAvgResToCZoneDist = 0;
 
 		totalAConnected = 0;
-		totaBConnected = 0;
-		totalCCOnnected = 0;
+		totalBConnected = 0;
+		totalCConnected = 0;
 
 		totalSchemaFitness = 0;
 	}
@@ -89,7 +89,7 @@ public class AggregateBehaviour {
 	private void countConnectedBlocks(Behaviour behaviour) {
 		totalAConnected += behaviour.getConnectedA();
 		totalBConnected += behaviour.getConnectedB();
-		totalCCOnnected += behaviour.getConnectedC();
+		totalCConnected += behaviour.getConnectedC();
 	}
 
 	//method to sum the schema fitness for each behaviour's construction task

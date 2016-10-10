@@ -88,7 +88,7 @@ public class ChasingPhenotype extends KheperaIIIPhenotype {
 
     @Override
     protected AgentSensor createUltrasonicSensor(float bearing, float orientation) {
-        return new UltrasonicSensor(bearing, orientation) {
+        return new UltrasonicSensor(bearing, orientation, 1) {
             @Override
             protected int getFilterMaskBits() {
                 return FilterConstants.CategoryBits.RESOURCE;

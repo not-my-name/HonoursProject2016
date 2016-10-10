@@ -26,15 +26,17 @@ public class LowResCameraSensor extends AgentSensor
     public static final float FIELD_OF_VIEW = 1.5f; // This is a guess
 
     private static final Paint color = new Color(28, 0, 255, 138);
-    //constructor
-    public LowResCameraSensor(float bearing, float orientation)
+    private int readingSize;
+
+    public LowResCameraSensor(float bearing, float orientation, int readingSize)
     {
-        this(bearing, orientation, LOWRES_SENSOR_RANGE, LOWRES_SENSOR_FOV);
+        this(bearing, orientation, LOWRES_SENSOR_RANGE, LOWRES_SENSOR_FOV, readingSize);
     }
 
-    public LowResCameraSensor(float bearing, float orientation, float range, float fieldOfView)
+    public LowResCameraSensor(float bearing, float orientation, float range, float fieldOfView, int readingSize)
     {
         super(bearing, orientation, range, fieldOfView);
+        this.readingSize = readingSize;
     }
 
     @Override
@@ -71,6 +73,8 @@ public class LowResCameraSensor extends AgentSensor
         {
             output.add(0.0);
         }
+        // System.out.println("Low res camera sensor expected: "+readingSize);
+        // System.out.println("Low res camera sensor: "+output.size());
     }
 
     @Override
@@ -82,13 +86,13 @@ public class LowResCameraSensor extends AgentSensor
     @Override
     public AgentSensor clone()
     {
-        return new LowResCameraSensor(bearing, orientation, range, fieldOfView);
+        return new LowResCameraSensor(bearing, orientation, range, fieldOfView, readingSize);
     }
 
     @Override
     public int getReadingSize()
     {
-        return 1;
+        return readingSize;
     }
 
     @Override
