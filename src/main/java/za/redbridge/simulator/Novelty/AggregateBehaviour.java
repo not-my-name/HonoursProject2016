@@ -28,6 +28,7 @@ public class AggregateBehaviour {
 	private double totalSchemaFitness; //variable to store the sum of the schema fitness of each behaviour (for each simulation run)
 
 	public AggregateBehaviour(int numRuns, int schemaConfigNum) {
+		
 		this.numRuns = numRuns;
 		this.schemaConfigNum = schemaConfigNum;
 		behaviourCollection = new ArrayList<Behaviour>();
@@ -55,8 +56,10 @@ public class AggregateBehaviour {
 	collection of previous behaviours
 	*/
 	public boolean addSimBehaviour(Behaviour behaviour) {
+
 		boolean added = false;
 		if( this.behaviourCollection.add(behaviour) ) { //append the behaviour to the end of the list
+
 			added = true;
 			numBehaviours++;
 
@@ -87,10 +90,16 @@ public class AggregateBehaviour {
 
 	//method to count the total number of each type of connected block
 	private void countConnectedBlocks(Behaviour behaviour) {
+
 		totalAConnected += behaviour.getConnectedA();
 		totalBConnected += behaviour.getConnectedB();
 		totalCConnected += behaviour.getConnectedC();
 	}
+
+	/**
+	will probably have to change the calculateSchema fitness method 
+	going to try calc schema fitness for each behaviour object
+	*/
 
 	//method to sum the schema fitness for each behaviour's construction task
 	private void calculateSchemaFitness(Behaviour behaviour) {

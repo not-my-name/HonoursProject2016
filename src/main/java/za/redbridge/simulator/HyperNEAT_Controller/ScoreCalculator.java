@@ -50,7 +50,8 @@ public class ScoreCalculator implements CalculateScore {
 
     //private ArrayList<NoveltyBehaviour> currentPopulation; //list to store the novelty functions and the aggregate behaviours of the current generation
     private int populationSize;
-    private NoveltyBehaviour[] currentPopulation
+    private int numResults; //the number of results that will be produced for populationSize individuals being tested * numSimulationRuns (since one result per simulation) this is only for novelty
+    private NoveltyBehaviour[] currentPopulation;
     private int currentBehaviour; //keep track of how many of the individuals in the generation have been processed
 
     public ScoreCalculator(SimConfig simConfig, int simulationRuns,
@@ -61,7 +62,9 @@ public class ScoreCalculator implements CalculateScore {
         this.populationSize = populationSize;
 
         //currentPopulation = new ArrayList<NoveltyBehaviour>();
-        currentPopulation = new NoveltyBehaviour[populationSize];
+        currentBehaviour = 0;
+        numResults = populationSize * simulationRuns;
+        currentPopulation = new NoveltyBehaviour[numResults];
 
         /**
         need to change the schema config to work with the variables so that the config number can change
@@ -69,13 +72,11 @@ public class ScoreCalculator implements CalculateScore {
         schemaConfigNum = 0;
 
         archive = null;
-
-        currentBehaviour = 0;
-
     }
 
     @Override
     public double calculateScore(MLMethod method) {
+
         long start = System.nanoTime();
 
         NEATNetwork neat_network = null;
@@ -98,64 +99,75 @@ public class ScoreCalculator implements CalculateScore {
 
         simulation.setSchemaConfigNumber(schemaConfigNum);
 
-        if(this.archive != null) {
-            simulation.setArchive(this.archive);
-        }
+        /**
+        NOVELTY SEARCH
+        the results of each trial run for an individual is considered as a completely separate results
+        each trial run is treated like an individual
+        this means the values produced in the trial runs dont need to be averaged to get a representative behaviour
+        */
+        // double fitness = 0;
+        // for (int i = 0; i < simulationRuns; i++) {
 
-        /*SimulationGUI video = new SimulationGUI(simulation);
-        Console console = new Console(video);
-        console.setVisible(true);*/
+        //     /*
+        //     currentBehaviour will never be => numResults while the loop is still running
+        //     when currentBehaviour == numResults its because the last simulation for the last individual has been run (SHOULD BE)
+        //     */
+        //     if(currentBehaviour < numResults) {
+        //         currentPopulation[currentBehaviour] = simulation.runNovel(); //adding the simulation results to the array of results for the current generation
+        //         currentBehaviour++; //keep track of the index that the next behaviour will be stored in
+        //     }
 
-        /*
-        this is where the genomes get trained in the simulator using the robots
-        */ 
+        // }
 
-        //AggregateBehaviour aggregateBehaviour = new AggregateBehaviour(simulationRuns, schemaConfigNum);
+        // if( currentBehaviour == numResults ) { //checking that the currentPopulation array is full 
+
+            
+        //     need to find the final novelty score per individual instead of having a score for each test run
+        //     iterate over the array of returned values
+        //     sum up the values in multiples of simulationRuns
+        //     divide by the number of simulation runs for each individual
+            
+
+        //     NoveltyFitness noveltyFitnessCalculator = new FitnessMonitor(currentPopulation);
+        //     double[] fitnessArray = noveltyFitnessCalculator.calculateNoveltyFitness();
+
+        //     for(int k = 0; k < fitnessArray.length; k += simulationRuns) { //iterate in steps of simulation runs
+        //         double score = 0; //the total avg fitness for an individual
+
+        //         for(int j = k; j < k+simulationRuns; j++) {
+        //             score += fitnessArray[j];
+        //         }
+
+        //         score = score / simulationRuns; //average score for an individual over simulationRuns
+        //         scoreStats.addValue(score); //recording the average score of the individual
+        //     }
+
+        //     //clearing the array and resetting the counter
+        //     currentBehaviour = 0;
+        //     Arrays.fill(currentPopulation, null);
+
+        // }
+
+
 
         /**
-        have a couple of different ways of calculating novelty (keep the code you have and just add the different one from josh)
-        see how many other ones you can come up with, try out the novelty vector thing might be something to it
-        try out the different methods
-        **/
+        OBJECTIVE SEARCH
+        */
+        //creates a new aggregate behaviour for every individual in the population. represents the average behaviour of the individual over the test simulation runs
+        AggregateBehaviour aggregateBehaviour = new AggregateBehaviour(simulationRuns, schemaConfigNum); //creating a new aggregate behaviour to store the test runs results for this specific individual
 
         double fitness = 0;
-        for (int i = 0; i < simulationRuns; i++) {
-            //System.out.println("ScoreCalculator: printing from inside the simulation loop");
-            //aggregateBehaviour.addSimBehaviour(simulation.run());
-            currentPopulation[i] = simulation.runNovelty();
-            // simulation.run();
-            // fitness += simulation.getFitness();
+        for(int i = 0; i < simulationRuns; i++) {
+            aggregateBehaviour.addSimBehaviour(simulation.runObjective());
         }
 
-        double score = fitness / simulationRuns;
+        //send the aggregate behaviour of the individual to a new objective fitness class
+        ObjectiveFitness objectiveFitness = new ObjectiveFitness(aggregateBehaviour);
+        double score = objectiveFitness.calculate(); //calculate the objective fitness for the individual currently being evaluated
         scoreStats.addValue(score);
 
         /**
-        this is for the objective fitness experiments
-        */
-        // ObjectiveFitness objectiveFitness = new ObjectiveFitness(aggregateBehaviour);
-        // double score = objectiveFitness.calculate();
-        // scoreStats.addValue(score);
-
-        /**
-        this is for the novelty fitness experiments
-        */
-
-        // if(currentPopulation.size() < populationSize) {
-        //     currentPopulation.add(aggregateBehaviour);
-        // }
-        // else if(currentPopulation.size() == populationSize) {
-        //     for(int k = 0; k < populationSize; k++) {
-        //         NoveltyFitness noveltyFitness = new NoveltyFitness(currentPopulation.get(k), currentPopulation, k);
-        //     }
-        // }
-
-        // NoveltyFitness noveltyFitness = new NoveltyFitness(aggregateBehaviour);
-        // double score = noveltyFitness.calculate();
-        // scoreStats.addValue(score);
-
-        /**
-        this is for the hybrid search experiments
+        HYBRID SEARCH
         */
         // HybridFitness hybridFitness = new HybridFitness(aggregateBehaviour);
         // double score  = hybridFitness.calculate();
@@ -169,6 +181,11 @@ public class ScoreCalculator implements CalculateScore {
 
         //demo(method);
 
+
+        /**
+        FINS OUT WHAT THE PERFORMANCE STATS IS USED FOR AND IF THIS MAKES A DIFFERENCE IN THE NOVELTY PART
+        LIKE SHOULD THIS BE CALLED AT A DIFFERENT TIME IN ORDER TO WORK WITH THE POPULATION ARRAY
+        */
         long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
         performanceStats.addValue(duration);
 

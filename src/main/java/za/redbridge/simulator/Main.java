@@ -53,7 +53,7 @@ public class Main {
 		/**
 		look for all the bright pink hilights to check what still needs to be done
 
-		make sure you have the correct number of inputs for the different updated sensors
+		make sure you have the correct number of inputs for the different updated sensors (something to do with only reading the closest resource or something along those lines)
 
 		check that all the heuristics are in place
 
@@ -70,6 +70,19 @@ public class Main {
 		does this affect the total resource pickup count in some way? should probably add some sort of check
 
 		check you have the isAligned and isConnected checks for the resources and the constructionZone 
+
+		what did daniel do to get his code to run so much faster
+
+		take out the empty connections for the resources in the schema config file
+
+		find a way to static reference the archive from this Main class so that all local copies will have the same content and get updated accordingly
+
+		check that all the yml files are in order and 
+
+		check that all the data structures and functions work with the correct variables. such as for the total number of resources in each simulation will change, that needs to be addressed/reference properly
+		the same thing goes for the schema number and so forth
+
+
 		*/
 
 		Args options = new Args();

@@ -45,9 +45,9 @@ public class Archive {
 
 		double noveltyScore = 0;
 
-		for(Behaviour b : history) { //iterate over past novel behaviours
-			noveltyScore += b.compareStructure(newStructure);
-		}
+		// for(NoveltyBehaviour b : history) { //iterate over past novel behaviours
+		// 	noveltyScore += b.compareStructure(newStructure);
+		// }
 
 		return noveltyScore;
 	}
@@ -56,7 +56,7 @@ public class Archive {
 	method to add
 	*/
 	public void addToArchive(Behaviour newBehaviour) {
-		history.add(newBehaviour);
+		//history.add(newBehaviour);
 		archiveLength++;
 	}
 
@@ -68,7 +68,7 @@ public class Archive {
 	method to return the Behaviour associated with a
 	specific network
 	*/
-	public Behaviour getBehaviour(int index) {
+	public NoveltyBehaviour getBehaviour(int index) {
 		return history.get(index);
 	}
 	

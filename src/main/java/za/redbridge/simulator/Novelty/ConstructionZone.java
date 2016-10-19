@@ -66,8 +66,17 @@ public class ConstructionZone {
     // resources never get added to watched fixtures list
     private final List<Fixture> watchedFixtures = new ArrayList<>();
 
+    /**
+    check how to make the connectionOrder array a variable size so that the number of resources in the simulation can be changed
+    */
+
     private ResourceObject[] connectionOrder = new ResourceObject[15]; //change the size to the number of resource in the zone
     private int numConnected; //variable to keep track of how many resources are in the construction zone
+
+    /**
+    check what the difference is between the numConnected var and the resource_count var
+    check where resource count gets incremented below in the addResource method, if using numConnected then check if it needs to be incremented in the same if statement
+    */
 
     int resource_count = 0;
     int ACount = 0;
@@ -105,6 +114,7 @@ public class ConstructionZone {
         FResource(resource) = F(resource)*{1 if fitsInSchema; 0 otherwise}
     **/
     public void addResource(ResourceObject resource) {
+
         double FResource = 0D;
         if (connectedResources.add(resource)) { //checks if the resource hasnt already been added
             //fitnessStats.addToTeamFitness(resource.getValue());
@@ -123,16 +133,24 @@ public class ConstructionZone {
                 CCount++;
             }
 
-            System.out.println(Arrays.toString(resource.getAdjacentList()));
+            //System.out.println("ConstructionZone: " + Arrays.toString(resource.getAdjacentList()));
             // Mark resource as collected (this breaks the joints)
             //resource.setCollected(true);
-            numConnected += 1;
             resource.setConstructed();
-            connectionOrder[numConnected-1] = resource; //updating the connection order once a resource can be added
+            /**
+            check that this connectionOrder and numConnected setup works properly when being used to iterate over the connected resources (especially in the Behaviour class when calculating
+            the correctSchemaScore for the behaviour)
+            */
+            connectionOrder[numConnected] = resource; //updating the connection order once a resource can be added
+            numConnected++;
 
             resource.getPortrayal().setPaint(Color.CYAN);
             resource.getBody().setActive(false);
         }
+    }
+
+    public int getNumConnected() {
+        return numConnected;
     }
 
     public int getACount() {
@@ -149,6 +167,10 @@ public class ConstructionZone {
 
     public Vec2 getCZonePosition() {
         return cZonePosition;
+    }
+
+    public ResourceObject[] getConnectionOrder() {
+        return this.connectionOrder;
     }
 
     public Set<ResourceObject> getConnectedResources () {

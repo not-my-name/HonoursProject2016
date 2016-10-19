@@ -37,7 +37,10 @@ public class ConstructionTask implements Steppable{
     private FitnessStats fitnessStats;
     //private double teamFitness;
 
-    private ConstructionZone constructionZone;
+    //change this to an array of construction zones to support multiple construction zones
+    private ConstructionZone[] constructionZones;
+    private int numConstructionZones; //var to keep track of how many construction zones have been placed in the array
+    //private ConstructionZone constructionZone;
     //private int maxSteps = 0;
 
     private boolean IS_FIRST_CONNECTED = true;
@@ -60,7 +63,15 @@ public class ConstructionTask implements Steppable{
 
         physicsWorld = world;
         //this.maxSteps = maxSteps;
-        constructionZone = new ConstructionZone();
+
+        /**
+        change this to work with a variable for different numbers of resources in different simulations
+        */
+        int numResources = 15; 
+        this.constructionZones = new ConstructionZone[numResources/2]; //the maximum number of construction zones possible
+        numConstructionZones = 0;
+
+        //constructionZone = new ConstructionZone();
         //fitnessStats = new FitnessStats(maxSteps);
 
         //constructedResources = new HashSet<ResourceObject>();
@@ -99,9 +110,14 @@ public class ConstructionTask implements Steppable{
 
         @Override
     public void step(SimState simState) {
+
+        System.out.println("ConstructionTask Step: the step method is being called");
+
         for(ResourceObject r1 : resources){
+
             for(ResourceObject r2 : resources){
                 if( r1 != r2) {
+
                     if(constructionZone.getConnectedResources().isEmpty()){
                         tryCreateWeld(r1, r2);
                     }   
@@ -147,39 +163,134 @@ public class ConstructionTask implements Steppable{
     //     // }
     // }
 
-    private void tryCreateWeld(ResourceObject r1, ResourceObject r2){
-        if(r1 != r2 && !r1.isFullyWelded() && !r2.isFullyWelded()){
-            // check if join between resources has been made before
-            boolean t = false;
-            for(int i=0;i<weldMap.get(r1).size();i++){
-                if(weldMap.get(r1).get(i)==r2){
-                    t = true;
+    private void tryCreateWeld(ResourceObject res1, ResourceObject r2) {
+
+        //check if the join between the resources has been made before
+        if( (res1 != res2) && ( !r1.isFullyWelded() ) && ( !res2.isFullyWelded() ) ) {
+
+            boolean flag = false; //boolean that shows whether or not a connection between these resources already exists
+            for(int k = 0; k < weldMap.get(res1).size(); k++) {
+
+                if(weldMap.get(res1).get(k) == res2) {
+                    flag = true;
                     break;
                 }
+
             }
 
             float distance = r1.getBody().getPosition().sub(r2.getBody().getPosition()).length();
 
-            if(distance < 3f && t==false){
+            if(distance < 3f && flag==false){ //check if the resources are close enough for a weld to form
+
                 if(checkPotentialWeld(r1, r2)){
+
                     WeldJointDef weldDef = r1.createResourceWeldJoint(r2);
                     Joint joint = physicsWorld.createJoint(weldDef);
                     weldMap.get(r1).add(r2);
                     weldMap.get(r2).add(r1);
+
+                    //check for existing construction zones
+                    if( numConstructionZones == 0 ) { //if none of the previour resources have been connected
+
+                        constructionZones[numConstructionZones].startConstruction(res1, res2); 
+                        numConstructionZones++;
+                        res1.setConstructed();
+                        res2.setConstructed();
+
+                    }
+                    else { //check if either of the resources are part of an existing construction zone
+                        boolean found = false; //indicate whether one of the resources was already connected to an existing construction zone
+
+                        for(int j = 0; j < numConstructionZones; j++) {
+
+                            if( constructionZones[j].getConnectedResources().contains(res1) ) { //if the res1 is already in a construction zone
+
+                                //add res2 to the construction zone
+                                constructionZones[j].addResource(res2);
+                                res2.setConstructed();
+                                found = true;
+                                break;
+
+                            }
+                            else if( constructionZones[j].getConnectedResources().contains(res2) ) { //if res2 is already in a construction zone
+
+                                //add res1 to the construction zone
+                                constructionZones[j].addResource(res1);
+                                res1.setConstructed();
+                                found = true;
+                                break;
+
+                            }
+
+                        }
+
+                        if(!found) { //if the neither of the resources were connected to one of the existing construction zones
+
+                            //need to create a new construction zone
+                            constructionZones[numConstructionZones].startConstruction(res1, res2);
+                            numConstructionZones++;
+                            res1.setConstructed();
+                            res2.setConstructed();
+
+                        }
+
+                    }
+
                     //constructedResources.add(r1);
                     //constructedResources.add(r2);
-                    constructionZone.addResource(r1);
-                    constructionZone.addResource(r2);
-                    r1.setConstructed();
-                    r2.setConstructed();
+
+                    // constructionZone.addResource(r1);
+                    // constructionZone.addResource(r2);
+                    // r1.setConstructed();
+                    // r2.setConstructed();
+
                     // TODO: work on setting static after welding
                     // r1.setStatic();
                     // r2.setStatic();
                 }
             }
+
         }
+
     }
 
+    // private void tryCreateWeld(ResourceObject r1, ResourceObject r2){
+    //     if(r1 != r2 && !r1.isFullyWelded() && !r2.isFullyWelded()){
+    //         // check if join between resources has been made before
+    //         boolean t = false;
+    //         for(int i=0;i<weldMap.get(r1).size();i++){
+    //             if(weldMap.get(r1).get(i)==r2){
+    //                 t = true;
+    //                 break;
+    //             }
+    //         }
+
+    //         float distance = r1.getBody().getPosition().sub(r2.getBody().getPosition()).length();
+
+    //         if(distance < 3f && t==false){ //check if the resources are close enough for a weld to form
+    //             if(checkPotentialWeld(r1, r2)){
+    //                 WeldJointDef weldDef = r1.createResourceWeldJoint(r2);
+    //                 Joint joint = physicsWorld.createJoint(weldDef);
+    //                 weldMap.get(r1).add(r2);
+    //                 weldMap.get(r2).add(r1);
+    //                 //constructedResources.add(r1);
+    //                 //constructedResources.add(r2);
+    //                 constructionZone.addResource(r1);
+    //                 constructionZone.addResource(r2);
+    //                 r1.setConstructed();
+    //                 r2.setConstructed();
+    //                 // TODO: work on setting static after welding
+    //                 // r1.setStatic();
+    //                 // r2.setStatic();
+    //             }
+    //         }
+    //     }
+    // }
+
+
+    /**
+    should this not be changed to an &&
+    */
     public boolean checkPotentialWeld(ResourceObject r1, ResourceObject r2){
         if(r1.checkPotentialWeld(r2) || r2.checkPotentialWeld(r1)){
             return true;
@@ -204,42 +315,71 @@ public class ConstructionTask implements Steppable{
         }
     }
 
-    public void update(){  
-        // System.out.println("Starting update"); 
-        for(ResourceObject resource : resources){
-            resource.updateAdjacent(resources);
-            String [] resAdjacentList = resource.getAdjacentResources();
-            for (int i = 0; i < resAdjacentList.length; i++) {
-                if (IS_FIRST_CONNECTED) {
-                    // System.out.println("FIRST");
-                    if (!resAdjacentList[i].equals("0")) {
-                        // System.out.println("CONNECTION!!");
-                        ResourceObject otherRes = resource.getAdjacentList()[i];
-                        // System.out.println("ConstructionZone: " + constructionZone + " RESOURCE: " + resource);
-                        constructionZone.addResource(resource);
-                        constructionZone.addResource(otherRes);
-                        // System.out.println(constructionZone.getFitnessStats().getTeamFitness());
-                        tryCreateWeld(resource, otherRes);
-                        IS_FIRST_CONNECTED = false;
-                    }
+    /**
+    below is the original update method for a single construction zone 
+    */
+
+    // public void update(){  
+    //     // System.out.println("Starting update"); 
+    //     for(ResourceObject resource : resources){
+    //         resource.updateAdjacent(resources);
+    //         String [] resAdjacentList = resource.getAdjacentResources();
+    //         for (int i = 0; i < resAdjacentList.length; i++) {
+    //             if (IS_FIRST_CONNECTED) {
+    //                 // System.out.println("FIRST");
+    //                 if (!resAdjacentList[i].equals("0")) {
+    //                     // System.out.println("CONNECTION!!");
+    //                     ResourceObject otherRes = resource.getAdjacentList()[i];
+    //                     // System.out.println("ConstructionZone: " + constructionZone + " RESOURCE: " + resource);
+    //                     constructionZone.addResource(resource);
+    //                     constructionZone.addResource(otherRes);
+    //                     // System.out.println(constructionZone.getFitnessStats().getTeamFitness());
+    //                     tryCreateWeld(resource, otherRes);
+    //                     IS_FIRST_CONNECTED = false;
+    //                 }
+    //             }
+    //             else {
+    //                 // System.out.println("AFTER");
+    //                 if ((!resAdjacentList[i].equals("0"))&&(!constructionZone.isInConstructionZone(resource))) {
+    //                     ResourceObject otherRes = resource.getAdjacentList()[i];
+    //                     if (constructionZone.isInConstructionZone(otherRes)) {
+    //                         // System.out.println("NEW CONNECTION!!");
+    //                         constructionZone.addResource(resource);
+    //                         tryCreateWeld(resource, otherRes);
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
+    public void update() {
+
+        for(ResourceObject currentRes : resources) {
+
+            currentRes.updateAdjacent(resources);
+            String[] resAdjacentList = currentRes.getAdjacentResources();
+
+            for(int k = 0; k < resAdjacentList.length; k++) { //iterate over the adjacent resources
+
+                if( !resAdjacentList[k].equals("0") ){ //if the current res has another resource attached to one of its 4 sides
+
+                    ResourceObject otherRes = currentRes.getAdjacentList()[k];
+                    tryCreateWeld(currentRes, otherRes);
                 }
-                else {
-                    // System.out.println("AFTER");
-                    if ((!resAdjacentList[i].equals("0"))&&(!constructionZone.isInConstructionZone(resource))) {
-                        ResourceObject otherRes = resource.getAdjacentList()[i];
-                        if (constructionZone.isInConstructionZone(otherRes)) {
-                            // System.out.println("NEW CONNECTION!!");
-                            constructionZone.addResource(resource);
-                            tryCreateWeld(resource, otherRes);
-                        }
-                    }
-                }
+
             }
         }
     }
 
-    public int getNumConnectedResources() {
-        return constructionZone.getNumberOfConnectedResources();
+    //method to return the total number of resources that are placed in the particular simulation
+    public int getTotalNumResources() {
+        return resources.size();
+    }
+
+    //para: which construction zone to find
+    public int getNumConnectedResources(int cZoneIndex) {
+        return constructionZones[cZoneIndex].getNumberOfConnectedResources();
     }
 
     // public void update(){
@@ -267,6 +407,18 @@ public class ConstructionTask implements Steppable{
         return correctSides;
     }
 
+    /**
+    added this method so that the schema can be checked for each resource at a time
+    this method is being called in the Behaviour class to calculate the number of correctly connected resources for each resource
+    needed to be able to send through the specific resource that needed to be checked
+    */
+    public int checkSchema(int schemaConfigNum, ResourceObject resObjec) {
+
+        int correctSides = 0;
+        correctSides += schema.checkConfig(schemaConfigNum, resObj.getType(), resObj.getAdjacentResources());
+        return correctSides;
+    }
+
     // public int checkSchema(int i){
     //     System.out.println("ConstructionTask: This method actually gets called");
     //     int correct = 0;
@@ -287,8 +439,12 @@ public class ConstructionTask implements Steppable{
         return schema.getResQuantity(i);
     }
 
-    public ConstructionZone getConstructionZone() {
-        return constructionZone;
+    public ConstructionZone[] getConstructionZones() {
+        return constructionZones;
+    }
+
+    public int getNumConstructionZones() {
+        return numConstructionZones;
     }
 
     // private double calculateFitness() {

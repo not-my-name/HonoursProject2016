@@ -324,8 +324,24 @@ public class ResourceObject extends PhysicalObject {
         this.isConstructed = true;
     }
 
+    /**
+    what the hell is this method for
+    */
     public void updateAlignment(){
 
+    }
+
+    public int getNumAdjacent() {
+
+        int adjCount = 0;
+        for(int k = 0; k < 4; k++) {
+
+            if( !adjacentResources[k].equals("0") ) { //if the adjacent side of the resource is not empty
+                adjCount++;
+            }
+        }
+
+        return adjCount;
     }
 
     public String [] getAdjacentResources(){

@@ -2,6 +2,9 @@ package za.redbridge.simulator;
 
 import java.util.*;
 import za.redbridge.simulator.AggregateBehaviour;
+import org.jbox2d.common.Vec2;
+import za.redbridge.simulator.ConstructionZone;
+import za.redbridge.simulator.object.ResourceObject;
 
 /*
 a class to monitor and manage all the necessary structures to calculate the novelty fitness
@@ -19,11 +22,13 @@ public class NoveltyFitness{
 	for comparing the trajectories to each other, compare each robot in a team to the same robot in the other team then sum the differences in an array
 	one array element corresponds to the total trajectory difference for a pair of robots 
 
-	sum the values from that array into one double and theen divide by the number of robots in a team (length of the array)
+	sum the values from that array into one double and then divide by the number of robots in a team (length of the array)
 
 	since each controller is run for several runs, find the most novel of all those runs and use that as the representative behaviour for that controller and use that to compare to
 	the other individuals in the population
 	the most novel individual in the population then gets compared to the archive and if its relatively novel compared to the archive then it gets added to the archive
+
+	add the morphology simplifications that daniel mentioned
 	**/
 
 	//order of construction zone connections (order resources are added)
@@ -41,11 +46,8 @@ public class NoveltyFitness{
 
 	private Archive archive; //the archive of novel behaviours
 
-	private NoveltyBehaviour[] currentGeneration;
+	private NoveltyBehaviour[] currentGeneration; //keep track of individual controllers in the current generation of individuals
 	private int numBehaviours; //keep track of how many behaviours there are in a generation
-
-	private double[] finalFitnessArray; //keep track of the fitness of each of the individuals in the current generation
-	//keeps track of the respective scores of the behaviours in the current generation
 
 	private double[][] robotTrajectoryDifferences; //an array to store the position differences at each sample point
 	private double[][] resourceTrajectoryDifferences; //an array to store the position differences for resources at each sample point their respective trajectories
@@ -53,12 +55,15 @@ public class NoveltyFitness{
 	private int numRobotSamples; //number of position samples that make up the robots trajectory
 	private int numResSamples; //number of position samples that make up the trajectory of a resource
 	private int numResources; //the number of resources that were used in a simulation
+	private int populationSize; //keep track of how many results are in each generation
 
 	/**
 	check that all these calculations are done the same way and correct
+
+	might need to change this constructor a lot depending on how the novelty fitness objects are going to be created
 	*/
 
-	public NoveltyFitness(NoveltyBehaviour[] currentGeneration, Archive archive) {
+	public NoveltyFitness(NoveltyBehaviour[] currentGeneration) {
 
 		localNoveltyWeight = 1;
 		archiveNoveltyWeight = 1;
@@ -68,6 +73,7 @@ public class NoveltyFitness{
 		constructionOrderWeight = 1;
 		constructionZoneWeight = 1;
 
+		populationSize = currentGeneration.length;
 		numBehaviours = currentGeneration.length;
 		this.currentGeneration = new NoveltyBehaviour[numBehaviours];
 		for(int k = 0; k < numBehaviours; k++) { //copying over the elements in the array to a local array
@@ -81,8 +87,6 @@ public class NoveltyFitness{
 		this.numResSamples = this.currentGeneration[0].getResourceTrajectory().length; //the number of times the position was sampled to build the trajectory
 		resourceTrajectoryDifferences = new double[numResources][numResSamples]; 
 
-		finalFitnessArray = new double[numBehaviours]; //array to store the final fitnesses of each of the individuals in the current generation
-
 		calculateRobTrajDist();
 		calculateResTrajDist();
 
@@ -94,7 +98,7 @@ public class NoveltyFitness{
 
 		// numBehaviours = this.currentGeneration.size();
 
-		this.archive = archive;
+		//this.archive = archive;
 	}
 
 	/*
@@ -103,26 +107,37 @@ public class NoveltyFitness{
 	public double[] calculateNovelty() {
 
 		double fitness = 0;
+		double[] fitnessArray = new double[populationSize];
+		Arrays.fill(fitnessArray, 0); //initialise all the elements in the array
 
-		fitness += calcLocalFitness(currentGeneration) * localNoveltyWeight;
-		fitness += calcArchiveFitness(archive) * archiveNoveltyWeight;
+		for(int k = 0; k < populationSize; k++) {
 
-		return fitness;
+			fitnessArray[k] += calcLocalFitness(k) * localNoveltyWeight;
+			//fitnessArray[k] += calcArchiveFitness() * archiveNoveltyWeight;
+
+		}
+
+		// fitness += calcLocalFitness(currentGeneration) * localNoveltyWeight;
+		// fitness += calcArchiveFitness(archive) * archiveNoveltyWeight;
+
+		return fitnessArray;
 	}
 
 	/*
 	method to calculate the fitness of an individual w.r.t the individuals in the 
 	rest of the generation
 	compare to each network in the population (current generation)
+
+	@param: index of the behaviour currently being calculated
 	*/
-	private double calcLocalFitness(ArrayList<NoveltyBehaviour> currentGen) {
+	private double calcLocalFitness(int curIndex) {
 
 		double localNovelty = 0;
 
-		localNovelty += this.compareRobotTrajectory(currentGen) * robotTrajectoryWeight;
-		localNovelty += this.compareResourceTrajectory(currentGen) * resourceTrajectoryWeight;
-		localNovelty += this.compareConstructionOrder(currentGen)  * constructionOrderWeight;
-		localNovelty += this.compareConstructionZone(currentGen) * constructionZoneWeight;
+		localNovelty += this.compareRobotTrajectory() * robotTrajectoryWeight;
+		localNovelty += this.compareResourceTrajectory() * resourceTrajectoryWeight;
+		localNovelty += this.compareConstructionOrder() * constructionOrderWeight;
+		localNovelty += this.compareConstructionZone() * constructionZoneWeight;
 
 		return localNovelty;
 	}
@@ -131,15 +146,15 @@ public class NoveltyFitness{
 	method to calculate the fitness of an individual by comparing it 
 	to the behaviours in the archive
 	*/
-	private double calcArchiveFitness(ArrayList<NoveltyBehaviour> archiveCollection) { //might need to send the actual archive
+	private double calcArchiveFitness() { //might need to send the actual archive
 
 		double archiveNovelty = 0;
 
 		//store these values in an array "NoveltyArray" so that you can calculate the "distance" between
-		archiveNovelty += this.compareRobotTrajectory(archiveCollection) * robotTrajectoryWeight;
-		archiveNovelty += this.compareResourceTrajectory(archiveCollection) * resourceTrajectoryWeight;
-		archiveNovelty += this.compareConstructionOrder(archiveCollection) * constructionOrderWeight;
-		archiveNovelty += this.compareConstructionZone(archiveCollection) * constructionZoneWeight;
+		archiveNovelty += this.compareRobotTrajectory() * robotTrajectoryWeight;
+		archiveNovelty += this.compareResourceTrajectory() * resourceTrajectoryWeight;
+		archiveNovelty += this.compareConstructionOrder() * constructionOrderWeight;
+		archiveNovelty += this.compareConstructionZone() * constructionZoneWeight;
 
 		return archiveNovelty;
 	}
@@ -148,7 +163,7 @@ public class NoveltyFitness{
 	method to calculate all the respective trajectory differences for the robots
 	between all the individuals in the current generation
 	*/
-	private void calculateRobTrajDist() {
+	private void calculateRobTrajDist() { 
 
 		for(int k = 0; k < numBehaviours-1; k++) { //iterating over all the individuals in the current generation
 			Vec2[] originalTrajectory = currentGeneration[k].getRobotTrajectory();
@@ -212,8 +227,22 @@ public class NoveltyFitness{
 	sum those distances
 	repeat and store for each behaviour
 	will return an array that has total distance difference between the currentBehaviour and the behaviour it is being compared to
-	*/
-	private double compareRobotTrajectory(NoveltyBehaviour currentBehaviour, ArrayList<NoveltyBehaviour> theCollection) {
+	*/ 
+
+	private double compareRobotTrajectories(int curIndex) {
+
+		double totalDistance = 0;
+
+		for(int k = 0; k < numRobotSamples; k++) {
+
+			totalDistance += robotTrajectoryDifferences[curIndex][k]; //summing the total difference in the trajectory of the indicated behaviour`
+
+		}
+
+	}
+
+
+	private double compareRobotTrajectory(NoveltyBehaviour[] theCollection) {
 
 		/**
 		for each novelty behaviour, there are several trajectories (as many as robots)
@@ -223,40 +252,40 @@ public class NoveltyFitness{
 
 		double trajectoryDiff = 0;
 
-		Vec2[] currentTrajectory = currentBehaviour.getRobotTrajectory();
-		int numSamples = currentTrajectory.length;
-		double[] posDifferences = new double[numSamples];
+		// Vec2[] currentTrajectory = currentBehaviour.getRobotTrajectory();
+		// int numSamples = currentTrajectory.length;
+		// double[] posDifferences = new double[numSamples];
 
-		for(int k = 0; k < numSamples; k++) { //resetting the values
-			posDifferences[k] = 0;
-		}
+		// for(int k = 0; k < numSamples; k++) { //resetting the values
+		// 	posDifferences[k] = 0;
+		// }
 
-		for(NoveltyBehaviour novBeh : theCollection) { //iterate over the behaviours in the current generation
+		// for(NoveltyBehaviour novBeh : theCollection) { //iterate over the behaviours in the current generation
 
-			if(novBeh != currentBehaviour) { //check so that it doesnt compare the behaviour with itself
+		// 	if(novBeh != currentBehaviour) { //check so that it doesnt compare the behaviour with itself
 
-				Vec2[] tempTrajectory = novBeh.getRobotTrajectory(); //gets the aggregate trajectory that represents the average movement of a team of robots
+		// 		Vec2[] tempTrajectory = novBeh.getRobotTrajectory(); //gets the aggregate trajectory that represents the average movement of a team of robots
 
-				if(currentTrajectory.size() != tempTrajectory.size()) { 
-					System.out.println("NoveltyFitness: the trajectory lists are not the same size");
-				}
+		// 		if(currentTrajectory.size() != tempTrajectory.size()) { 
+		// 			System.out.println("NoveltyFitness: the trajectory lists are not the same size");
+		// 		}
 
-				//calculating the distance between the respective points of the robot's trajectory
-				for(int k = 0; k < numSamples; k++) { //iterate over the positions along the trajectories of the robots being compared
-					Vec2 origin = currentTrajectory[k];
-					Vec2 destination = tempTrajectory[k];
-					float distance = calculateDistance(origin, destination); //distance between the corresponding points
-					posDifferences[k] += distance;
-				}
+		// 		//calculating the distance between the respective points of the robot's trajectory
+		// 		for(int k = 0; k < numSamples; k++) { //iterate over the positions along the trajectories of the robots being compared
+		// 			Vec2 origin = currentTrajectory[k];
+		// 			Vec2 destination = tempTrajectory[k];
+		// 			float distance = calculateDistance(origin, destination); //distance between the corresponding points
+		// 			posDifferences[k] += distance;
+		// 		}
 				
-			}
-		}
+		// 	}
+		// }
 
-		for(int k = 0; k < posDifferences.length; k++) {
-			double temp = posDifferences[k];
-			posDifferences[k] = temp / theCollection.size(); //divide by the number of individuals in the generation -> get the average distance between each trajectory sample point
-			trajectoryDiff += posDifferences[k]; //finding the total average distance between the current behaviour and the average behaviour
-		}
+		// for(int k = 0; k < posDifferences.length; k++) {
+		// 	double temp = posDifferences[k];
+		// 	posDifferences[k] = temp / theCollection.size(); //divide by the number of individuals in the generation -> get the average distance between each trajectory sample point
+		// 	trajectoryDiff += posDifferences[k]; //finding the total average distance between the current behaviour and the average behaviour
+		// }
 
 		return trajectoryDiff;
 	}
@@ -267,7 +296,7 @@ public class NoveltyFitness{
 
 	same questions as for the above method
 	*/
-	private double compareResourceTrajectory(NoveltyBehaviour currentBehaviour, ArrayList<NoveltyBehaviour> theCollection) {
+	private double compareResourceTrajectory(NoveltyBehaviour[] theCollection) {
 
 		/**
 		this seems pretty inefficient to calculate the distance between behaviour
@@ -275,46 +304,46 @@ public class NoveltyFitness{
 
 		double trajectoryDiff = 0;
 
-		Vec2[] currentTrajectory = currentBehaviour.getResourceTrajectory(); //getting the aggregate resource trajecory of the current behaviour/controller
-		int numSamples = currentTrajectory.length; //getting the number of positions in the trajectory
-		double[] posDifferences = new double[numSamples]; //creating an array to store the individual respective distances between each sample point in the trajectory
+		// Vec2[] currentTrajectory = currentBehaviour.getResourceTrajectory(); //getting the aggregate resource trajecory of the current behaviour/controller
+		// int numSamples = currentTrajectory.length; //getting the number of positions in the trajectory
+		// double[] posDifferences = new double[numSamples]; //creating an array to store the individual respective distances between each sample point in the trajectory
 
-		for(int k = 0; k < numSamples; k++) {
-			posDifferences[k] = 0;
-		}
+		// for(int k = 0; k < numSamples; k++) {
+		// 	posDifferences[k] = 0;
+		// }
 
-		for(NoveltyBehaviour novBehaviour : theCollection) {
+		// for(NoveltyBehaviour novBehaviour : theCollection) {
 
-			/** 
-			check that this will work and that you dont need some sort of ID for each behaviour
-			 */
-			if(novBehaviour != currentBehaviour) {//check that you dont compare the same object to itself
+		// 	/** 
+		// 	check that this will work and that you dont need some sort of ID for each behaviour
+		// 	 */
+		// 	if(novBehaviour != currentBehaviour) {//check that you dont compare the same object to itself
 
-				Vec2[] tempTrajectory = novBehaviour.getResourceTrajectory(); //getting the trajectory that needs to be compared to 
+		// 		Vec2[] tempTrajectory = novBehaviour.getResourceTrajectory(); //getting the trajectory that needs to be compared to 
 
-				//again, just a check in case something went wrong in one of the other classes
-				if(currentTrajectory.length != tempTrajectory.length) {
-					System.out.println("NoveltyFitness compareResourceTrajectory: this message should never have appeared");
-				}
+		// 		//again, just a check in case something went wrong in one of the other classes
+		// 		if(currentTrajectory.length != tempTrajectory.length) {
+		// 			System.out.println("NoveltyFitness compareResourceTrajectory: this message should never have appeared");
+		// 		}
 
-				for(int k = 0; k < numSamples; k++) {
-					Vec2 origin = currentTrajectory[k];
-					Vec2 destination = tempTrajectory[k];
-					float dist = calculateDistance(origin, destination); //calculating the physical distance between these 2 controllers at the same point in time
-					posDifferences[k] += dist; //summing the distances between each controller and current controller and this point in time
-				}
+		// 		for(int k = 0; k < numSamples; k++) {
+		// 			Vec2 origin = currentTrajectory[k];
+		// 			Vec2 destination = tempTrajectory[k];
+		// 			float dist = calculateDistance(origin, destination); //calculating the physical distance between these 2 controllers at the same point in time
+		// 			posDifferences[k] += dist; //summing the distances between each controller and current controller and this point in time
+		// 		}
 
-			}
-		}
+		// 	}
+		// }
 
-		/**
-		make sure that there shouldnt be a -1 for the numBehaviours to exclude the current behaviour being compared
-		*/
-		int numBehaviours = theCollection.size(); //number which to divide the posDifferences in order to get an average for each behaviour
+		// /**
+		// make sure that there shouldnt be a -1 for the numBehaviours to exclude the current behaviour being compared
+		// */
+		// int numBehaviours = theCollection.size(); //number which to divide the posDifferences in order to get an average for each behaviour
 
-		for(int k = 0; k < numSamples; k++) {
-			double temp = posDifferences[k];
-		}
+		// for(int k = 0; k < numSamples; k++) {
+		// 	double temp = posDifferences[k];
+		// }
 
 		return trajectoryDiff;
 	}
@@ -323,20 +352,98 @@ public class NoveltyFitness{
 	method to calculate the difference between the order in which resources were
 	connected to the construction zone
 	*/
-	private double compareConstructionOrder() {
-		double constructionDiff = 0;
 
-		return constructionDiff;
+	/**
+	these methods take in an array of behaviours so that the same method can be used to compare
+	calculate with the current generation and the archive without rewriting the code
+	*/
+	private double compareConstructionOrder(NoveltyBehaviour[] theCollection) {
+
+		double dummyReturn = 10; //this is just to test the current implementation until i can figure out how to return the array values
+
+		double[] constructionDiff = new double[numBehaviours]; //array to store the total construction order differences for each of the behaviours
+
+		for(int k = 0; k < numBehaviours; k++) { //initialising all the elements to 0 just to be safe
+			constructionDiff[k] = 0;
+		}
+
+		for(int k = 0; k < numBehaviours-1; k++) { //iterating over the individuals in the current generation
+			/**
+			check if the line below brings the referecne to the array or if it brings the actual values
+			might need to manually copy over the values from the other array into the local one
+			*/
+			ResourceObject[] originalConstructionOrder = currentGeneration[k].getConstructionZone().getConnectionOrder(); //the construction order currently being compared to the others
+
+			for(int l = k+1; l < numBehaviours; l++) {
+
+				ResourceObject[] newConstructionOrder = currentGeneration[l].getConstructionZone().getConnectionOrder();
+				int numConstructed = originalConstructionOrder.length;
+
+				for(int j = 0; j < numConstructed; j++) { //iterate over the order the resources were added in the constructionZone
+
+					String originalType = originalConstructionOrder[j].getType();
+					String newType = newConstructionOrder[j].getType();
+
+					if( !originalType.equals(newType) ) { //check if the blocks connected at time j are NOT the same type
+
+						//increment the difference count for both controllers
+						constructionDiff[k] += 1;
+						constructionDiff[l] += 1;
+
+					}
+
+				}
+
+			}
+
+		}
+
+		return dummyReturn;
 	}
+
+	/**
+	need to have a way of reusing these methods in order to be able to compare with the current population and the archive
+	*/
+
+	/**
+	check how to do these calculations
+	*/
 
 	/*
 	method to calculate the difference between the structures that
 	were constructed at the end of the simulation
 	*/
 	private double compareConstructionZone() {
-		double cZoneDiff = 0;
 
-		return cZoneDiff;
+		/**
+		TO IMPLEMENT THE MULTIPLE 
+		*/
+
+		double dummyReturn = 10; //this is just until i can figure out how to return the full array of values
+
+		double[] cZoneDiff = new double[numBehaviours]; //an array to store the total differences for each behaviour (between each behaviour)
+
+		for(int k = 0; k < numBehaviours; k++) { //initialising all the array values to 0
+			cZoneDiff[k] = 0;
+		}
+
+		for(int k = 0; k < numBehaviours-1; k++) { //iterating over the behaviours in the generation
+
+			String[][] originalAConnections = currentGeneration[k].getAConnections();
+			String[][] originalBConnections = currentGeneration[k].getBConnections();
+			String[][] originalCConnections = currentGeneration[k].getCConnections();
+
+			for(int l = k+1; l < numBehaviours; l++) {
+
+				String[][] newAConnections = currentGeneration[l].getAConnections();
+				String[][] newBConnections = currentGeneration[l].getBConnections();
+				String[][] newCConnections = currentGeneration[l].getCConnections();
+			}
+
+		}
+
+		//return cZoneDiff;
+		return dummyReturn;
 	}
 
 	/**

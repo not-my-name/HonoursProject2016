@@ -5,6 +5,7 @@ import za.redbridge.simulator.object.ResourceObject;
 import za.redbridge.simulator.object.RobotObject;
 import za.redbridge.simulator.ConstructionTask;
 import za.redbridge.simulator.ConstructionZone;
+import org.jbox2d.common.Vec2;
 
 /*
 this is the class that will be created for each time that an individual gets tested
@@ -19,6 +20,11 @@ public class NoveltyBehaviour {
 	//array list of linked lists, each linked list is a trajectory (linked list of positions)
 	private ArrayList<LinkedList<Vec2>> robotTrajectories;
 	private ArrayList<LinkedList<Vec2>> resourceTrajectories;
+
+	//arrays to be used to check the configurations of the blocks in the construction zone
+	private String [][] AConnections;
+	private String [][] BConnections;
+	private String [][] CConnections;
 
 	private Vec2[] avgRobotTrajectory;
 	private Vec2[] avgResourceTrajectory;
@@ -62,6 +68,11 @@ public class NoveltyBehaviour {
 		this.constructionTask = constructionTask;
 		this.constructionZone = this.constructionTask.getConstructionZone();
 
+		int [] czTypeCount = this.constructionZone.getResourceTypeCount();
+		AConnections = new String [czTypeCount[0]][4];
+		BConnections = new String [czTypeCount[1]][4];
+		CConnections = new String [czTypeCount[2]][4];
+
 	}
 
 	//method to populate the list of robot trajectories
@@ -84,6 +95,47 @@ public class NoveltyBehaviour {
 
 	}
 
+	private void populateConnections() {
+		int APos = 0;
+		int BPos = 0;
+		int CPos = 0;
+		for (ResourceObject r : constructionZone.getConnectedResources()) {
+			if (r.getType().equals("A")) {
+				String [] sides = r.getAdjacentResources();
+				for (int i = 0; i < sides.length; i++) {
+					AConnections[APos][i] = sides[i];
+				}
+				APos++;
+			}
+			else if (r.getType().equals("B")) {
+				String [] sides = r.getAdjacentResources();
+				for (int i = 0; i < sides.length; i++) {
+					BConnections[BPos][i] = sides[i];
+				}
+				BPos++;
+			}
+			else if (r.getType().equals("C")) {
+				String [] sides = r.getAdjacentResources();
+				for (int i = 0; i < sides.length; i++) {
+					CConnections[CPos][i] = sides[i];
+				}
+				CPos++;
+			}
+		}
+
+		System.out.println(Arrays.deepToString(AConnections));
+		System.out.println(Arrays.deepToString(BConnections));
+		System.out.println(Arrays.deepToString(CConnections));
+
+		// for (int i = 0; i < AConnections.length; i++) {
+		// 	AConnections[i][0] = "A";
+		// 	String [] sides = constructionZone
+		// 	for (int j = 0; j < AConnections[0].length; j++) {
+		// 		AConnections[i][j]
+		// 	}
+		// }
+	}
+
 	/*
 	method to calculate an average trajectory that represents the combined overall
 	trajectories of all the robots in the team
@@ -93,7 +145,7 @@ public class NoveltyBehaviour {
 	iterate over the trajectories of each robot in a team
 	for each trajectory, sum the x and y coordinates at each respective position in the trajectory
 
-	eg. firstPositionAvgTrajectory = firstPositionFirstRobot + firstPositionSecondRobot + firstPositionThirdRobot + firstPositionFourthRobot etc \ numRobots
+	eg. firstPositionAvgTrajectory = firstPositionFirstRobot + firstPositionSecondRobot + firstPositionThirdRobot + firstPositionFourthRobot etc / numRobots
 	*/
 	private void calcAvgTrajectory(int outerBound, int innerBound, Vec2[] avgTrajectory, ArrayList<LinkedList<Vec2>> originalTrajectories) {
 
@@ -138,6 +190,18 @@ public class NoveltyBehaviour {
 
 	public Vec2[] getRobotTrajectory() {
 		return avgRobotTrajectory;
+	}
+
+	public String[][] getAConnections() {
+		return AConnections;
+	}
+
+	public String[][] getBConnections() {
+		return BConnections;
+	}
+
+	public String[][] getCConnections() {
+		return CConnections;
 	}
 	
 }

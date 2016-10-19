@@ -117,7 +117,7 @@ public class RobotObject extends PhysicalObject {
     }
 
     public void incPickups() {
-        System.out.println("RobotObject: resource picked up");
+        //System.out.println("RobotObject: resource picked up");
         numPickups++;
     }
 
