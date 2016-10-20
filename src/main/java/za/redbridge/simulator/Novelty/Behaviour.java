@@ -259,24 +259,28 @@ public class Behaviour {
 	*/
 	private double calcSchemaScore() {
 
+		double finalScore = 0;
+
 		for(int k = 0; k < numConstructionZones; k++) { //iterate over the construction zones in the simulation
 
+			int cZScore = 0; //the total score for the current construction zone
 			ResourceObject[] resInCZone = constructionZones[k].getConnectionOrder();
 			int upperBound = constructionZones[k].getNumConnected(); //the number of resources that are placed in the ordered array above
 			int resScore = 0; //var to store (and sum) the scores for each individual resource
-			int correctSides = 0; //var to store the number of correctly connected sides on each resource
-			int totalConnected = 0; //var to keep track of how many sides of a resource has a connection on it
 
 			for(int j = 0; j < upperBound; j++) { //iterate over all the connected resources in the current construction zone
 
-				//var to store the number of correctly connected sides on each resource
-				correctSides += constructionTask.checkSchema(schemaConfigNum, resInCZone[j]);
-				//var to count the total number of sides that the current resource is connected on
-				int connectedSides = ; 
+				int correctSides += constructionTask.checkSchema(schemaConfigNum, resInCZone[j]); //var to store the number of correctly connected sides on each resource
+				int connectedSides = resInCZone[j].getNumAdjacent(); //var to count the total number of sides that the current resource is connected on
+				resScore += correctSides / connectedSides; //calc ratio of correctly connected sides to total connected sides
+
 			}
 
+			cZScore += (resScore/totalNumBlocks);
 		}
 
+		finalScore = cZScore / numConstructionZones; //getting the average fitness per construction zone
+		return cZScore;
 	}
 
 	private float calculateDistance(Vec2 originLocation, Vec2 destLocation) {

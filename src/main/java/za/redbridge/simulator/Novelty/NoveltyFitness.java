@@ -433,7 +433,7 @@ public class NoveltyFitness{
 			String[][] originalBConnections = currentGeneration[k].getBConnections();
 			String[][] originalCConnections = currentGeneration[k].getCConnections();
 
-			for(int l = k+1; l < numBehaviours; l++) {
+			for(int l = k+1; l < numBehaviours; l++) { //getting all the connections for 
 
 				String[][] newAConnections = currentGeneration[l].getAConnections();
 				String[][] newBConnections = currentGeneration[l].getBConnections();

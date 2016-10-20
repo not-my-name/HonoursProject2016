@@ -2,153 +2,153 @@
 config0:
   resQuantity : 5 5 5
   resource0:
-    left: A B C 0
-    right: A B C 0
-    up: A B C 0
-    down: A B C 0
+    left: A B C _
+    right: A B C _
+    up: A B C _
+    down: A B C _
   resource1:
-    left: A B C 0
-    right: A B C 0
-    up: A B C 0
-    down: A B C 0
+    left: A B C _
+    right: A B C _
+    up: A B C _
+    down: A B C _
   resource2:
-    left: A B C 0
-    right: A B C 0
-    up: A B C 0
-    down: A B C 0
+    left: A B C _
+    right: A B C _
+    up: A B C _
+    down: A B C _
 config1:
   resQuantity : 5 5 5
   resource0:
-    left: A 0
-    right: A 0
-    up: A C 0
-    down: A B 0
+    left: A _
+    right: A _
+    up: A C _
+    down: A B _
   resource1:
-    left: A 0
-    right: A 0
-    up: A 0
-    down: A 0
+    left: A _
+    right: A _
+    up: A _
+    down: A _
   resource2:
-    left: A 0
-    right: A 0
-    up: A 0
-    down: A 0
+    left: A _
+    right: A _
+    up: A _
+    down: A _
 config2:
   resQuantity : 5 5 5
   resource0:
-    left: B 0
-    right: B 0
-    up: B 0
-    down: B 0
+    left: B _
+    right: B _
+    up: B _
+    down: B _
   resource1:
-    left: A C 0
-    right: A C 0
-    up: A C 0
-    down: A C 0
+    left: A C _
+    right: A C _
+    up: A C _
+    down: A C _
   resource2:
-    left: B 0
-    right: B 0
-    up: B 0
-    down: B 0
+    left: B _
+    right: B _
+    up: B _
+    down: B _
 config3:
   resQuantity : 5 5 5
   resource0:
-    left: A B 0
-    right: A B 0
-    up: A B 0
-    down: A B 0
+    left: A B _
+    right: A B _
+    up: A B _
+    down: A B _
   resource1:
-    left: A 0
-    right: A 0
-    up: A 0
-    down: A 0
+    left: A _
+    right: A _
+    up: A _
+    down: A _
   resource2:
-    left: A C 0
-    right: A C 0
-    up: A C 0
-    down: A C 0
+    left: A C _
+    right: A C _
+    up: A C _
+    down: A C _
 config4:
   resQuantity : 5 5 5
   resource0:
-    left: A C 0
-    right: A C 0
-    up: A C 0
-    down: A B 0
+    left: A C _
+    right: A C _
+    up: A C _
+    down: A B _
   resource1:
-    left: B C 0
-    right: A B 0
-    up: A B 0
-    down: B C 0
+    left: B C _
+    right: A B _
+    up: A B _
+    down: B C _
   resource2:
-    left: A 0
-    right: B 0
-    up: B 0
-    down: A 0
+    left: A _
+    right: B _
+    up: B _
+    down: A _
 config5:
   resQuantity : 5 5 5
   resource0:
-    left: B 0
-    right: B 0
-    up: B 0
-    down: B 0
+    left: B _
+    right: B _
+    up: B _
+    down: B _
   resource1:
-    left: A 0
-    right: A 0
-    up: A 0
-    down: A 0
+    left: A _
+    right: A _
+    up: A _
+    down: A _
   resource2:
-    left: 0
-    right: 0
-    up: 0
-    down: 0
+    left: _
+    right: _
+    up: _
+    down: _
 config6:
   resQuantity : 5 5 5
   resource0:
-    left: 0
-    right: 0
-    up: 0
-    down: 0
+    left: _
+    right: _
+    up: _
+    down: _
   resource1:
-    left: B 0
-    right: B 0
-    up: B 0
-    down: B 0
+    left: B _
+    right: B _
+    up: B _
+    down: B _
   resource2:
-    left: 0
-    right: 0
-    up: 0
-    down: 0
+    left: _
+    right: _
+    up: _
+    down: _
 config7:
   resQuantity : 5 5 5
   resource0:
-    left: A C 0
-    right: A C 0
-    up: A B 0
-    down: A C 0
+    left: A C _
+    right: A C _
+    up: A B _
+    down: A C _
   resource1:
-    left: 0
-    right: 0
-    up: C 0
-    down: A 0
+    left: _
+    right: _
+    up: C _
+    down: A _
   resource2:
-    left: A 0
-    right: A 0
-    up: A 0 
-    down: B 0
+    left: A _
+    right: A _
+    up: A _
+    down: B _
 config8:
   resQuantity : 5 5 5
   resource0:
-    left: C 0
-    right: C 0
-    up: C 0
-    down: C 0
+    left: C _
+    right: C _
+    up: C _
+    down: C _
   resource1:
-    left: 0
-    right: 0
-    up: 0
-    down: 0
+    left: _
+    right: _
+    up: _
+    down: _
   resource2:
-    left: A C 0
-    right: A C 0
-    up: A C 0 
-    down: A C 0
+    left: A C _
+    right: A C _
+    up: A C _
+    down: A C _

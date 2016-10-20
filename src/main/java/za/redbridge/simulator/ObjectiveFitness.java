@@ -18,6 +18,7 @@ public class ObjectiveFitness {
 	private float connectedResourcesWeight;
 	private float correctSchemaWeight;
 	private float avgResToCZoneWeight;
+	private float adjacentResourcesWeight;
 
 	//the weights that will reward the robots for connecting more complex resources
 	private float connectionAWeight;
@@ -34,6 +35,7 @@ public class ObjectiveFitness {
 		connectedResourcesWeight = 1;
 		correctSchemaWeight = 1;
 		avgResToCZoneWeight = 1;
+		adjacentResourcesWeight = 1;
 
 		connectionAWeight = 1;
 		connectionBWeight = 1;
@@ -85,6 +87,7 @@ Method to evaluate the overall objective fitness of a simulation run:
     */
 
 	public double calculate() {
+
 		double finalFitness = 0;
 
 		finalFitness += getAvgRobToResDist() * robToResDistWeight;
@@ -92,6 +95,7 @@ Method to evaluate the overall objective fitness of a simulation run:
 		finalFitness += getAvgResToResDist() * resToResDistWeight;
 		finalFitness += calcNumConnectedResources() * connectedResourcesWeight;
 		finalFitness += getSchemaScore() * correctSchemaWeight;
+		finalFitness += getAdjacentScore() * adjacentResourcesWeight;
 		finalFitness += getAvgResToConstZoneDist() * avgResToCZoneWeight;
 
 		finalFitness = finalFitness / aggregateBehaviour.getNumRuns(); //averaging the fitness so that it works out to average fitness for an individual per simulation run
@@ -126,7 +130,7 @@ Method to evaluate the overall objective fitness of a simulation run:
 	}
 
 	private double getSchemaScore() {
-		return aggregateBehaviour.getTotalSchemaFitness();
+		return aggregateBehaviour.getSchemaScore();
 	}
 
 	private double getAvgResToConstZoneDist() {

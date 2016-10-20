@@ -15,7 +15,9 @@ public class AggregateBehaviour {
 	private double sumResToResDist; //variable to store the sum of the average distance between resources fpr each simulation rin
 	private double sumRobToResDist; //average distance between a robot and its nearest resource
 	private double sumConnectedResources; //variable to store the number of connected resources summed for all simulation runs
-	private double sumAvgResToCZoneDist; //variable to store the sum of average distance between construction zone and resource for each simulation run
+	private double sumResToCZoneDist; //variable to store the sum of average distance between construction zone and resource for each simulation run
+	private double sumAdjacentScore; //variable to store the sum adjacent score for a behaviour 
+	private double sumSchemaScore; // variable to store the sum correct schema score for a behaviour
 
 	//variables to count the different types of connected blocks
 	private int totalAConnected;
@@ -38,6 +40,8 @@ public class AggregateBehaviour {
 		sumRobToResDist = 0;
 		sumConnectedResources = 0;
 		sumAvgResToCZoneDist = 0;
+		sumAdjacentScore = 0;
+		sumSchemaScore = 0;
 
 		totalAConnected = 0;
 		totalBConnected = 0;
@@ -69,6 +73,9 @@ public class AggregateBehaviour {
 			countConnectedBlocks(behaviour);
 			calculateSchemaFitness(behaviour);
 			incAvgResToCZoneDist(behaviour.getAvgResToCZoneDist());
+			incAdjacentScore(behaviour.getAdjacentScore());
+			incSchemaScore(behaviour.getSchemaScore());
+
 		}
 		return added;
 	}
@@ -96,18 +103,21 @@ public class AggregateBehaviour {
 		totalCConnected += behaviour.getConnectedC();
 	}
 
-	/**
-	will probably have to change the calculateSchema fitness method 
-	going to try calc schema fitness for each behaviour object
-	*/
-
-	//method to sum the schema fitness for each behaviour's construction task
-	private void calculateSchemaFitness(Behaviour behaviour) {
-		totalSchemaFitness += behaviour.getConstructionTask().checkSchema(schemaConfigNum);
-	}
+	// //method to sum the schema fitness for each behaviour's construction task
+	// private void calculateSchemaFitness(Behaviour behaviour) {
+	// 	totalSchemaFitness += behaviour.getConstructionTask().checkSchema(schemaConfigNum);
+	// }
 
 	private void incAvgResToCZoneDist(double avgResToCZoneDist) {
 		sumAvgResToCZoneDist += avgResToCZoneDist;
+	}
+
+	private void incAdjacentScore(double score) {
+		sumAdjacentScore += score;
+	}
+
+	private void incSchemaScore(double score) {
+		sumSchemaScore += score;
 	}
 
 	public double getTotalSchemaFitness() {
@@ -152,6 +162,14 @@ public class AggregateBehaviour {
 
 	public double getResToResDist() {
 		return this.sumResToResDist;
+	}
+
+	public double getAdjacentScore() {
+		return sumAdjacentScore;
+	}
+
+	public double getSchemaScore() {
+		return sumSchemaScore;
 	}
 
 		//just a random mnethod to check this incase at some point

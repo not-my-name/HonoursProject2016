@@ -165,6 +165,8 @@ public class ConstructionTask implements Steppable{
 
     private void tryCreateWeld(ResourceObject res1, ResourceObject r2) {
 
+        System.out.println("ConstructionTask tryCreateWeld: this method should not be being called");
+
         //check if the join between the resources has been made before
         if( (res1 != res2) && ( !r1.isFullyWelded() ) && ( !res2.isFullyWelded() ) ) {
 
@@ -295,7 +297,7 @@ public class ConstructionTask implements Steppable{
         if(r1.checkPotentialWeld(r2) || r2.checkPotentialWeld(r1)){
             return true;
         }
-        return false;
+        return false;resAdjacentList
     }
 
     // private WeldJointDef createWeld(ResourceObject r1, ResourceObject r2){
@@ -319,58 +321,114 @@ public class ConstructionTask implements Steppable{
     below is the original update method for a single construction zone 
     */
 
-    // public void update(){  
-    //     // System.out.println("Starting update"); 
-    //     for(ResourceObject resource : resources){
-    //         resource.updateAdjacent(resources);
-    //         String [] resAdjacentList = resource.getAdjacentResources();
-    //         for (int i = 0; i < resAdjacentList.length; i++) {
-    //             if (IS_FIRST_CONNECTED) {
-    //                 // System.out.println("FIRST");
-    //                 if (!resAdjacentList[i].equals("0")) {
-    //                     // System.out.println("CONNECTION!!");
-    //                     ResourceObject otherRes = resource.getAdjacentList()[i];
-    //                     // System.out.println("ConstructionZone: " + constructionZone + " RESOURCE: " + resource);
-    //                     constructionZone.addResource(resource);
-    //                     constructionZone.addResource(otherRes);
-    //                     // System.out.println(constructionZone.getFitnessStats().getTeamFitness());
-    //                     tryCreateWeld(resource, otherRes);
-    //                     IS_FIRST_CONNECTED = false;
-    //                 }
-    //             }
-    //             else {
-    //                 // System.out.println("AFTER");
-    //                 if ((!resAdjacentList[i].equals("0"))&&(!constructionZone.isInConstructionZone(resource))) {
-    //                     ResourceObject otherRes = resource.getAdjacentList()[i];
-    //                     if (constructionZone.isInConstructionZone(otherRes)) {
-    //                         // System.out.println("NEW CONNECTION!!");
-    //                         constructionZone.addResource(resource);
-    //                         tryCreateWeld(resource, otherRes);
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
+    public void update(){  
+        // System.out.println("Starting update"); 
+        for(ResourceObject resource : resources){
 
-    public void update() {
+            resource.updateAdjacent(resources);
+            String [] resAdjacentList = resource.getAdjacentResources();
 
-        for(ResourceObject currentRes : resources) {
+            for (int i = 0; i < resAdjacentList.length; i++) {
 
-            currentRes.updateAdjacent(resources);
-            String[] resAdjacentList = currentRes.getAdjacentResources();
+                if( !resAdjacentList[i].equals("_") ) {
 
-            for(int k = 0; k < resAdjacentList.length; k++) { //iterate over the adjacent resources
+                    ResourceObject[] adjObjects - resource.getAdjacentList();
+                    ResourceObject neighbour = adjObjects[i];
 
-                if( !resAdjacentList[k].equals("0") ){ //if the current res has another resource attached to one of its 4 sides
+                    if(numConstructionZones == 0) {
 
-                    ResourceObject otherRes = currentRes.getAdjacentList()[k];
-                    tryCreateWeld(currentRes, otherRes);
+                        ResourceObject[] adjObjects = resource.getAdjacentList();
+                        constructionZones[numConstructionZones] = new ConstructionZone();
+                        constructionZones[numConstructionZones].startConstruction(resource, adjObjects[i]); //use numConstructoinZones to index since = 0
+                        numConstructionZones++;
+                        resource.setConstructed();
+                        neighbour.setConstructed();
+                    }
+                    else { //check if either of the resources are in a construction zone already
+
+                        boolean found = false;
+
+                        for(int k = 0; k < numConstructionZones; k++) { //iterate over the different construction zones
+
+                            if( constructionZones[k].getConnectedResources().contains(resource) ) { //if the first resource is in the construction zone
+
+                                constructionZones[k].addResource(neighbour);
+                                neighbour.setConstructed();
+                                found = true;
+                                break;
+                            }
+                            else if( constructionZones[k].getConnectedResources().contains(neighbour) ) { //if the neighbouring resource is in the construction zone
+
+                                constructionZones[k].addResource(resource);
+                                resource.setConstructed();
+                                found = true;
+                                break; //dont need to keep iterating over the construction Zones if the right one has been found
+                            }
+                        }
+
+                        //if there are construction zones but neither of the resources are found in any of them
+                        if( !found ) { //add a new construction zone and add these resources to it
+
+                            constructionZones[numConstructionZones] = new ContructionZone();
+                            constructionZones[numConstructionZones].startConstruction(resource, neighbour);
+                            numConstructionZones++;
+                            resource.setConstructed();
+                            neighbour.setConstructed();
+                        }
+
+                    }
+
                 }
 
+
+
+
+                // if (IS_FIRST_CONNECTED) {
+                //     // System.out.println("FIRST");
+                //     if (!resAdjacentList[i].equals("_")) {
+                //         // System.out.println("CONNECTION!!");
+                //         ResourceObject otherRes = resource.getAdjacentList()[i];
+                //         // System.out.println("ConstructionZone: " + constructionZone + " RESOURCE: " + resource);
+                //         constructionZone.addResource(resource);
+                //         constructionZone.addResource(otherRes);
+                //         // System.out.println(constructionZone.getFitnessStats().getTeamFitness());
+                //         //tryCreateWeld(resource, otherRes);
+                //         IS_FIRST_CONNECTED = false;
+                //     }
+                // }
+                // else {
+                //     // System.out.println("AFTER");
+                //     if ((!resAdjacentList[i].equals("_"))&&(!constructionZone.isInConstructionZone(resource))) {
+                //         ResourceObject otherRes = resource.getAdjacentList()[i];
+                //         if (constructionZone.isInConstructionZone(otherRes)) {
+                //             // System.out.println("NEW CONNECTION!!");
+                //             constructionZone.addResource(resource);
+                //             //tryCreateWeld(resource, otherRes);
+                //         }
+                //     }
+                // }
             }
         }
     }
+
+    // public void update() {
+
+    //     for(ResourceObject currentRes : resources) {
+
+    //         currentRes.updateAdjacent(resources);
+    //         String[] resAdjacentList = currentRes.getAdjacentResources();
+
+    //         for(int k = 0; k < resAdjacentList.length; k++) { //iterate over the adjacent resources
+
+    //             if( !resAdjacentList[k].equals("_") ){ //if the current res has another resource attached to one of its 4 sides
+
+    //                 ResourceObject otherRes = currentRes.getAdjacentList()[k];
+    //                 tryCreateWeld(currentRes, otherRes);
+    //             }
+
+    //         }
+    //     }
+    // }
 
     //method to return the total number of resources that are placed in the particular simulation
     public int getTotalNumResources() {
