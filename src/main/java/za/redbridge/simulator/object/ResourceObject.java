@@ -263,7 +263,7 @@ public class ResourceObject extends PhysicalObject {
         // }
 
         for(int i=0;i<adjacentResources.length;i++){
-            adjacentResources[i] = "0";
+            adjacentResources[i] = "_";
         }
 
         for(int j=0;j<resourceArray.size();j++){

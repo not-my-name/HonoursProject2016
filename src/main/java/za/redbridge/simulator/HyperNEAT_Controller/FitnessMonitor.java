@@ -53,6 +53,9 @@ public class FitnessMonitor {
 	private Behaviour behaviour;
 
 	public FitnessMonitor() {
+
+		System.out.println("FitnessMonitor: nothing from this class should ever be called");
+
 		this.totalDistanceTravelled = 0;
 		this.numPickups = 0;
 		this.numIterations = 0;
@@ -106,7 +109,7 @@ public class FitnessMonitor {
 
 	public void setConstructionTask(ConstructionTask constructionTask) {
 		this.constructionTask = constructionTask;
-		setConstructionZone(this.constructionTask.getConstructionZone());
+		//setConstructionZone(this.constructionTask.getConstructionZone());
 	}
 
 	private void setConstructionZone(ConstructionZone constructionZone) {

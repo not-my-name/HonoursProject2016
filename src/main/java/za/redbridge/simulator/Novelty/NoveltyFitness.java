@@ -239,10 +239,12 @@ public class NoveltyFitness{
 
 		}
 
+		return totalDistance;
+
 	}
 
 
-	private double compareRobotTrajectory(NoveltyBehaviour[] theCollection) {
+	private double compareRobotTrajectory() {
 
 		/**
 		for each novelty behaviour, there are several trajectories (as many as robots)
@@ -296,7 +298,7 @@ public class NoveltyFitness{
 
 	same questions as for the above method
 	*/
-	private double compareResourceTrajectory(NoveltyBehaviour[] theCollection) {
+	private double compareResourceTrajectory() {
 
 		/**
 		this seems pretty inefficient to calculate the distance between behaviour
@@ -357,46 +359,46 @@ public class NoveltyFitness{
 	these methods take in an array of behaviours so that the same method can be used to compare
 	calculate with the current generation and the archive without rewriting the code
 	*/
-	private double compareConstructionOrder(NoveltyBehaviour[] theCollection) {
+	private double compareConstructionOrder() {
 
 		double dummyReturn = 10; //this is just to test the current implementation until i can figure out how to return the array values
 
-		double[] constructionDiff = new double[numBehaviours]; //array to store the total construction order differences for each of the behaviours
+		// double[] constructionDiff = new double[numBehaviours]; //array to store the total construction order differences for each of the behaviours
 
-		for(int k = 0; k < numBehaviours; k++) { //initialising all the elements to 0 just to be safe
-			constructionDiff[k] = 0;
-		}
+		// for(int k = 0; k < numBehaviours; k++) { //initialising all the elements to 0 just to be safe
+		// 	constructionDiff[k] = 0;
+		// }
 
-		for(int k = 0; k < numBehaviours-1; k++) { //iterating over the individuals in the current generation
-			/**
-			check if the line below brings the referecne to the array or if it brings the actual values
-			might need to manually copy over the values from the other array into the local one
-			*/
-			ResourceObject[] originalConstructionOrder = currentGeneration[k].getConstructionZone().getConnectionOrder(); //the construction order currently being compared to the others
+		// for(int k = 0; k < numBehaviours-1; k++) { //iterating over the individuals in the current generation
+		// 	/**
+		// 	check if the line below brings the referecne to the array or if it brings the actual values
+		// 	might need to manually copy over the values from the other array into the local one
+		// 	*/
+		// 	ResourceObject[] originalConstructionOrder = currentGeneration[k].getConstructionZone().getConnectionOrder(); //the construction order currently being compared to the others
 
-			for(int l = k+1; l < numBehaviours; l++) {
+		// 	for(int l = k+1; l < numBehaviours; l++) {
 
-				ResourceObject[] newConstructionOrder = currentGeneration[l].getConstructionZone().getConnectionOrder();
-				int numConstructed = originalConstructionOrder.length;
+		// 		ResourceObject[] newConstructionOrder = currentGeneration[l].getConstructionZone().getConnectionOrder();
+		// 		int numConstructed = originalConstructionOrder.length;
 
-				for(int j = 0; j < numConstructed; j++) { //iterate over the order the resources were added in the constructionZone
+		// 		for(int j = 0; j < numConstructed; j++) { //iterate over the order the resources were added in the constructionZone
 
-					String originalType = originalConstructionOrder[j].getType();
-					String newType = newConstructionOrder[j].getType();
+		// 			String originalType = originalConstructionOrder[j].getType();
+		// 			String newType = newConstructionOrder[j].getType();
 
-					if( !originalType.equals(newType) ) { //check if the blocks connected at time j are NOT the same type
+		// 			if( !originalType.equals(newType) ) { //check if the blocks connected at time j are NOT the same type
 
-						//increment the difference count for both controllers
-						constructionDiff[k] += 1;
-						constructionDiff[l] += 1;
+		// 				//increment the difference count for both controllers
+		// 				constructionDiff[k] += 1;
+		// 				constructionDiff[l] += 1;
 
-					}
+		// 			}
 
-				}
+		// 		}
 
-			}
+		// 	}
 
-		}
+		// }
 
 		return dummyReturn;
 	}
@@ -421,26 +423,26 @@ public class NoveltyFitness{
 
 		double dummyReturn = 10; //this is just until i can figure out how to return the full array of values
 
-		double[] cZoneDiff = new double[numBehaviours]; //an array to store the total differences for each behaviour (between each behaviour)
+		// double[] cZoneDiff = new double[numBehaviours]; //an array to store the total differences for each behaviour (between each behaviour)
 
-		for(int k = 0; k < numBehaviours; k++) { //initialising all the array values to 0
-			cZoneDiff[k] = 0;
-		}
+		// for(int k = 0; k < numBehaviours; k++) { //initialising all the array values to 0
+		// 	cZoneDiff[k] = 0;
+		// }
 
-		for(int k = 0; k < numBehaviours-1; k++) { //iterating over the behaviours in the generation
+		// for(int k = 0; k < numBehaviours-1; k++) { //iterating over the behaviours in the generation
 
-			String[][] originalAConnections = currentGeneration[k].getAConnections();
-			String[][] originalBConnections = currentGeneration[k].getBConnections();
-			String[][] originalCConnections = currentGeneration[k].getCConnections();
+		// 	String[][] originalAConnections = currentGeneration[k].getAConnections();
+		// 	String[][] originalBConnections = currentGeneration[k].getBConnections();
+		// 	String[][] originalCConnections = currentGeneration[k].getCConnections();
 
-			for(int l = k+1; l < numBehaviours; l++) { //getting all the connections for 
+		// 	for(int l = k+1; l < numBehaviours; l++) { //getting all the connections for 
 
-				String[][] newAConnections = currentGeneration[l].getAConnections();
-				String[][] newBConnections = currentGeneration[l].getBConnections();
-				String[][] newCConnections = currentGeneration[l].getCConnections();
-			}
+		// 		String[][] newAConnections = currentGeneration[l].getAConnections();
+		// 		String[][] newBConnections = currentGeneration[l].getBConnections();
+		// 		String[][] newCConnections = currentGeneration[l].getCConnections();
+		// 	}
 
-		}
+		// }
 
 		//return cZoneDiff;
 		return dummyReturn;

@@ -30,7 +30,7 @@ public class NoveltyBehaviour {
 	private Vec2[] avgResourceTrajectory;
 
 	//stores the final construction at the end of the simulation
-	private ConstructionZone constructionZone; 
+	private ConstructionZone[] constructionZones; 
 	private ConstructionTask constructionTask;
 
 	private ResourceObject[] connectionOrder;
@@ -66,9 +66,9 @@ public class NoveltyBehaviour {
 		calcAvgTrajectory(numResources, numResPosSamples, avgResourceTrajectory, resourceTrajectories);
 
 		this.constructionTask = constructionTask;
-		this.constructionZone = this.constructionTask.getConstructionZone();
+		this.constructionZones = this.constructionTask.getConstructionZones();
 
-		int [] czTypeCount = this.constructionZone.getResourceTypeCount();
+		int [] czTypeCount = this.constructionZones[0].getResourceTypeCount();
 		AConnections = new String [czTypeCount[0]][4];
 		BConnections = new String [czTypeCount[1]][4];
 		CConnections = new String [czTypeCount[2]][4];
@@ -99,7 +99,7 @@ public class NoveltyBehaviour {
 		int APos = 0;
 		int BPos = 0;
 		int CPos = 0;
-		for (ResourceObject r : constructionZone.getConnectedResources()) {
+		for (ResourceObject r : constructionZones[0].getConnectedResources()) {
 			if (r.getType().equals("A")) {
 				String [] sides = r.getAdjacentResources();
 				for (int i = 0; i < sides.length; i++) {
@@ -176,8 +176,8 @@ public class NoveltyBehaviour {
 		return this.numResources;
 	}
 
-	public ConstructionZone getConstructionZone() {
-		return this.constructionZone;
+	public ConstructionZone[] getConstructionZone() {
+		return this.constructionZones;
 	}
 
 	public ConstructionTask getConstructionTask() {

@@ -113,22 +113,22 @@ public class ConstructionTask implements Steppable{
 
         System.out.println("ConstructionTask Step: the step method is being called");
 
-        for(ResourceObject r1 : resources){
+        // for(ResourceObject r1 : resources){
 
-            for(ResourceObject r2 : resources){
-                if( r1 != r2) {
+        //     for(ResourceObject r2 : resources){
+        //         if( r1 != r2) {
 
-                    if(constructionZone.getConnectedResources().isEmpty()){
-                        tryCreateWeld(r1, r2);
-                    }   
-                    else{ 
-                        if(constructionZone.getConnectedResources().contains(r1) || constructionZone.getConnectedResources().contains(r2)){
-                            tryCreateWeld(r1, r2);
-                        }
-                    }
-                }
-            }
-        }
+        //             if(constructionZone.getConnectedResources().isEmpty()){
+        //                 tryCreateWeld(r1, r2);
+        //             }   
+        //             else{ 
+        //                 if(constructionZone.getConnectedResources().contains(r1) || constructionZone.getConnectedResources().contains(r2)){
+        //                     tryCreateWeld(r1, r2);
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     // @Override
@@ -163,96 +163,96 @@ public class ConstructionTask implements Steppable{
     //     // }
     // }
 
-    private void tryCreateWeld(ResourceObject res1, ResourceObject r2) {
+    private void tryCreateWeld(ResourceObject res1, ResourceObject res2) {
 
         System.out.println("ConstructionTask tryCreateWeld: this method should not be being called");
 
         //check if the join between the resources has been made before
-        if( (res1 != res2) && ( !r1.isFullyWelded() ) && ( !res2.isFullyWelded() ) ) {
+        // if( (res1 != res2) && ( !res1.isFullyWelded() ) && ( !res2.isFullyWelded() ) ) {
 
-            boolean flag = false; //boolean that shows whether or not a connection between these resources already exists
-            for(int k = 0; k < weldMap.get(res1).size(); k++) {
+        //     boolean flag = false; //boolean that shows whether or not a connection between these resources already exists
+        //     for(int k = 0; k < weldMap.get(res1).size(); k++) {
 
-                if(weldMap.get(res1).get(k) == res2) {
-                    flag = true;
-                    break;
-                }
+        //         if(weldMap.get(res1).get(k) == res2) {
+        //             flag = true;
+        //             break;
+        //         }
 
-            }
+        //     }
 
-            float distance = r1.getBody().getPosition().sub(r2.getBody().getPosition()).length();
+        //     float distance = r1.getBody().getPosition().sub(r2.getBody().getPosition()).length();
 
-            if(distance < 3f && flag==false){ //check if the resources are close enough for a weld to form
+        //     if(distance < 3f && flag==false){ //check if the resources are close enough for a weld to form
 
-                if(checkPotentialWeld(r1, r2)){
+        //         if(checkPotentialWeld(r1, r2)){
 
-                    WeldJointDef weldDef = r1.createResourceWeldJoint(r2);
-                    Joint joint = physicsWorld.createJoint(weldDef);
-                    weldMap.get(r1).add(r2);
-                    weldMap.get(r2).add(r1);
+        //             WeldJointDef weldDef = r1.createResourceWeldJoint(r2);
+        //             Joint joint = physicsWorld.createJoint(weldDef);
+        //             weldMap.get(r1).add(r2);
+        //             weldMap.get(r2).add(r1);
 
-                    //check for existing construction zones
-                    if( numConstructionZones == 0 ) { //if none of the previour resources have been connected
+        //             //check for existing construction zones
+        //             if( numConstructionZones == 0 ) { //if none of the previour resources have been connected
 
-                        constructionZones[numConstructionZones].startConstruction(res1, res2); 
-                        numConstructionZones++;
-                        res1.setConstructed();
-                        res2.setConstructed();
+        //                 constructionZones[numConstructionZones].startConstruction(res1, res2); 
+        //                 numConstructionZones++;
+        //                 res1.setConstructed();
+        //                 res2.setConstructed();
 
-                    }
-                    else { //check if either of the resources are part of an existing construction zone
-                        boolean found = false; //indicate whether one of the resources was already connected to an existing construction zone
+        //             }
+        //             else { //check if either of the resources are part of an existing construction zone
+        //                 boolean found = false; //indicate whether one of the resources was already connected to an existing construction zone
 
-                        for(int j = 0; j < numConstructionZones; j++) {
+        //                 for(int j = 0; j < numConstructionZones; j++) {
 
-                            if( constructionZones[j].getConnectedResources().contains(res1) ) { //if the res1 is already in a construction zone
+        //                     if( constructionZones[j].getConnectedResources().contains(res1) ) { //if the res1 is already in a construction zone
 
-                                //add res2 to the construction zone
-                                constructionZones[j].addResource(res2);
-                                res2.setConstructed();
-                                found = true;
-                                break;
+        //                         //add res2 to the construction zone
+        //                         constructionZones[j].addResource(res2);
+        //                         res2.setConstructed();
+        //                         found = true;
+        //                         break;
 
-                            }
-                            else if( constructionZones[j].getConnectedResources().contains(res2) ) { //if res2 is already in a construction zone
+        //                     }
+        //                     else if( constructionZones[j].getConnectedResources().contains(res2) ) { //if res2 is already in a construction zone
 
-                                //add res1 to the construction zone
-                                constructionZones[j].addResource(res1);
-                                res1.setConstructed();
-                                found = true;
-                                break;
+        //                         //add res1 to the construction zone
+        //                         constructionZones[j].addResource(res1);
+        //                         res1.setConstructed();
+        //                         found = true;
+        //                         break;
 
-                            }
+        //                     }
 
-                        }
+        //                 }
 
-                        if(!found) { //if the neither of the resources were connected to one of the existing construction zones
+        //                 if(!found) { //if the neither of the resources were connected to one of the existing construction zones
 
-                            //need to create a new construction zone
-                            constructionZones[numConstructionZones].startConstruction(res1, res2);
-                            numConstructionZones++;
-                            res1.setConstructed();
-                            res2.setConstructed();
+        //                     //need to create a new construction zone
+        //                     constructionZones[numConstructionZones].startConstruction(res1, res2);
+        //                     numConstructionZones++;
+        //                     res1.setConstructed();
+        //                     res2.setConstructed();
 
-                        }
+        //                 }
 
-                    }
+        //             }
 
-                    //constructedResources.add(r1);
-                    //constructedResources.add(r2);
+        //             //constructedResources.add(r1);
+        //             //constructedResources.add(r2);
 
-                    // constructionZone.addResource(r1);
-                    // constructionZone.addResource(r2);
-                    // r1.setConstructed();
-                    // r2.setConstructed();
+        //             // constructionZone.addResource(r1);
+        //             // constructionZone.addResource(r2);
+        //             // r1.setConstructed();
+        //             // r2.setConstructed();
 
-                    // TODO: work on setting static after welding
-                    // r1.setStatic();
-                    // r2.setStatic();
-                }
-            }
+        //             // TODO: work on setting static after welding
+        //             // r1.setStatic();
+        //             // r2.setStatic();
+        //         }
+        //     }
 
-        }
+        // }
 
     }
 
@@ -297,7 +297,7 @@ public class ConstructionTask implements Steppable{
         if(r1.checkPotentialWeld(r2) || r2.checkPotentialWeld(r1)){
             return true;
         }
-        return false;resAdjacentList
+        return false;
     }
 
     // private WeldJointDef createWeld(ResourceObject r1, ResourceObject r2){
@@ -327,19 +327,18 @@ public class ConstructionTask implements Steppable{
 
             resource.updateAdjacent(resources);
             String [] resAdjacentList = resource.getAdjacentResources();
+            ResourceObject[] adjObjects = resource.getAdjacentList();
 
             for (int i = 0; i < resAdjacentList.length; i++) {
 
                 if( !resAdjacentList[i].equals("_") ) {
 
-                    ResourceObject[] adjObjects - resource.getAdjacentList();
                     ResourceObject neighbour = adjObjects[i];
 
                     if(numConstructionZones == 0) {
 
-                        ResourceObject[] adjObjects = resource.getAdjacentList();
                         constructionZones[numConstructionZones] = new ConstructionZone();
-                        constructionZones[numConstructionZones].startConstruction(resource, adjObjects[i]); //use numConstructoinZones to index since = 0
+                        constructionZones[numConstructionZones].startConstructionZone(resource, neighbour); //use numConstructoinZones to index since = 0
                         numConstructionZones++;
                         resource.setConstructed();
                         neighbour.setConstructed();
@@ -369,8 +368,8 @@ public class ConstructionTask implements Steppable{
                         //if there are construction zones but neither of the resources are found in any of them
                         if( !found ) { //add a new construction zone and add these resources to it
 
-                            constructionZones[numConstructionZones] = new ContructionZone();
-                            constructionZones[numConstructionZones].startConstruction(resource, neighbour);
+                            constructionZones[numConstructionZones] = new ConstructionZone();
+                            constructionZones[numConstructionZones].startConstructionZone(resource, neighbour);
                             numConstructionZones++;
                             resource.setConstructed();
                             neighbour.setConstructed();
@@ -470,7 +469,7 @@ public class ConstructionTask implements Steppable{
     this method is being called in the Behaviour class to calculate the number of correctly connected resources for each resource
     needed to be able to send through the specific resource that needed to be checked
     */
-    public int checkSchema(int schemaConfigNum, ResourceObject resObjec) {
+    public int checkSchema(int schemaConfigNum, ResourceObject resObj) {
 
         int correctSides = 0;
         correctSides += schema.checkConfig(schemaConfigNum, resObj.getType(), resObj.getAdjacentResources());

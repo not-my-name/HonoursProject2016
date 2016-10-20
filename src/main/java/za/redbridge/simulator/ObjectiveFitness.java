@@ -133,6 +133,10 @@ Method to evaluate the overall objective fitness of a simulation run:
 		return aggregateBehaviour.getSchemaScore();
 	}
 
+	private double getAdjacentScore() {
+		return aggregateBehaviour.getAdjacentScore();
+	}
+
 	private double getAvgResToConstZoneDist() {
 		double score = 0;
 		return score;

@@ -39,7 +39,7 @@ public class AggregateBehaviour {
 		sumResToResDist = 0;
 		sumRobToResDist = 0;
 		sumConnectedResources = 0;
-		sumAvgResToCZoneDist = 0;
+		sumResToCZoneDist = 0;
 		sumAdjacentScore = 0;
 		sumSchemaScore = 0;
 
@@ -71,7 +71,7 @@ public class AggregateBehaviour {
 			incResToResDist(behaviour.getAvgResToResDist());
 			incRobToResDist(behaviour.getAvgRobToResDist());
 			countConnectedBlocks(behaviour);
-			calculateSchemaFitness(behaviour);
+			//calculateSchemaFitness(behaviour);
 			incAvgResToCZoneDist(behaviour.getAvgResToCZoneDist());
 			incAdjacentScore(behaviour.getAdjacentScore());
 			incSchemaScore(behaviour.getSchemaScore());
@@ -109,7 +109,7 @@ public class AggregateBehaviour {
 	// }
 
 	private void incAvgResToCZoneDist(double avgResToCZoneDist) {
-		sumAvgResToCZoneDist += avgResToCZoneDist;
+		sumResToCZoneDist += avgResToCZoneDist;
 	}
 
 	private void incAdjacentScore(double score) {
@@ -120,9 +120,9 @@ public class AggregateBehaviour {
 		sumSchemaScore += score;
 	}
 
-	public double getTotalSchemaFitness() {
-		return totalSchemaFitness;
-	}
+	// public double getTotalSchemaFitness() {
+	// 	return totalSchemaFitness;
+	// }
 
 	public int getTotalAConnected() {
 		return totalAConnected;
@@ -141,7 +141,7 @@ public class AggregateBehaviour {
 	}
 
 	public double getSumResToCZDist() {
-		return sumAvgResToCZoneDist;
+		return sumResToCZoneDist;
 	}
 
 	/*

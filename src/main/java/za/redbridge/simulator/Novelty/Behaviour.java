@@ -217,14 +217,8 @@ public class Behaviour {
 	//method to calculate the fitness for each construction zone
 	private void calcCZoneScores() {
 
-		double[] cZoneScores = new double[numConstructionZones];
-
 		adjacentScore = 0; //variable to store the combined score for connected resources over all construction zones
 		correctSchemaScore = 0; //variable to store the average score for resources connected according to the schema per construction zone (penalised for > 1 cZone)
-
-		for(int k = 0; k < numConstructionZones; k++) { //initialise all scores to 0
-			cZoneScore[k] = 0;
-		}
 
 		adjacentScore += calcAdjacentScore();
 		correctSchemaScore += calcSchemaScore();
@@ -233,7 +227,7 @@ public class Behaviour {
 
 	//method to calculate the score for the total number of resources that are connected
 	//in all of the construction zones
-	private double calcAdjacentscore() {
+	private double calcAdjacentScore() {
 
 		//sum total number of connected resources over all the construction zones
 		//divide by total number of resource in the simulation
@@ -270,17 +264,17 @@ public class Behaviour {
 
 			for(int j = 0; j < upperBound; j++) { //iterate over all the connected resources in the current construction zone
 
-				int correctSides += constructionTask.checkSchema(schemaConfigNum, resInCZone[j]); //var to store the number of correctly connected sides on each resource
+				int correctSides = constructionTask.checkSchema(schemaConfigNum, resInCZone[j]); //var to store the number of correctly connected sides on each resource
 				int connectedSides = resInCZone[j].getNumAdjacent(); //var to count the total number of sides that the current resource is connected on
 				resScore += correctSides / connectedSides; //calc ratio of correctly connected sides to total connected sides
 
 			}
 
-			cZScore += (resScore/totalNumBlocks);
+			cZScore += (resScore/constructionTask.getTotalNumResources());
+			finalScore = cZScore / numConstructionZones; //getting the average fitness per construction zone
 		}
 
-		finalScore = cZScore / numConstructionZones; //getting the average fitness per construction zone
-		return cZScore;
+		return finalScore;
 	}
 
 	private float calculateDistance(Vec2 originLocation, Vec2 destLocation) {
