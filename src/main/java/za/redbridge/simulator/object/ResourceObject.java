@@ -415,10 +415,15 @@ public class ResourceObject extends PhysicalObject {
 
         //to get the position of the resource every 5 timesteps
         //add the position of the resource to the collection
-        if( (simState.schedule.getSteps() % 5 == 0) && (!isConstructed) ) {
+        // if( (simState.schedule.getSteps() % 5 == 0) && (!isConstructed) ) {
+        //     Vec2 currentPosition = this.getBody().getPosition();
+        //     resourceTrajectory.add(currentPosition);
+        // }
+
+        if( simState.schedule.getSteps() % 5 == 0 ) {
             Vec2 currentPosition = this.getBody().getPosition();
             resourceTrajectory.add(currentPosition);
-        }
+        } 
     }
 
     public LinkedList<Vec2> getTrajectory() {

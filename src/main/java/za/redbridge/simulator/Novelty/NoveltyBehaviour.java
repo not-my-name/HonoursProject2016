@@ -41,6 +41,18 @@ public class NoveltyBehaviour {
 	private int numRobots;
 	private int numResources;
 
+	private double generationNoveltyScore; //var to store the novelty of behaviour as compared to the rest of the individuals in the generation
+	private double archiveNoveltyScore; //var to store the novelty of behaviour compared to behaviours stored in the archive
+	private double simulationNoveltyScore; //var to store the novelty of the behaviour compared to the behaviours produced in the other simulation runs
+
+	// private double[] localNoveltyVector; //array to represent a vector of all the respective novelty values, used to calculate distance to other 
+	// private double[] archiveNoveltyVector;
+	// private double[] simulationNoveltyVector;
+
+	private ArrayList<double> simulationNeighbourhood;
+	private ArrayList<double> generationNeighbourhood;
+	private ArrayList<double> archiveNeighbourhood;
+
 	public NoveltyBehaviour(ArrayList<RobotObject> currentRobots, ArrayList<ResourceObject> currentResources, ConstructionTask constructionTask) {
 
 		this.numRobots = currentRobots.size();
@@ -59,19 +71,27 @@ public class NoveltyBehaviour {
 		avgRobotTrajectory = new Vec2[numRobotPosSamples];
 		avgResourceTrajectory = new Vec2[numResPosSamples];
 
-		/**
-		print out the average trajectories after these methods have been called in order to check that the correct arrays have been modified
-		*/
 		calcAvgTrajectory(numRobots, numRobotPosSamples, avgRobotTrajectory, robotTrajectories);
 		calcAvgTrajectory(numResources, numResPosSamples, avgResourceTrajectory, resourceTrajectories);
 
 		this.constructionTask = constructionTask;
 		this.constructionZones = this.constructionTask.getConstructionZones();
 
+		/**
+		change this to work with the multiple construction zones
+		*/
 		int [] czTypeCount = this.constructionZones[0].getResourceTypeCount();
 		AConnections = new String [czTypeCount[0]][4];
 		BConnections = new String [czTypeCount[1]][4];
 		CConnections = new String [czTypeCount[2]][4];
+
+		generationNoveltyScore = 0;
+		archiveNoveltyScore = 0;
+		simulationNoveltyScore = 0;
+
+		simulationNeighbourhood = new ArrayList<double>();
+		generationNeighbourhood = new ArrayList<double>();
+		archiveNeighbourhood = new ArrayList<double>();
 
 	}
 
@@ -96,27 +116,36 @@ public class NoveltyBehaviour {
 	}
 
 	private void populateConnections() {
+
 		int APos = 0;
 		int BPos = 0;
 		int CPos = 0;
+
 		for (ResourceObject r : constructionZones[0].getConnectedResources()) {
+
 			if (r.getType().equals("A")) {
+
 				String [] sides = r.getAdjacentResources();
 				for (int i = 0; i < sides.length; i++) {
+
 					AConnections[APos][i] = sides[i];
 				}
 				APos++;
 			}
 			else if (r.getType().equals("B")) {
+
 				String [] sides = r.getAdjacentResources();
 				for (int i = 0; i < sides.length; i++) {
+
 					BConnections[BPos][i] = sides[i];
 				}
 				BPos++;
 			}
 			else if (r.getType().equals("C")) {
+
 				String [] sides = r.getAdjacentResources();
 				for (int i = 0; i < sides.length; i++) {
+
 					CConnections[CPos][i] = sides[i];
 				}
 				CPos++;
@@ -126,14 +155,6 @@ public class NoveltyBehaviour {
 		System.out.println(Arrays.deepToString(AConnections));
 		System.out.println(Arrays.deepToString(BConnections));
 		System.out.println(Arrays.deepToString(CConnections));
-
-		// for (int i = 0; i < AConnections.length; i++) {
-		// 	AConnections[i][0] = "A";
-		// 	String [] sides = constructionZone
-		// 	for (int j = 0; j < AConnections[0].length; j++) {
-		// 		AConnections[i][j]
-		// 	}
-		// }
 	}
 
 	/*
@@ -165,11 +186,42 @@ public class NoveltyBehaviour {
 		}
 
 		for(int k = 0; k < innerBound; k++) { //constructing the representative trajectory
+
 			float avgXCoord = pathXCoords[k] / numRobots;
 			float avgYCoord = pathYCoords[k] / numRobots;
 
 			avgTrajectory[k] = new Vec2(avgXCoord, avgYCoord); //constructing the average trajectory
 		}
+	}
+
+	//method to calculate this behaviour's novelty compared to the other results obtained from the simulation
+	//find the average distance between its neighbours
+	public double calculateSimulationNovelty() {
+
+		simulationNoveltyScore = 0;
+		int numNeighbours = 0;
+
+		for(double d : simulationNeighbourhood) { //iterate over the distances to its neighbours
+
+			simulationNoveltyScore += d;
+			numNeighbours++;
+		}
+
+		simulationNoveltyScore = simulationNoveltyScore / numNeighbours;
+		return simulationNoveltyScore;
+
+	}
+
+	public void addSimulationNeighbour(double newNeighbour) {
+		simulationNeighbourhood.add(newNeighbour);
+	}
+
+	public void addGenerationNeighbour(double newNeighbour) {
+		generationNeighbourhood.add(newNeighbour);
+	}
+
+	public void addArchiveNeighbour(double newNeighbour) {
+		archiveNeighbourhood.add(newNeighbour);
 	}
 
 	public int getNumResources() {

@@ -93,4 +93,51 @@ public final class NEATUtil {
 
         return result;
     }
+
+    public static TrainEA constructNoveltyTrainer(NEATPopulation population,
+            CalculateScore calculateScore) {
+        TrainEA result = new TrainEA(population, calculateScore);
+        result.setSpeciation(new OriginalNEATSpeciation());
+
+        result.setSelection(new TruncationSelection(result, 0.3));
+        CompoundOperator weightMutation = new CompoundOperator();
+        weightMutation.getComponents().add(0.1125, new NEATMutateWeights(new SelectFixed(1),
+                        new MutatePerturbLinkWeight(0.004)));
+        weightMutation.getComponents().add(0.1125, new NEATMutateWeights(new SelectFixed(2),
+                        new MutatePerturbLinkWeight(0.004)));
+        weightMutation.getComponents().add(0.1125, new NEATMutateWeights(new SelectFixed(3),
+                        new MutatePerturbLinkWeight(0.004)));
+        weightMutation.getComponents().add(0.1125, new NEATMutateWeights(new SelectProportion(0.02),
+                        new MutatePerturbLinkWeight(0.004)));
+        weightMutation.getComponents().add(0.1125, new NEATMutateWeights(new SelectFixed(1),
+                        new MutatePerturbLinkWeight(0.2)));
+        weightMutation.getComponents().add(0.1125, new NEATMutateWeights(new SelectFixed(2),
+                        new MutatePerturbLinkWeight(0.2)));
+        weightMutation.getComponents().add(0.1125, new NEATMutateWeights(new SelectFixed(3),
+                        new MutatePerturbLinkWeight(0.2)));
+        weightMutation.getComponents().add(0.1125, new NEATMutateWeights(new SelectProportion(0.02),
+                        new MutatePerturbLinkWeight(0.2)));
+        weightMutation.getComponents().add(0.03, new NEATMutateWeights(new SelectFixed(1),
+                        new MutateResetLinkWeight()));
+        weightMutation.getComponents().add(0.03, new NEATMutateWeights(new SelectFixed(2),
+                        new MutateResetLinkWeight()));
+        weightMutation.getComponents().add(0.03, new NEATMutateWeights(new SelectFixed(3),
+                        new MutateResetLinkWeight()));
+        weightMutation.getComponents().add(0.01, new NEATMutateWeights(new SelectProportion(0.02),
+                        new MutateResetLinkWeight()));
+        weightMutation.getComponents().finalizeStructure();
+
+        result.setChampMutation(weightMutation);
+        result.addOperation(0.5, new NEATCrossover());
+        result.addOperation(0.493, weightMutation);
+        result.addOperation(0.001, new NEATMutateAddNode());
+        result.addOperation(0.005, new NEATMutateAddLink());
+        result.addOperation(0.001, new NEATMutateRemoveLink());
+        result.getOperators().finalizeStructure();
+
+        //result.setCODEC(new HyperNEATCODEC());
+        result.setCODEC(new NoveltyCodec(calculateScore));
+
+        return result;
+    }
 }

@@ -144,6 +144,11 @@ public class Main {
 
 		//constructNEATTrainer creates a HyperNEAT trainer since a NEAT population is being sent as parameter
 		TrainEA trainer = NEATUtil.constructNEATTrainer(population, scoreCalculator);
+		/**
+		if performing the novelty search
+		*/
+		TrainEA trainer = NEATUtil.constructNoveltyTrainer(population, scoreCalculator);
+		trainer.addStrategy(new NoveltySearchStrategy(options.populationSize, scoreCalculator));
 
 		trainer.setThreadCount(1);
 

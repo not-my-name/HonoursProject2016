@@ -79,25 +79,25 @@ public class ScoreCalculator implements CalculateScore {
 
         long start = System.nanoTime();
 
-        NEATNetwork neat_network = null;
-        RobotFactory robotFactory;
+        // NEATNetwork neat_network = null;
+        // RobotFactory robotFactory;
 
-        //System.out.println("ScoreCalculator: PHENOTYPE for NEATNetwork: " + getPhenotypeForNetwork(neat_network));
-        neat_network = (NEATNetwork) method;
-        robotFactory = new HomogeneousRobotFactory(getPhenotypeForNetwork(neat_network),
-                    simConfig.getRobotMass(), simConfig.getRobotRadius(), simConfig.getRobotColour(),
-                    simConfig.getObjectsRobots());
+        // //System.out.println("ScoreCalculator: PHENOTYPE for NEATNetwork: " + getPhenotypeForNetwork(neat_network));
+        // neat_network = (NEATNetwork) method;
+        // robotFactory = new HomogeneousRobotFactory(getPhenotypeForNetwork(neat_network),
+        //             simConfig.getRobotMass(), simConfig.getRobotRadius(), simConfig.getRobotColour(),
+        //             simConfig.getObjectsRobots());
 
-        // Create the simulation and run it
-        //System.out.println("ScoreCalculator: creating the simulation and starting the GUI");
-        // create new configurable resource factory
-        String [] resQuantity = {"0","0","0"};
-        ResourceFactory resourceFactory = new ConfigurableResourceFactory();
-        resourceFactory.configure(simConfig.getResources(), resQuantity);
+        // // Create the simulation and run it
+        // //System.out.println("ScoreCalculator: creating the simulation and starting the GUI");
+        // // create new configurable resource factory
+        // String [] resQuantity = {"0","0","0"};
+        // ResourceFactory resourceFactory = new ConfigurableResourceFactory();
+        // resourceFactory.configure(simConfig.getResources(), resQuantity);
 
-        Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory);
+        // Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory);
 
-        simulation.setSchemaConfigNumber(schemaConfigNum);
+        // simulation.setSchemaConfigNumber(schemaConfigNum);
 
         /**
         NOVELTY SEARCH
@@ -148,7 +148,21 @@ public class ScoreCalculator implements CalculateScore {
 
         // }
 
+        /**
+        all of the actual simulation runs and score calculations are performed in the preIteration methods of the NoveltySStrategy class
+        when TrainEA calls iteration() and then calls .calculateScore() 
+        */
 
+        if(PerformingNoveltyCalcs) { //need to have a way of checking when performing objective or novelty
+
+            NoveltyNetwork novNet = (NoveltyNetwork)method;
+            NoveltyBehaviour beh = novNet.getNoveltyBehaviour();
+
+            double noveltyScore = archive.getNovelty(beh);
+            scoreStats.addValue(noveltyScore);
+            return noveltyScore;
+
+        }
 
         /**
         OBJECTIVE SEARCH
@@ -166,23 +180,12 @@ public class ScoreCalculator implements CalculateScore {
         double score = objectiveFitness.calculate(); //calculate the objective fitness for the individual currently being evaluated
         scoreStats.addValue(score);
 
-        /**
-        HYBRID SEARCH
-        */
-        // HybridFitness hybridFitness = new HybridFitness(aggregateBehaviour);
-        // double score  = hybridFitness.calculate();
-        // scoreStats.addValue(score);
-
-        // Get the fitness and update the total score
-        // double score = fitness / simulationRuns;
-        // scoreStats.addValue(score);
-
         log.debug("Score calculation completed: " + score);
 
         //demo(method);
 
 
-        /**
+        /**aggregateBehaviour
         FINS OUT WHAT THE PERFORMANCE STATS IS USED FOR AND IF THIS MAKES A DIFFERENCE IN THE NOVELTY PART
         LIKE SHOULD THIS BE CALLED AT A DIFFERENT TIME IN ORDER TO WORK WITH THE POPULATION ARRAY
         */
@@ -204,8 +207,6 @@ public class ScoreCalculator implements CalculateScore {
                 simConfig.getRobotMass(), simConfig.getRobotRadius(), simConfig.getRobotColour(),
                 simConfig.getObjectsRobots());
 
-        //FitnessMonitor fitnessMonitor = new FitnessMonitor(robotFactory.getNumRobots());
-
         // Create the simulation and run it
         String [] resQuantity = {"0","0","0"};
         ResourceFactory resourceFactory = new ConfigurableResourceFactory();
@@ -221,6 +222,66 @@ public class ScoreCalculator implements CalculateScore {
         console.setVisible(true);
     }
 
+    public void calculateNoveltyForPopulation() {
+        //have access to the archive
+        //in archive calculate novelty for each individual in the current generation
+
+        archive.calculateGenerationNovelty();
+
+        //method in the Archive:
+        //iterate over all the behaviours in the current generation
+        //calculate their behavioural sparseness for each one
+    }
+
+    public NoveltyBehaviour getNoveltyBehaviour(MLMethod method) {
+        /**
+        run the simulation x times for the given method
+        find the most novel behaviour
+        return most novel
+
+        THIS IS THE ETHOD WHERE THE SIMULATION GETS CALLED FOR NOVELTY SEARCH
+        creates the Noveltybehaviour classes
+        also adds the resultant behaviour to the current generation list in the archive
+        */
+
+        NEATNetwork neat_network = null;
+        RobotFactory robotFactory;
+
+        //System.out.println("ScoreCalculator: PHENOTYPE for NEATNetwork: " + getPhenotypeForNetwork(neat_network));
+        neat_network = (NEATNetwork) method;
+        robotFactory = new HomogeneousRobotFactory(getPhenotypeForNetwork(neat_network),
+                    simConfig.getRobotMass(), simConfig.getRobotRadius(), simConfig.getRobotColour(),
+                    simConfig.getObjectsRobots());
+
+        // Create the simulation and run it
+        //System.out.println("ScoreCalculator: creating the simulation and starting the GUI");
+        // create new configurable resource factory
+        String [] resQuantity = {"0","0","0"};
+        ResourceFactory resourceFactory = new ConfigurableResourceFactory();
+        resourceFactory.configure(simConfig.getResources(), resQuantity);
+
+        Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory);
+
+        simulation.setSchemaConfigNumber(schemaConfigNum);
+
+        //creating an arraylist to store the novelty behaviours that are produced at the end of each simulation run
+        //this is used to calculate the most novel behaviour of the produced runs
+        ArrayList<NoveltyBehaviour> simulationResults = new ArrayList<NoveltyBehaviour>();
+
+        for(int k = 0; k < simulationRuns; k++) {
+
+            simulationResults.add(simulation.runNovel());
+        }
+
+        NoveltyBehaviour[] resultsArray = new NoveltyBehaviour[simulationResults.size()];
+        simulationResults.toArray(resultsArray);
+        
+        // double index = archive.findMostNovel(resultsArra);
+        // return resultsArray(index);
+        //OR
+        return archive.findMostNovel(resultsArray);
+    }
+
     public void setSchemaConfigNumber(int i) {
         schemaConfigNum = i;
     }
@@ -233,7 +294,7 @@ public class ScoreCalculator implements CalculateScore {
     private Phenotype getPhenotypeForNetwork(NEATNetwork network) {
         //System.out.println("ScoreCalculator: network input = " + network.getInputCount());
         //System.out.println("ScoreCalculator: network output = " + network.getOutputCount());
-            return new HyperNEATPhenotype(network, sensorMorphology);
+        return new HyperNEATPhenotype(network, sensorMorphology);
     }
 
     public boolean isEvolvingMorphology() {

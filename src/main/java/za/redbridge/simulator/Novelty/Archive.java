@@ -20,56 +20,58 @@ check if there will be concurrency issues with accessing the archive
 
 public class Archive {
 
-	private ArrayList<NoveltyBehaviour> history;
-	private int archiveLength;
+	private ArrayList<NoveltyBehaviour> noveltyArchive;
+	private ArrayList<NoveltyBehaviour> currentGeneration; //arraylist to store the individual behaviours that are part of the same generation
+	private int numNearest; //number of nearest neighbours to use when calculating novelty
 
 
 	public Archive() {
 
-		archiveLength = 0;
-		history = new ArrayList<NoveltyBehaviour>();
+		noveltyArchive = new ArrayList<NoveltyBehaviour>();
+		currentGeneration = new ArrayList<NoveltyBehaviour>();
 
-	}
+		numNearest = 10;
 
-	public double checkNovelty(Behaviour newStructure) {
-		//method to compare the structure created by another controller
-		//to all the structures in the archive
-
-		//iterate over all the previous behaviours and 
-		//compare to new one
-
-		//will need to call the checkNovelty methods in the behaviour class for each
-		//item in the history
-		//the behaviour class will store different types of behaviours that can be measured
-		//for novelty
-
-		double noveltyScore = 0;
-
-		// for(NoveltyBehaviour b : history) { //iterate over past novel behaviours
-		// 	noveltyScore += b.compareStructure(newStructure);
-		// }
-
-		return noveltyScore;
 	}
 
 	/*
-	method to add
+	method that takes in an array of behaviours that have already been created in the simulation and
+	uses the novelty fitness class to calculate the relative novelty of the behaviours in the given collection
+
+	this method is called from the getNoveltyBehaviour() method in scoreCalculator
 	*/
-	public void addToArchive(Behaviour newBehaviour) {
-		//history.add(newBehaviour);
-		archiveLength++;
+	public NoveltyBehaviour findMostNovel(NoveltyBehaviour[] behaviourCollection) {
+
+		NoveltyFitness noveltyFitness = new NoveltyFitness(behaviourCollection);
+		/**
+		check that the novelty behaviour that gets sent back here is the same one that was selected in the NoveltyFitness class
+		do this by checking that its nearest neighbours arrays are populated
+		*/
+		NoveltyBehaviour mostNovel = noveltyFitness.calcSimulationLocalNovelty();
+		currentGeneration.add(mostNovel); //adding the most novel result from the simulation runs to the current generation
+
+		return mostNovel;
+
 	}
 
-	public int getArchiveLength() {
-		return archiveLength;
+	//method to calculate the novelty of each behaviour in the current generation
+	//compare to the rest of the behaviours in the current generation
+	public void calculateGenerationNovelty() {
+
+		NoveltyBehaviour[] currentGenerationArray = new NoveltyBehaviour[currentGeneration.size()];
+		
+
 	}
 
-	/*
-	method to return the Behaviour associated with a
-	specific network
-	*/
-	public NoveltyBehaviour getBehaviour(int index) {
-		return history.get(index);
+	public double getNovelty(NoveltyBehaviour novBeh) {
+		/**
+		find the given behaviour in the current generation
+		and get its behaviouralSparseness (average distance to k nearest neighbours)
+		*/
+	}
+
+	public void clearCurrentGeneration() {
+		currentGeneration.clear();
 	}
 	
 }
