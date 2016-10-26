@@ -80,6 +80,8 @@ public class ResourceObject extends PhysicalObject {
     private final Map<RobotObject, JointDef> pendingJoints;
     private final Map<RobotObject, Joint> joints;
 
+    private final Map<Integer, String[]> adjacencyMap;
+
     private final DetectionPoint[] detectionPoints;
     private String[] adjacentResources;
     private boolean connected;
@@ -87,6 +89,8 @@ public class ResourceObject extends PhysicalObject {
     private ResourceObject[] adjacentList;
 
     private LinkedList<Vec2> resourceTrajectory = new LinkedList<Vec2>();
+
+    private int connectedCount; //var to count the number of resources connected
 
     // is a hack
     // private ArrayList<ResourceObject> otherResources = new ArrayList<ResourceObject>();
@@ -131,6 +135,19 @@ public class ResourceObject extends PhysicalObject {
         pendingJoints = new HashMap<>(pushingRobots);
 
         adjacentList = new ResourceObject[4];
+
+        //Populate the 4 possible adjacency maps
+        adjacencyMap = new HashMap<>(4);
+        String[] firstQuad = {"L","R","T","B"};
+        String[] secondQuad = {"B","T","L","R"};
+        String[] thirdQuad = {"R","L","B","T"};
+        String[] fourthQuad = {"T","B","R","L"};
+        adjacencyMap.put(0, firstQuad);
+        adjacencyMap.put(1, secondQuad);
+        adjacencyMap.put(2, thirdQuad);
+        adjacencyMap.put(3, fourthQuad);
+
+        countConnected = 0;
 
         if (DEBUG) {
             getPortrayal().setChildDrawable(new DebugPortrayal(Color.BLACK, true));
@@ -201,8 +218,8 @@ public class ResourceObject extends PhysicalObject {
     private void initDetectionPoints(){
         float halfWidth = (float) width / 2;
         float halfHeight = (float) height / 2;
-        float xspacing = 0.2f;
-        float yspacing = 0.1f;
+        float xspacing = halfWidth;
+        float yspacing = halfHeight;
 
         Vec2 leftPos = new Vec2(-halfWidth-xspacing, -halfHeight);
         Vec2 rightPos = new Vec2(halfWidth+xspacing, -halfHeight);
@@ -266,15 +283,49 @@ public class ResourceObject extends PhysicalObject {
             adjacentResources[i] = "_";
         }
 
+        for(int k = 0; k < adjacentList.length; k++) {
+            adjacentList[k] = null;
+        }
+
         for(int j=0;j<resourceArray.size();j++){
+
             if(this != resourceArray.get(j)){
+
                 Body resourceBody = resourceArray.get(j).getBody();
                 Vec2 resourcePosition = resourceBody.getPosition();
+
                 for(int i=0;i<detectionPoints.length;i++){
-                    if (resourcePosition.sub(detectionPoints[i].getRelativePosition(this.getBody().getPosition())).length() < 0.3f) {
-                        adjacentResources[i] = resourceArray.get(j).getType();
+
+                    if (resourcePosition.sub(detectionPoints[i].getRelativePosition(this.getBody())).length() < 0.1f) {
+
+                        int angleQuadrant = (int)roundAngle(getBody().getAngle());
+                        String sideName = adjacencyMap.get(angleQuadrant)[detectionPoints[i].getSide()];
+
+                        if (sideName.equals("L")) {
+                            side = 0;
+                        }
+                        else if (sideName.equals("R")) {
+                            side = 1;
+                        }
+                        else if (sideName.equals("T")) {
+                            side = 2;
+                        }
+                        else {
+                            side = 3;
+                        }
+
+                        adjacentResources[side] = resourceArray.get(j).getType();
+                        adjacentList[side] = resourceArray.get(j);
                     }
                 }
+            }
+        }
+
+        countConnected = 0;
+        for(int k = 0; k < adjacentResources.length; k++) {
+
+            if( !adjacentResources[k].equals("_") ) { //count how many resources are connected to current resource
+                countConnected++;
             }
         }
 
@@ -329,6 +380,10 @@ public class ResourceObject extends PhysicalObject {
     */
     public void updateAlignment(){
 
+    }
+
+    public int getNumConnected() {
+        return countConnected;
     }
 
     public int getNumAdjacent() {
@@ -728,6 +783,53 @@ public class ResourceObject extends PhysicalObject {
     }
 
     /**
+    Method that calculates whether or not a resource is near enough to this resource to be considered 'connected'
+    @param Vec2 otherResPos
+    @param float otherResWidth
+    @param int side: the side that this other resource is nearby to (-1 if not near)
+    **/
+    //ALIGNMENT
+    public int getSideNearestTo (Vec2 otherResPos, float otherResWidth, AABB otherResAABB) {
+
+        boolean result = false;
+        int side = 0;
+        float min = 20f;
+        int closestSide = -1;
+
+        for (int i = 0; i < detectionPoints.length; i++) {
+            Vec2 dpPos = detectionPoints[i].getRelativePosition(this.getBody());
+
+            if (detectionPoints[i].isNearCenter(otherResPos)) {
+                result = true;
+                int angleQuadrant = (int)roundAngle(getBody().getAngle());
+                String sideName = adjacencyMap.get(angleQuadrant)[detectionPoints[i].getSide()];
+                if (sideName.equals("L")) {
+                    side = 0;
+                }
+                else if (sideName.equals("R")) {
+                    side = 1;
+                }
+                else if (sideName.equals("T")) {
+                    side = 2;
+                }
+                else {
+                    side = 3;
+                }
+                break; 
+            }       
+        }
+
+        if (result) {
+            return side;
+        }
+
+        else {
+            return closestSide;
+        }
+    }
+
+
+    /**
      * detach the robot from the resource regardless of whether or not the resource
      * in the target area
      */
@@ -746,6 +848,50 @@ public class ResourceObject extends PhysicalObject {
         for (AnchorPoint anchorPoint : anchorPoints) {
             anchorPoint.taken = false;
         }
+    }
+
+    /**
+    Used to group rotation angles of the resource into 4 main blocks for calculating the correct adjacent sides
+    **/
+    public double roundAngle (double a) {
+
+        double divBy2Pi = a/(Math.PI*2);
+        double fractionalPart = divBy2Pi % 1;
+        // double integralPart = divBy2Pi - fractionalPart;
+        double refAngle;
+        if (fractionalPart < 0) {
+            refAngle = Math.PI*2 + fractionalPart*Math.PI*2;
+        }
+        else {
+            refAngle = fractionalPart*(Math.PI*2);
+        }
+
+        double d45 = Math.PI/4;
+        double d135 = 3*Math.PI/4;
+        double d225 = 5*Math.PI/4;
+        double d315 = 7*Math.PI/4;
+
+        double returnQuad;
+
+        if ((refAngle < d45)||(refAngle > d315)) {
+            returnQuad = 0D;
+        }
+        else if ((refAngle >= d45)&&(refAngle < d135)) {
+            returnQuad = 1D;
+        }
+        else if ((refAngle >= d135)&&(refAngle < d225)) {
+            returnQuad = 2D;
+        }
+        else {
+            returnQuad = 3D;
+        }
+
+        return returnQuad;
+    }
+
+    public double getBodyAngle () {
+        // System.out.println(rotXAxis + " " + rotXAxis.length());
+        return roundAngle((double)this.getBody().getAngle());
     }
 
     /** Check whether this resource already has the max number of robots attached to it. */
@@ -843,8 +989,12 @@ public class ResourceObject extends PhysicalObject {
             return position;
         }
 
-        public Vec2 getRelativePosition(Vec2 resourcePos){
-            return position.add(resourcePos);
+        public Vec2 getRelativePosition(Body thisResource){
+
+            Transform bodyXFos = body.getTransform();
+            Vec2 relativePos = Transform.mul(bodyXFos, this.position);
+
+            return relativePos;
         }
 
         public Vec2 getWorldPosition() {

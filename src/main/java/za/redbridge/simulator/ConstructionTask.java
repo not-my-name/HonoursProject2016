@@ -49,7 +49,10 @@ public class ConstructionTask implements Steppable{
     private HashSet<ResourceObject> movedResources;
     //private HashSet<ResourceObject> constructedResources;
 
+    private ArrayList<ResourceObject> globalConstructionOrder;
+
     public ConstructionTask(SchemaConfig schema, ArrayList<ResourceObject> r, ArrayList<RobotObject> robots, World world, int schemaNumber) {
+
         this.schema = schema;
         this.schemaNumber = schemaNumber;
         resources = r;
@@ -64,10 +67,7 @@ public class ConstructionTask implements Steppable{
         physicsWorld = world;
         //this.maxSteps = maxSteps;
 
-        /**
-        change this to work with a variable for different numbers of resources in different simulations
-        */
-        int numResources = 15; 
+        int numResources = resources.size(); 
         this.constructionZones = new ConstructionZone[numResources/2]; //the maximum number of construction zones possible
         numConstructionZones = 0;
 
@@ -80,17 +80,16 @@ public class ConstructionTask implements Steppable{
         update();
     }
 
-    //CONCURRENCY
-    public void addResources(ArrayList<ResourceObject> r) {
-        resources = r;
-        for(ResourceObject resource : resources) {
-            resource.updateAdjacent(resources);
-        }
-        for(int k = 0; k < resources.size(); k++) {
-            ArrayList<ResourceObject> temp = new ArrayList<ResourceObject>();
-            weldMap.put(resources.get(k), temp);
-        }
-    }
+    // public void addResources(ArrayList<ResourceObject> r) {
+    //     resources = r;
+    //     for(ResourceObject resource : resources) {
+    //         resource.updateAdjacent(resources);
+    //     }
+    //     for(int k = 0; k < resources.size(); k++) {
+    //         ArrayList<ResourceObject> temp = new ArrayList<ResourceObject>();
+    //         weldMap.put(resources.get(k), temp);
+    //     }
+    // }
 
     public ArrayList<ResourceObject> getSimulationResources() {
         return resources;
@@ -112,6 +111,9 @@ public class ConstructionTask implements Steppable{
     public void step(SimState simState) {
 
         System.out.println("ConstructionTask Step: the step method is being called");
+
+        update(resources);
+        update();
 
         // for(ResourceObject r1 : resources){
 
@@ -256,39 +258,6 @@ public class ConstructionTask implements Steppable{
 
     }
 
-    // private void tryCreateWeld(ResourceObject r1, ResourceObject r2){
-    //     if(r1 != r2 && !r1.isFullyWelded() && !r2.isFullyWelded()){
-    //         // check if join between resources has been made before
-    //         boolean t = false;
-    //         for(int i=0;i<weldMap.get(r1).size();i++){
-    //             if(weldMap.get(r1).get(i)==r2){
-    //                 t = true;
-    //                 break;
-    //             }
-    //         }
-
-    //         float distance = r1.getBody().getPosition().sub(r2.getBody().getPosition()).length();
-
-    //         if(distance < 3f && t==false){ //check if the resources are close enough for a weld to form
-    //             if(checkPotentialWeld(r1, r2)){
-    //                 WeldJointDef weldDef = r1.createResourceWeldJoint(r2);
-    //                 Joint joint = physicsWorld.createJoint(weldDef);
-    //                 weldMap.get(r1).add(r2);
-    //                 weldMap.get(r2).add(r1);
-    //                 //constructedResources.add(r1);
-    //                 //constructedResources.add(r2);
-    //                 constructionZone.addResource(r1);
-    //                 constructionZone.addResource(r2);
-    //                 r1.setConstructed();
-    //                 r2.setConstructed();
-    //                 // TODO: work on setting static after welding
-    //                 // r1.setStatic();
-    //                 // r2.setStatic();
-    //             }
-    //         }
-    //     }
-    // }
-
 
     /**
     should this not be changed to an &&
@@ -310,6 +279,8 @@ public class ConstructionTask implements Steppable{
     //     return wjd;
     // }
 
+    //checks all the resources that are near enough to be connected
+    //adds these resources to the respective adjacency lists
     public void update(ArrayList<ResourceObject> r){
         resources = r;
         for(ResourceObject resource : resources){
@@ -317,10 +288,45 @@ public class ConstructionTask implements Steppable{
         }
     }
 
+    public void update() {
+
+        for(ResourceObject resource : resources) {
+
+            if( !resource.isConstructed() ) { //only need to check the resources that have not been added to a construction zone
+
+                String[] resAdjacentList = resource.getAdjacentResources();
+                ResourceObject[] adjObjects = resource.getAdjacentList();
+
+                int resNumConnected = resource.getNumConnected();
+                int resCorrectNum = checkSchema(neighbour);
+
+                /**
+                should connect
+                */
+
+                //checks that all adjacent resources are connected correctly according to the schema
+                if(resCorrectNum == resNumConnected) { //if the number of connected resources == number of correctly connected resources
+
+                    for(int k = 0; k < resAdjacentList.length; k++) { //iterate over the resources that are adjacent to the current resource
+
+                        if( !resAdjacentList[k].equals("_") ) { //check if the current side is not empty
+
+                            ResourceObject neighbour = adjObjects[k];
+                            int neighbourNumConnected = neighbour.getNumConnected();
+                            int neighbourCorrectNum = checkSchema(neighbour);
+
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+
     /**
     below is the original update method for a single construction zone 
     */
-
+    //this update method gets called to check if the resources that have been added to the adjacency lists
     public void update(){  
         // System.out.println("Starting update"); 
         for(ResourceObject resource : resources){
@@ -348,6 +354,15 @@ public class ConstructionTask implements Steppable{
                         boolean found = false;
 
                         for(int k = 0; k < numConstructionZones; k++) { //iterate over the different construction zones
+
+                            /**
+                            check that the resource is being pushed by the correct number of robots
+
+                            resource can only be added if correct according to schema
+                            checkSchema returns num correct sides
+                            count numCorrect/numConnected == 1, then all the blocks are according
+                            need to implement a way to keep track of the number of connections on a resource in ResourceObject
+                            */
 
                             if( constructionZones[k].getConnectedResources().contains(resource) ) { //if the first resource is in the construction zone
 
@@ -473,6 +488,13 @@ public class ConstructionTask implements Steppable{
 
         int correctSides = 0;
         correctSides += schema.checkConfig(schemaConfigNum, resObj.getType(), resObj.getAdjacentResources());
+        return correctSides;
+    }
+
+    public int checkSchema(ResourceObject resObj) {
+
+        int correctSides = 0;
+        correctSides += schema.checkConfig(schemaConfigNum, resObj)
         return correctSides;
     }
 

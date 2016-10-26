@@ -158,6 +158,10 @@ public class ScoreCalculator implements CalculateScore {
             NoveltyNetwork novNet = (NoveltyNetwork)method;
             NoveltyBehaviour beh = novNet.getNoveltyBehaviour();
 
+            if(beh == null) { //check if this behaviour has already been "processed"
+                return 0;
+            }
+
             double noveltyScore = archive.getNovelty(beh);
             scoreStats.addValue(noveltyScore);
             return noveltyScore;
@@ -226,7 +230,7 @@ public class ScoreCalculator implements CalculateScore {
         //have access to the archive
         //in archive calculate novelty for each individual in the current generation
 
-        archive.calculateGenerationNovelty();
+        archive.calculatePopoulationNovelty();
 
         //method in the Archive:
         //iterate over all the behaviours in the current generation
@@ -270,6 +274,7 @@ public class ScoreCalculator implements CalculateScore {
 
         for(int k = 0; k < simulationRuns; k++) {
 
+            //recording all the resultant behaviours that the network produced in the different simulation runs
             simulationResults.add(simulation.runNovel());
         }
 

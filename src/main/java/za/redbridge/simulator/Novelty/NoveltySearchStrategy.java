@@ -78,6 +78,22 @@ public class NoveltySearchStrategy implements Strategy {
 		also need to clear the map in NoveltyCodec
 		*/
 
+		/**
+		dont clear the genomes that persist into the new generation
+
+		get list of newest individuals created by the EA worker during the iteration
+		*/
+
+		LinkedList<Genome> newestPopulation = new LinkedList<Genome>();
+		for (Species species : mainTrain.getPopulation().getSpecies()) {
+			for (Genome g : species.getMembers()) {
+				newestPopulation.add(g);
+			}
+		}
+
+		//keep track of current generation in the coded?
+		//clear everythin
+
 		archive.clearCurrentGeneration();
 	}
 }

@@ -92,6 +92,7 @@ public class ConstructionZone {
     public ConstructionZone() {} 
 
     public void startConstructionZone(ResourceObject r1, ResourceObject r2) {
+        
         Vec2 r1Pos = r1.getBody().getPosition();
         Vec2 r2Pos = r2.getBody().getPosition();
         float aveX = (r1Pos.x + r2Pos.x)/2;

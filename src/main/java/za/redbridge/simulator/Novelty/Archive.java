@@ -42,6 +42,13 @@ public class Archive {
 	*/
 	public NoveltyBehaviour findMostNovel(NoveltyBehaviour[] behaviourCollection) {
 
+
+		/**
+		when calculating an individuals final novelty score, use a population that consists of the individuals from the current generation
+		combined with the individuals from the archive
+		use this combined population to calculate the k nearest neighbours score for each individual in the current generation
+		*/
+
 		NoveltyFitness noveltyFitness = new NoveltyFitness(behaviourCollection);
 		/**
 		check that the novelty behaviour that gets sent back here is the same one that was selected in the NoveltyFitness class
@@ -54,12 +61,43 @@ public class Archive {
 
 	}
 
-	//method to calculate the novelty of each behaviour in the current generation
-	//compare to the rest of the behaviours in the current generation
-	public void calculateGenerationNovelty() {
+	public void calculatePopulationNovelty() {
 
-		NoveltyBehaviour[] currentGenerationArray = new NoveltyBehaviour[currentGeneration.size()];
-		
+		/**
+		when creating the noveltyFItness object for this, send through the combined population of the current generation and the archive
+		*/
+
+		//var to calc the size of the combined population
+		int numNovelty = noveltyArchive.size();
+		int numGeneration = currentGeneration.size();
+		int totalSize = numNovelty + numGeneration;
+		NoveltyBehaviour[] currentPopulation = new NoveltyBehaviour[totalSize]; //array to store the cumulative population
+
+		//iterating over the novelty archive in order to
+		//populate the global collection
+		for(int k = 0; k < numNovelty; k++) {
+
+			//should there be a copy constructor
+			//first create the empty object and then assign?
+			currentPopulation[k] = noveltyArchive.get(k);
+		}		
+
+		//repeat for the current generation
+		for(int k = 0; k < numGeneration; k++) {
+
+			currentPopulation[numNovelty+k] = currentGeneration.get(k);
+		}
+
+		NoveltyFitness noveltyFitness = new NoveltyFitness(currentPopulation);
+		/**
+		check that the values for the behaviours in currentPopulation have been changed accordingly after the calculate novelty method has
+		been called
+		check that they are modified by reference
+
+		add the most novel behaviour to the archive
+		calculate most novel in the NoveltyFitness method and return either an object or index to the current population
+		*/
+		noveltyFitness.calculatePopulationNovelty();
 
 	}
 

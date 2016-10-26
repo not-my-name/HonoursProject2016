@@ -66,5 +66,10 @@ public class NoveltyCodec extends HyperNEATCODEC {
 		
 		return novNetwork;
 	}
+
+	public void clearMaps(LinkedList<Genome> persisted) {
+		//clear the maps
+		//delete all the entries that are not found in the persisted list
+	}
 	
 }
