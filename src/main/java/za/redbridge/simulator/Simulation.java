@@ -191,7 +191,7 @@ public class Simulation extends SimState {
 
     public void checkConstructionTask(){
         System.out.println("Simulation checkConstructionTask: THIS METHOD IS BEING CALLED FROM SOMEWHERE, DONT THINK IT SHOULD");
-        construction.checkSchema(0);
+        //construction.checkSchema(0);
     }
 
     //create target area
@@ -291,6 +291,7 @@ public class Simulation extends SimState {
      * Run the simulation for the number of iterations specified in the config.
      */
     public Behaviour runObjective() {
+        //System.out.println("Simulation runObjective(): running method");
         final int iterations = config.getSimulationIterations();
         return objectiveSimulation(iterations);
     }
@@ -298,34 +299,27 @@ public class Simulation extends SimState {
     //just a temp method to test another way of implementing the fitness functions
     private Behaviour objectiveSimulation(int n) {
 
+        //System.out.println("Simulation: running objective simulation");
+
         start();
         double distanceTravelled = 0;
 
         for(int i = 0; i < n; i++) {
+            
             schedule.step(this);
-
-            /**
-            remember to change this to update the distance travelled only every other iteration
-            instead of every single iteration
-            */
-
-            for(int k = 0; k < robotFactory.getPlacedRobots().size(); k++) {
-
-                Vec2 before = robotFactory.getPlacedRobots().get(k).getPreviousPosition();
-                Vec2 after = robotFactory.getPlacedRobots().get(k).getBody().getPosition();
-                distanceTravelled += calculateDistance(before, after);
-            }
         }
 
         ArrayList<RobotObject> tempBots = robotFactory.getPlacedRobots();
         ArrayList<ResourceObject> tempResources = resourceFactory.getPlacedResources();
 
-        //THIS IS FOR THE OBJECTIVE FITNESS
-        Behaviour behaviour = new Behaviour(construction, tempBots, tempResources, distanceTravelled, schemaConfigNum);
+        // System.out.println("Simulation: printing the final positions of the robots");
 
-        /**
-        check what happens in this finish() method and make sure that it doesnt mess with the behaviour object before you return it
-        */
+        // for(RobotObject robObj : tempBots) {
+        //     System.out.println("the final position = " + robObj.getBody().getPosition());
+        // }
+
+        //THIS IS FOR THE OBJECTIVE FITNESS
+        Behaviour behaviour = new Behaviour(construction, tempBots, tempResources, schemaConfigNum);
 
         finish();
 

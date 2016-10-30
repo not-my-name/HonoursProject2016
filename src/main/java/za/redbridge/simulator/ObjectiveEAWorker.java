@@ -11,9 +11,10 @@ import org.encog.ml.ea.opp.EvolutionaryOperator;
 import org.encog.ml.ea.species.Species;
 
 import org.encog.ml.ea.train.basic.EAWorker;
+
 import org.encog.ml.ea.train.basic.BasicEA;
 
-public class NoveltyEAWorker extends EAWorker {
+public class ObjectiveEAWorker extends EAWorker {
 
 	/**
 	 * The species being processed.
@@ -48,11 +49,11 @@ public class NoveltyEAWorker extends EAWorker {
 	 * @param theSpecies
 	 *            The species.
 	 */
-	public NoveltyEAWorker(final BasicEA theTrain, final Species theSpecies) {
+	public ObjectiveEAWorker(final BasicEA theTrain, final Species theSpecies) {
 
 		super(theTrain, theSpecies);
 
-		System.out.println("NoveltyEAWorker: creating the EA worker");
+		System.out.println("ObjectiveEAWorker: creating the EA worker");
 
 		this.train = theTrain;
 		this.species = theSpecies;
@@ -135,10 +136,15 @@ public class NoveltyEAWorker extends EAWorker {
 							child.setBirthGeneration(this.train.getIteration());
 
 							this.train.calculateScore(child);
+
+							System.out.println("ObjectiveEAWorker: made it past the score calculation");
+
 							if (!this.train.addChild(child)) {
+								System.out.println("ObjectiveEAWorker: unable to add child");
 								return null;
 							}
 							success = true;
+							System.out.println("ObjectiveEAWorker: finished adding child");
 						}
 					}
 				}
@@ -152,6 +158,7 @@ public class NoveltyEAWorker extends EAWorker {
 				}
 			} catch (final Throwable t) {
 				if (!this.train.getShouldIgnoreExceptions()) {
+					System.out.println("ObjectiveEAWorker: caught an error and reporting");
 					this.train.reportError(t);
 				}
 			}
@@ -160,4 +167,5 @@ public class NoveltyEAWorker extends EAWorker {
 		return null;
 	}
 	
+
 }

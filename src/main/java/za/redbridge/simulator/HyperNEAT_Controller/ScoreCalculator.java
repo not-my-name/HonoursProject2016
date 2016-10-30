@@ -22,10 +22,10 @@ import za.redbridge.simulator.phenotype.Phenotype;
 import za.redbridge.simulator.HyperNEATPhenotype;
 import za.redbridge.simulator.Morphology;
 
-import za.redbridge.simulator.FitnessMonitor;
-
 import za.redbridge.simulator.factories.ConfigurableResourceFactory;
 import za.redbridge.simulator.factories.ResourceFactory;
+
+import java.util.*;
 
 /**
  * Test runner for the simulation.
@@ -54,8 +54,13 @@ public class ScoreCalculator implements CalculateScore {
     private NoveltyBehaviour[] currentPopulation;
     private int currentBehaviour; //keep track of how many of the individuals in the generation have been processed
 
+    /**
+    need to set this from the main method in order to run the experiments
+    */
+    private boolean PerformingNoveltyCalcs; 
+
     public ScoreCalculator(SimConfig simConfig, int simulationRuns,
-            Morphology sensorMorphology, int populationSize) {
+            Morphology sensorMorphology, int populationSize, int schemaConfigNum) {
         this.simConfig = simConfig;
         this.simulationRuns = simulationRuns;
         this.sensorMorphology = sensorMorphology;
@@ -67,37 +72,25 @@ public class ScoreCalculator implements CalculateScore {
         currentPopulation = new NoveltyBehaviour[numResults];
 
         /**
+        need to set this from the main method in order to run the experiments
+        */
+        PerformingNoveltyCalcs = false;
+
+        /**
         need to change the schema config to work with the variables so that the config number can change
         */
-        schemaConfigNum = 0;
+        this.schemaConfigNum = schemaConfigNum;
 
-        archive = null;
+        //there is only one ScoreCalculator that gets used
+        //dont have to worry about different threads having different instances of the object
+        //can maintain the archive from here
+        this.archive = new Archive();
     }
 
     @Override
     public double calculateScore(MLMethod method) {
 
         long start = System.nanoTime();
-
-        // NEATNetwork neat_network = null;
-        // RobotFactory robotFactory;
-
-        // //System.out.println("ScoreCalculator: PHENOTYPE for NEATNetwork: " + getPhenotypeForNetwork(neat_network));
-        // neat_network = (NEATNetwork) method;
-        // robotFactory = new HomogeneousRobotFactory(getPhenotypeForNetwork(neat_network),
-        //             simConfig.getRobotMass(), simConfig.getRobotRadius(), simConfig.getRobotColour(),
-        //             simConfig.getObjectsRobots());
-
-        // // Create the simulation and run it
-        // //System.out.println("ScoreCalculator: creating the simulation and starting the GUI");
-        // // create new configurable resource factory
-        // String [] resQuantity = {"0","0","0"};
-        // ResourceFactory resourceFactory = new ConfigurableResourceFactory();
-        // resourceFactory.configure(simConfig.getResources(), resQuantity);
-
-        // Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory);
-
-        // simulation.setSchemaConfigNumber(schemaConfigNum);
 
         /**
         NOVELTY SEARCH
@@ -164,35 +157,63 @@ public class ScoreCalculator implements CalculateScore {
 
             double noveltyScore = archive.getNovelty(beh);
             scoreStats.addValue(noveltyScore);
+            log.debug("NoveltyScore calculation completed: " + noveltyScore);
             return noveltyScore;
-
         }
 
         /**
         OBJECTIVE SEARCH
         */
+
+        //System.out.println("ScoreCalculator: starting the calculate score method");
+
+        NEATNetwork neat_network = null;
+        RobotFactory robotFactory;
+
+        //System.out.println("ScoreCalculator: PHENOTYPE for NEATNetwork: " + getPhenotypeForNetwork(neat_network));
+        neat_network = (NEATNetwork) method;
+        robotFactory = new HomogeneousRobotFactory(getPhenotypeForNetwork(neat_network),
+                    simConfig.getRobotMass(), simConfig.getRobotRadius(), simConfig.getRobotColour(),
+                    simConfig.getObjectsRobots());
+
+        //System.out.println("ScoreCalculator: finished creating the robot factory");
+
+        // Create the simulation and run it
+        //System.out.println("ScoreCalculator: creating the simulation and starting the GUI");
+        // create new configurable resource factory
+        String [] resQuantity = {"0","0","0"};
+        ResourceFactory resourceFactory = new ConfigurableResourceFactory();
+        //System.out.println("ScoreCalculator: created the resource factory");
+        resourceFactory.configure(simConfig.getResources(), resQuantity);
+        //System.out.println("ScoreCalculator: configured the resource factory");
+
         //creates a new aggregate behaviour for every individual in the population. represents the average behaviour of the individual over the test simulation runs
-        AggregateBehaviour aggregateBehaviour = new AggregateBehaviour(simulationRuns, schemaConfigNum); //creating a new aggregate behaviour to store the test runs results for this specific individual
+        //AggregateBehaviour aggregateBehaviour = new AggregateBehaviour(schemaConfigNum); //creating a new aggregate behaviour to store the test runs results for this specific individual
+
+        //System.out.println("ScoreCalculator: created the aggregate behaviour object");
+
+        Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory);
+        simulation.setSchemaConfigNumber(schemaConfigNum);
 
         double fitness = 0;
+        System.out.println("");
         for(int i = 0; i < simulationRuns; i++) {
-            aggregateBehaviour.addSimBehaviour(simulation.runObjective());
+
+            ObjectiveFitness objectiveFitness = new ObjectiveFitness(schemaConfigNum);
+            Behaviour resultantBehaviour = simulation.runObjective();
+            double tempFitness = objectiveFitness.calculate(resultantBehaviour);
+            System.out.println("ScoreCalculator: fitness = " + tempFitness);
+            System.out.println("");
+            fitness += tempFitness;
         }
 
-        //send the aggregate behaviour of the individual to a new objective fitness class
-        ObjectiveFitness objectiveFitness = new ObjectiveFitness(aggregateBehaviour);
-        double score = objectiveFitness.calculate(); //calculate the objective fitness for the individual currently being evaluated
+        double score = fitness / simulationRuns;
+        System.out.println("ScoreCalculator: the final fitness = " + score);
+
         scoreStats.addValue(score);
 
         log.debug("Score calculation completed: " + score);
 
-        //demo(method);
-
-
-        /**aggregateBehaviour
-        FINS OUT WHAT THE PERFORMANCE STATS IS USED FOR AND IF THIS MAKES A DIFFERENCE IN THE NOVELTY PART
-        LIKE SHOULD THIS BE CALLED AT A DIFFERENT TIME IN ORDER TO WORK WITH THE POPULATION ARRAY
-        */
         long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
         performanceStats.addValue(duration);
 
@@ -230,23 +251,20 @@ public class ScoreCalculator implements CalculateScore {
         //have access to the archive
         //in archive calculate novelty for each individual in the current generation
 
-        archive.calculatePopoulationNovelty();
+        archive.calculatePopulationNovelty();
 
         //method in the Archive:
         //iterate over all the behaviours in the current generation
         //calculate their behavioural sparseness for each one
     }
 
-    public NoveltyBehaviour getNoveltyBehaviour(MLMethod method) {
-        /**
-        run the simulation x times for the given method
-        find the most novel behaviour
-        return most novel
+    public void clearCurrentGeneration() {
+        archive.clearGeneration();
+    }
 
-        THIS IS THE ETHOD WHERE THE SIMULATION GETS CALLED FOR NOVELTY SEARCH
-        creates the Noveltybehaviour classes
-        also adds the resultant behaviour to the current generation list in the archive
-        */
+    public NoveltyBehaviour getNoveltyBehaviour(MLMethod method) {
+
+        System.out.println("ScoreCalculator: the getNoveltyBehaviour() method is being called");
 
         NEATNetwork neat_network = null;
         RobotFactory robotFactory;
@@ -287,13 +305,13 @@ public class ScoreCalculator implements CalculateScore {
         return archive.findMostNovel(resultsArray);
     }
 
-    public void setSchemaConfigNumber(int i) {
-        schemaConfigNum = i;
-    }
+    // public void setSchemaConfigNumber(int i) {
+    //     schemaConfigNum = i;
+    // }
 
-    public void setArchive(Archive archive) {
-        this.archive = archive;
-    }
+    // public void setArchive(Archive archive) {
+    //     this.archive = archive;
+    // }
 
     //HyperNEAT uses the NEATnetwork as well
     private Phenotype getPhenotypeForNetwork(NEATNetwork network) {

@@ -15,9 +15,7 @@ import org.encog.ml.train.strategy.end.EndTrainingStrategy;
 import org.encog.neural.networks.training.TrainingSetScore;
 import org.encog.neural.networks.training.propagation.TrainingContinuation;
 
-import za.redbridge.simulator.NoveltyBasicEA;
-
-public class NoveltyTrainEA extends NoveltyBasicEA implements MLTrain {
+public class ObjectiveTrainEA extends ObjectiveBasicEA implements MLTrain {
 
 	/**
 	 * The serial ID.
@@ -34,7 +32,7 @@ public class NoveltyTrainEA extends NoveltyBasicEA implements MLTrain {
 	 * @param thePopulation The population.
 	 * @param theScoreFunction The score function.
 	 */
-	public NoveltyTrainEA(Population thePopulation, CalculateScore theScoreFunction) {
+	public ObjectiveTrainEA(Population thePopulation, CalculateScore theScoreFunction) {
 		super(thePopulation, theScoreFunction);
 	}
 
@@ -43,7 +41,7 @@ public class NoveltyTrainEA extends NoveltyBasicEA implements MLTrain {
 	 * @param thePopulation The population.
 	 * @param trainingData The training data.
 	 */
-	public NoveltyTrainEA(Population thePopulation, MLDataSet trainingData) {
+	public ObjectiveTrainEA(Population thePopulation, MLDataSet trainingData) {
 		super(thePopulation, new TrainingSetScore(trainingData));
 	}
 
@@ -53,7 +51,7 @@ public class NoveltyTrainEA extends NoveltyBasicEA implements MLTrain {
 	 * @param error
 	 *            Not used.
 	 */
-	//@Override
+	@Override
 	public void setError(final double error) {
 	}
 
@@ -76,7 +74,7 @@ public class NoveltyTrainEA extends NoveltyBasicEA implements MLTrain {
 	/**
 	 * {@inheritDoc}
 	 */
-	//@Override
+	@Override
 	public TrainingImplementationType getImplementationType() {
 		return TrainingImplementationType.Iterative;
 	}
@@ -90,7 +88,7 @@ public class NoveltyTrainEA extends NoveltyBasicEA implements MLTrain {
 	 * @param count
 	 *            The number of training iterations.
 	 */
-	//@Override
+	@Override
 	public void iteration(final int count) {
 		for (int i = 0; i < count; i++) {
 			iteration();
@@ -100,7 +98,7 @@ public class NoveltyTrainEA extends NoveltyBasicEA implements MLTrain {
 	/**
 	 * {@inheritDoc}
 	 */
-	//@Override
+	@Override
 	public TrainingContinuation pause() {
 		return null;
 	}
@@ -108,7 +106,7 @@ public class NoveltyTrainEA extends NoveltyBasicEA implements MLTrain {
 	/**
 	 * {@inheritDoc}
 	 */
-	//@Override
+	@Override
 	public void resume(final TrainingContinuation state) {
 
 	}
@@ -128,7 +126,7 @@ public class NoveltyTrainEA extends NoveltyBasicEA implements MLTrain {
 	/**
 	 * {@inheritDoc}
 	 */
-	//@Override
+	@Override
 	public boolean canContinue() {
 		return false;
 	}
@@ -136,8 +134,9 @@ public class NoveltyTrainEA extends NoveltyBasicEA implements MLTrain {
 	/**
 	 * {@inheritDoc}
 	 */
-	//@Override
+	@Override
 	public void finishTraining() {
+		System.out.println("ObjectiveTrainEA: calling finishTraining");
 		super.finishTraining();
 		this.getPopulation().setBestGenome(this.getBestGenome());
 	}
@@ -145,7 +144,7 @@ public class NoveltyTrainEA extends NoveltyBasicEA implements MLTrain {
 	/**
 	 * @return A network created for the best genome.
 	 */
-	//@Override
+	@Override
 	public MLMethod getMethod() {
 		return this.getPopulation();
 	}
@@ -155,7 +154,7 @@ public class NoveltyTrainEA extends NoveltyBasicEA implements MLTrain {
 	 * 
 	 * @return null, not used.
 	 */
-	//@Override
+	@Override
 	public MLDataSet getTraining() {
 		return null;
 	}
@@ -167,7 +166,7 @@ public class NoveltyTrainEA extends NoveltyBasicEA implements MLTrain {
 		return this.strategies;
 	}
 	
-	//@Override
+	@Override
 	public void iteration() {
 		preIteration();
 		super.iteration();

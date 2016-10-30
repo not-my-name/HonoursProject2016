@@ -135,7 +135,7 @@ public class StatsRecorder {
     private void savePopulation(NEATPopulation population, int generation) {
         String filename = "generation-" + generation + ".ser";
         Path path = populationDirectory.resolve(filename);
-        //System.out.println("StatsRecorder: the object being save = " + population);
+        System.out.println("StatsRecorder: the object being save = " + population);
         saveObjectToFile(population, path); //remember to possibly remove .getSubstrate()
     }
 

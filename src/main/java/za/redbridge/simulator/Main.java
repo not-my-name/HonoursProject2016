@@ -60,12 +60,6 @@ public class Main {
 		check that all the calculations are executed in the correct order as each others
 		since there aer so many different ways of implementing it
 
-		check you have all the welding code from daniel
-
-		check you have all the novelty methods from josh
-
-		fix the savePopulation error that crashes
-
 		robots should only be able to move a resource when enough of them have attached
 		does this affect the total resource pickup count in some way? should probably add some sort of check
 
@@ -111,18 +105,9 @@ public class Main {
 
 		resConfig = options.environment;
 
-		ScoreCalculator scoreCalculator = new ScoreCalculator(simConfig, options.simulationRuns, 
-						morphology, options.populationSize); //got this from the Main class in last years Controller Master folder
-
-		//creating the archive that will store the novel behaviours
-		archive = new Archive();
-		scoreCalculator.setArchive(archive);
-
-		/**
-		might not need to set the schema number from here
-		*/
 		schemaConfigIndex = 1;
-		scoreCalculator.setSchemaConfigNumber(schemaConfigIndex);
+		ScoreCalculator scoreCalculator = new ScoreCalculator(simConfig, options.simulationRuns, 
+						morphology, options.populationSize, schemaConfigIndex); //got this from the Main class in last years Controller Master folder
 
 		// if (!isBlank(options.genomePath)) {
   //           NEATNetwork network = (NEATNetwork) readObjectFromFile(options.genomePath);
@@ -144,11 +129,13 @@ public class Main {
 
 		//constructNEATTrainer creates a HyperNEAT trainer since a NEAT population is being sent as parameter
 		TrainEA trainer = NEATUtil.constructNEATTrainer(population, scoreCalculator);
+		//ObjectiveTrainEA trainer = NEATUtil.constructObjectiveTrainer(population, scoreCalculator);
 		/**
 		if performing the novelty search
 		*/
-		TrainEA trainer = NEATUtil.constructNoveltyTrainer(population, scoreCalculator);
-		trainer.addStrategy(new NoveltySearchStrategy(options.populationSize, scoreCalculator));
+		//NoveltyTrainEA trainer = NEATUtil.constructNoveltyTrainer(population, scoreCalculator);
+		//trainer.addStrategy(new NoveltySearchStrategy(options.populationSize, scoreCalculator));
+		//only need to add a strategy if you need to do something in the pre or post iteration methods
 
 		trainer.setThreadCount(1);
 
@@ -181,17 +168,18 @@ public class Main {
         private int numGenerations = 10;
 
         @Parameter(names = "-p", description = "Initial population size")
-        private int populationSize = 15;
+        private int populationSize = 10;
 
         @Parameter(names = "--sim-runs", description = "Number of simulation runs per iteration")
-        private int simulationRuns = 3;
+        private int simulationRuns = 5;
 
         @Parameter(names = "--conn-density", description = "Adjust the initial connection density"
                 + " for the population")
         private double connectionDensity = 0.5;
         @Parameter(names = "--demo", description = "Show a GUI demo of a given genome")
-        // private String genomePath = null;
-        private String genomePath = "results/Hex-20160920T2134_null__NEAT/best networks/epoch-5/network.ser";
+        private String genomePath = null;
+        //private String genomePath = "results/Hex-20160920T2134_null__NEAT/best networks/epoch-5/network.ser";
+        //private String genomePath = "results/ruben-GE72-2QD-20161030T1126_null/best networks/epoch-1/network.ser";
 
         @Parameter(names = "--control", description = "Run with the control case")
         private boolean control = false;

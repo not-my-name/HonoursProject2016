@@ -106,9 +106,13 @@ public class Archive {
 		find the given behaviour in the current generation
 		and get its behaviouralSparseness (average distance to k nearest neighbours)
 		*/
+		System.out.println("Archive: The getNovelty() method is being called");
+		double dummyReturn = 10;
+		return dummyReturn;
 	}
 
-	public void clearCurrentGeneration() {
+	public void clearGeneration() {
+		//System.out.println("Archive: clearing the generation");
 		currentGeneration.clear();
 	}
 	

@@ -1,3 +1,4 @@
+
 package za.redbridge.simulator;
 
 import java.io.Serializable;
@@ -41,13 +42,8 @@ import org.encog.util.concurrency.MultiThreadable;
 import org.encog.util.logging.EncogLogging;
 
 import org.encog.ml.ea.train.basic.BasicEA;
-import org.encog.ml.ea.train.basic.EAWorker;
 
-/**
- * Provides a basic implementation of a multi-threaded Evolutionary Algorithm.
- * The EA works from a score function.
- */
-public class NoveltyBasicEA extends BasicEA {
+public class ObjectiveBasicEA extends BasicEA {
 
 	/**
 	 * The serial id.
@@ -212,7 +208,7 @@ public class NoveltyBasicEA extends BasicEA {
 	 * @param theScoreFunction
 	 *            The score function.
 	 */
-	public NoveltyBasicEA(final Population thePopulation,
+	public ObjectiveBasicEA(final Population thePopulation,
 			final CalculateScore theScoreFunction) {
 
 		super(thePopulation, theScoreFunction);
@@ -279,6 +275,7 @@ public class NoveltyBasicEA extends BasicEA {
 				}
 				return true;
 			} else {
+				System.out.println("ObjectiveBasicEA: " + genome);
 				return false;
 			}
 		}
@@ -545,13 +542,9 @@ public class NoveltyBasicEA extends BasicEA {
 	 */
 	@Override
 	public void iteration() {
-
 		if (this.actualThreadCount == -1) {
 			preIteration();
 		}
-
-		NoveltyCodec noveltyCodec = (NoveltyCodec)getCODEC();
-		ScoreCalculator scoreCalculator = (ScoreCalculator)getScoreFunction();
 
 		if (getPopulation().getSpecies().size() == 0) {
 			throw new EncogError("Population is empty, there are no species.");
@@ -559,17 +552,10 @@ public class NoveltyBasicEA extends BasicEA {
 
 		this.iteration++;
 
-		if(this.iteration == 1) {
-			scoreCalculator.clearCurrentGeneration(); //clearing the currentPopulation that was created in the preIteration()
-		}
-
 		// Clear new population to just best genome.
 		this.newPopulation.clear();
 		this.newPopulation.add(this.bestGenome);
 		this.oldBestGenome = this.bestGenome;
-
-		noveltyCodec.clearCurrPop(newPopulation); //clear all genomes except for the ones that persist into next generation
-		noveltyCoded.decode(this.bestGenome);
 
 		// execute species in parallel
 		this.threadList.clear();
@@ -593,7 +579,7 @@ public class NoveltyBasicEA extends BasicEA {
 
 			// now add one task for each offspring that each species is allowed
 			while (numToSpawn-- > 0) {
-				final EAWorker worker = new EAWorker(this, species);
+				final ObjectiveEAWorker worker = new ObjectiveEAWorker(this, species);
 				this.threadList.add(worker);
 			}
 		}
@@ -627,25 +613,6 @@ public class NoveltyBasicEA extends BasicEA {
 								+ this.oldBestGenome.getScore() + " to "
 								+ this.bestGenome.getScore());
 			}
-		}
-
-		List<Genome> currentPopulation = new LinkedList<>();
-
-		for(Genome gen : this.newPopulation) {
-			currentPopulation.add(g);
-		}
-
-		//calculate the novelty score for each individual in the current generation
-		scoreCalculator.calculateNoveltyForPopulation();
-
-		this.newPopulation.clear();
-		this.newPopulation.add(this.bestGenome);
-		this.oldBestGenome = this.bestGenome;
-
-		for (Genome gen : currentPopulation) {
-
-			calculateScore(gen);
-			addChild(gen);			
 		}
 
 		this.speciation.performSpeciation(this.newPopulation);
@@ -876,6 +843,4 @@ public class NoveltyBasicEA extends BasicEA {
 		this.maxOperationErrors = maxOperationErrors;
 	}
 	
-	
-
 }

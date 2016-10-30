@@ -38,7 +38,7 @@ public class NoveltyFitness{
 	private float robotTrajectoryWeight;
 	private float resourceTrajectoryWeight;
 	private float constructionOrderWeight;
-	private float constructionZoneWeight;
+	private float constructionZonesWeight;
 
 	private Archive archive; //the archive of novel behaviours
 
@@ -71,7 +71,7 @@ public class NoveltyFitness{
 		robotTrajectoryWeight = 1;
 		resourceTrajectoryWeight = 1;
 		constructionOrderWeight = 1;
-		constructionZoneWeight = 1;
+		constructionZonesWeight = 1;
 
 		populationSize = currentGeneration.length;
 		numBehaviours = currentGeneration.length;
@@ -81,18 +81,21 @@ public class NoveltyFitness{
 		}
 
 		this.numRobotSamples = this.currentGeneration[0].getRobotTrajectory().length; //they should all have the same number of positions in their trajectories
-		robotTrajectoryDifferences = new double[numBehaviours][numRobotSamples];
+		//robotTrajectoryDifferences = new double[numBehaviours][numRobotSamples];
 
 		this.numResources = this.currentGeneration[0].getNumResources(); //all of the simulations within a generation were run using the same number of resources
 		this.numResSamples = this.currentGeneration[0].getResourceTrajectory().length; //the number of times the position was sampled to build the trajectory
-		resourceTrajectoryDifferences = new double[numResources][numResSamples]; 
+		//resourceTrajectoryDifferences = new double[numResources][numResSamples]; 
 
-		calculateRobTrajDist();
-		calculateResTrajDist();
+		// calculateRobTrajDist();
+		// calculateResTrajDist();
 	}
 
 	//rewriting this method for the same reason the calculatePopulationNovelty method below was rewritten
-	public NoveltyBehaviour calcSimulationLocalNovelty(int numNearest) {
+	/**
+	remember to add an int for the k nearest neighbours
+	*/
+	public NoveltyBehaviour calcSimulationLocalNovelty() {
 
 		for(int k = 0;k < numBehaviours; k++) {
 			NoveltyBehaviour currentBehaviour = currentGeneration[k];
@@ -108,7 +111,7 @@ public class NoveltyFitness{
 			}
 		}
 
-		int max = -1;
+		double max = -1;
 		int index = -1; //index of the most novel behaviour
 
 		for(int k = 0; k < numBehaviours; k++) {
@@ -125,41 +128,41 @@ public class NoveltyFitness{
 		return currentGeneration[index];
 	}
 
-	//method to calculate which of the simulation runs produced the most novel behaviour
-	//compared to all the other results from the simulation for that network
-	public NoveltyBehaviour calcSimulationLocalNovelty(int numNearest) {
+	// //method to calculate which of the simulation runs produced the most novel behaviour
+	// //compared to all the other results from the simulation for that network
+	// public NoveltyBehaviour calcSimulationLocalNovelty(int numNearest) {
 
-		//iterate over each behaviour and calulate its relative novelty
-		for(int k = 0; k < numBehaviours-1; k++) {
-			NoveltyBehaviour currentBehaviour = currentGeneration[k];
+	// 	//iterate over each behaviour and calulate its relative novelty
+	// 	for(int k = 0; k < numBehaviours-1; k++) {
+	// 		NoveltyBehaviour currentBehaviour = currentGeneration[k];
 
-			for(int j = k+1; j < numBehaviours; j++) {
+	// 		for(int j = k+1; j < numBehaviours; j++) {
 
-				NoveltyBehaviour otherBehaviour = currentGeneration[j];
-				double noveltyDistance = calculateNoveltyDistance(currentBehaviour, otherBehaviour); //the distance between these 2 individuals in the behaviour space
+	// 			NoveltyBehaviour otherBehaviour = currentGeneration[j];
+	// 			double noveltyDistance = calculateNoveltyDistance(currentBehaviour, otherBehaviour); //the distance between these 2 individuals in the behaviour space
 
-				//now have novelty distance between these two behaviours
-				currentBehaviour.addSimulationNeighbour(noveltyDistance); //recording the distance between current and neighbour
-				otherBehaviour.addSimulationNeighbour(noveltyDistance); //adding to both to helo reduce computation time, dont now need to calc noveltydistance between otherBehaviour and currentBehaviour again
-			}
-		}
+	// 			//now have novelty distance between these two behaviours
+	// 			currentBehaviour.addSimulationNeighbour(noveltyDistance); //recording the distance between current and neighbour
+	// 			otherBehaviour.addSimulationNeighbour(noveltyDistance); //adding to both to helo reduce computation time, dont now need to calc noveltydistance between otherBehaviour and currentBehaviour again
+	// 		}
+	// 	}
 
-		NoveltyBehaviour mostNovel;
-		double max = -1;
+	// 	NoveltyBehaviour mostNovel;
+	// 	double max = -1;
 
-		for(int k = 0; k < numBehaviours; k++) {
-			double tempValue  = currentGeneration[k].calculateSimulationNovelty();
+	// 	for(int k = 0; k < numBehaviours; k++) {
+	// 		double tempValue  = currentGeneration[k].calculateSimulationNovelty();
 
-			if(tempValue > max) {
+	// 		if(tempValue > max) {
 
-				max = tempValue;
-				mostNovel = currentGeneration[k];
-			}
-		}
+	// 			max = tempValue;
+	// 			mostNovel = currentGeneration[k];
+	// 		}
+	// 	}
 
-		return mostNovel;
+	// 	return mostNovel;
 
-	}
+	// }
 
 	//rewriting this method to work with the current compareConstructionOrder method
 	//cant do dynamic programming since comparing constructionZones requires each behaviour to be analysed separately
@@ -180,41 +183,40 @@ public class NoveltyFitness{
 
 						NoveltyBehaviour otherBehaviour = currentGeneration[j];
 						double noveltyDistance = calculateNoveltyDistance(currentBehaviour, otherBehaviour);
-						currentBehaviour.addPopulationNeighbour(otherBehaviour);
-					}
-				}
-			}
-		}
-
-	}
-
-	public void calulatePopulationNovelty() {
-
-		for(int k = 0; k < numBehaviours-1; k++) { //iterate over the idividuals in the current generation
-			NoveltyBehaviour currentBehaviour = currentGeneration[k];
-
-			for(int j = k+1; j < numBehaviours; j++) { //iterating over the remaining behaviours
-				NoveltyBehaviour otherBehaviour = currentGeneration[j];
-
-				if( currentBehaviour.isArchived() && otherBehaviour.isArchived() ) { //check that at least one of the behaviours is not in the archive (dont need to calc distance between 2 archived behaviours)
-					continue;
-				}
-				else {
-
-					double noveltyDistance = calculateNoveltyDistance(currentBehaviour, otherBehaviour);
-
-					//record the nearest neighbours of all the individuals not in the  archive
-					if(!currentBehaviour.isArchived()) {
-						currentBehaviour.addPopulationNeighbour(otherBehaviour);
-					}
-
-					if(!otherBehaviour.isArchived()) {
-						otherBehaviour.addPopulationNeighbour(currentBehaviour);
+						currentBehaviour.addPopulationNeighbour(noveltyDistance);
 					}
 				}
 			}
 		}
 	}
+
+	// public void calulatePopulationNovelty() {
+
+	// 	for(int k = 0; k < numBehaviours-1; k++) { //iterate over the idividuals in the current generation
+	// 		NoveltyBehaviour currentBehaviour = currentGeneration[k];
+
+	// 		for(int j = k+1; j < numBehaviours; j++) { //iterating over the remaining behaviours
+	// 			NoveltyBehaviour otherBehaviour = currentGeneration[j];
+
+	// 			if( currentBehaviour.isArchived() && otherBehaviour.isArchived() ) { //check that at least one of the behaviours is not in the archive (dont need to calc distance between 2 archived behaviours)
+	// 				continue;
+	// 			}
+	// 			else {
+
+	// 				double noveltyDistance = calculateNoveltyDistance(currentBehaviour, otherBehaviour);
+
+	// 				//record the nearest neighbours of all the individuals not in the  archive
+	// 				if(!currentBehaviour.isArchived()) {
+	// 					currentBehaviour.addPopulationNeighbour(otherBehaviour);
+	// 				}
+
+	// 				if(!otherBehaviour.isArchived()) {
+	// 					otherBehaviour.addPopulationNeighbour(currentBehaviour);
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	private double calculateNoveltyDistance(NoveltyBehaviour currentBehaviour, NoveltyBehaviour otherBehaviour) {
 
@@ -314,18 +316,18 @@ public class NoveltyFitness{
 		int totalCDiffs = 0;
 		totalCDiffs += compareConnections(currentCConnections, otherCConnections);
 
-		int totalReturn = totalADiffs + totaBDiffs + totalCDiffs;
+		int totalReturn = totalADiffs + totalBDiffs + totalCDiffs;
 
 		return totalReturn;
 	}
 
 	//method to count how many blocks in currentConnections have a unique set of connections
 	//compared to the otherConnections
-	private int compareConnections(String[] currentConnections, String[] otherConnections) {
+	private int compareConnections(ArrayList<String[]> currentConnections, ArrayList<String[]> otherConnections) {
 
 		int diffCounter = 0; //count how many resources have a unique collection of connections
 
-		for(String[] current : currentConnections) {
+		for(String[] current : currentConnections) { //iterate over all the resource connection configurations
 			boolean found = false; //check if a resource with identical connections has been found
 
 			for(String[] other : otherConnections) {

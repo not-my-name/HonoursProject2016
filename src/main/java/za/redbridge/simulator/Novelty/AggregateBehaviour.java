@@ -9,9 +9,8 @@ a class that stores and manages the behaviour of an individual over a number of 
 
 public class AggregateBehaviour {
 
-	private int numRuns; //the number of times that the individual controller was tested in the simulator
 	private int numBehaviours; //a variable to count the number of behaviours that have been added to the collection
-	private int totalPickups; //variable to store the total number of times robots connected to resources over all the simulation runs
+	private double totalPickups; //variable to store the total number of times robots connected to resources over all the simulation runs
 	private double sumResToResDist; //variable to store the sum of the average distance between resources fpr each simulation rin
 	private double sumRobToResDist; //average distance between a robot and its nearest resource
 	private double sumConnectedResources; //variable to store the number of connected resources summed for all simulation runs
@@ -29,9 +28,8 @@ public class AggregateBehaviour {
 	private int schemaConfigNum;
 	private double totalSchemaFitness; //variable to store the sum of the schema fitness of each behaviour (for each simulation run)
 
-	public AggregateBehaviour(int numRuns, int schemaConfigNum) {
+	public AggregateBehaviour(int schemaConfigNum) {
 		
-		this.numRuns = numRuns;
 		this.schemaConfigNum = schemaConfigNum;
 		behaviourCollection = new ArrayList<Behaviour>();
 
@@ -41,7 +39,6 @@ public class AggregateBehaviour {
 		sumConnectedResources = 0;
 		sumResToCZoneDist = 0;
 		sumAdjacentScore = 0;
-		sumSchemaScore = 0;
 
 		totalAConnected = 0;
 		totalBConnected = 0;
@@ -49,6 +46,22 @@ public class AggregateBehaviour {
 
 		totalSchemaFitness = 0;
 	}
+
+	/*
+	method to calculate the average value of the characteristics after all the behaviours have been added
+	need to get an average value that represents each controller
+	*/
+	// public void finalCalcs() {
+
+	// 	totalPickups = totalPickups/numBehaviours;
+	// 	sumResToResDist = sumResToResDist/numBehaviours;
+	// 	sumRobToResDist = sumRobToResDist/numBehaviours;
+	// 	sumResToCZoneDist = sumResToCZoneDist/numBehaviours;
+
+	// 	totalAConnected = totalAConnected/numBehaviours;
+	// 	totalBConnected = totalBConnected/numBehaviours;
+	// 	totalCConnected = totalCConnected/numBehaviours;
+	// }
 
 	/**
 	make sure that all the values are being calcualted correctly 
@@ -60,6 +73,8 @@ public class AggregateBehaviour {
 	collection of previous behaviours
 	*/
 	public boolean addSimBehaviour(Behaviour behaviour) {
+
+		//System.out.println("AggregateBehaviour: adding new behaviour -> " + behaviour);
 
 		boolean added = false;
 		if( this.behaviourCollection.add(behaviour) ) { //append the behaviour to the end of the list
@@ -74,7 +89,19 @@ public class AggregateBehaviour {
 			//calculateSchemaFitness(behaviour);
 			incAvgResToCZoneDist(behaviour.getAvgResToCZoneDist());
 			incAdjacentScore(behaviour.getAdjacentScore());
-			incSchemaScore(behaviour.getSchemaScore());
+			//incSchemaScore(behaviour.getSchemaScore());
+
+			// System.out.println("");
+
+			// System.out.println("AggregateBehaviour:");
+			// System.out.println("NumPickups = " + getTotalPickups());
+			// System.out.println("Avg dist betwn res = " + getResToResDist());
+			// System.out.println("Avg robot to res dist = " + getRobToResDist());
+			// System.out.println("Total A = " + getTotalAConnected());
+			// System.out.println("Total B = " + getTotalBConnected());
+			// System.out.println("Total C = " + getTotalCConnected());
+			// System.out.println("Avg res to cZone dist = " + getSumResToCZDist());
+			// System.out.println("");
 
 		}
 		return added;
@@ -91,7 +118,7 @@ public class AggregateBehaviour {
 	}
 
 	//method to add avg pickup per robot total count
-	private void incPickups(int numPickups) {
+	private void incPickups(double numPickups) {
 		totalPickups += numPickups;
 	} 
 
@@ -152,10 +179,6 @@ public class AggregateBehaviour {
 		return behaviourCollection.get(index);
 	}
 
-	public int getNumRuns() {
-		return numRuns;
-	}
-
 	public double getRobToResDist() {
 		return this.sumRobToResDist;
 	}
@@ -170,6 +193,10 @@ public class AggregateBehaviour {
 
 	public double getSchemaScore() {
 		return sumSchemaScore;
+	}
+
+	public int getNumBehaviours() {
+		return numBehaviours;
 	}
 
 		//just a random mnethod to check this incase at some point

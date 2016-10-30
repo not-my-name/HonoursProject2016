@@ -29,6 +29,8 @@ import za.redbridge.simulator.portrayal.PolygonPortrayal;
 import za.redbridge.simulator.portrayal.Portrayal;
 import za.redbridge.simulator.portrayal.RectanglePortrayal;
 
+import org.jbox2d.common.Transform;
+
 /**
  * Object to represent the resources in the environment. Has a value and a weight.
  *
@@ -90,7 +92,8 @@ public class ResourceObject extends PhysicalObject {
 
     private LinkedList<Vec2> resourceTrajectory = new LinkedList<Vec2>();
 
-    private int connectedCount; //var to count the number of resources connected
+    private int countConnected; //var to count the number of resources connected
+    private Vec2 initialPos; //starting location of the resource
 
     // is a hack
     // private ArrayList<ResourceObject> otherResources = new ArrayList<ResourceObject>();
@@ -152,6 +155,8 @@ public class ResourceObject extends PhysicalObject {
         if (DEBUG) {
             getPortrayal().setChildDrawable(new DebugPortrayal(Color.BLACK, true));
         }
+
+        initialPos = getBody().getPosition();
     }
 
     protected static Portrayal createPortrayal(double width, double height, String type) {
@@ -299,7 +304,9 @@ public class ResourceObject extends PhysicalObject {
                     if (resourcePosition.sub(detectionPoints[i].getRelativePosition(this.getBody())).length() < 0.1f) {
 
                         int angleQuadrant = (int)roundAngle(getBody().getAngle());
-                        String sideName = adjacencyMap.get(angleQuadrant)[detectionPoints[i].getSide()];
+                        String sideName = adjacencyMap.get(angleQuadrant)[i];
+
+                        int side = -1;
 
                         if (sideName.equals("L")) {
                             side = 0;
@@ -477,7 +484,8 @@ public class ResourceObject extends PhysicalObject {
 
         if( simState.schedule.getSteps() % 5 == 0 ) {
             Vec2 currentPosition = this.getBody().getPosition();
-            resourceTrajectory.add(currentPosition);
+            Vec2 resultantPosition = currentPosition.sub(initialPos);
+            resourceTrajectory.add(resultantPosition);
         } 
     }
 
@@ -789,44 +797,47 @@ public class ResourceObject extends PhysicalObject {
     @param int side: the side that this other resource is nearby to (-1 if not near)
     **/
     //ALIGNMENT
-    public int getSideNearestTo (Vec2 otherResPos, float otherResWidth, AABB otherResAABB) {
+    // public int getSideNearestTo (Vec2 otherResPos, float otherResWidth) {
 
-        boolean result = false;
-        int side = 0;
-        float min = 20f;
-        int closestSide = -1;
+    //     boolean result = false;
+    //     int side = 0;
+    //     float min = 20f;
+    //     int closestSide = -1;
 
-        for (int i = 0; i < detectionPoints.length; i++) {
-            Vec2 dpPos = detectionPoints[i].getRelativePosition(this.getBody());
+    //     for (int i = 0; i < detectionPoints.length; i++) {
+    //         Vec2 dpPos = detectionPoints[i].getRelativePosition(this.getBody());
 
-            if (detectionPoints[i].isNearCenter(otherResPos)) {
-                result = true;
-                int angleQuadrant = (int)roundAngle(getBody().getAngle());
-                String sideName = adjacencyMap.get(angleQuadrant)[detectionPoints[i].getSide()];
-                if (sideName.equals("L")) {
-                    side = 0;
-                }
-                else if (sideName.equals("R")) {
-                    side = 1;
-                }
-                else if (sideName.equals("T")) {
-                    side = 2;
-                }
-                else {
-                    side = 3;
-                }
-                break; 
-            }       
-        }
+    //         if (detectionPoints[i].isNearCenter(otherResPos)) {
+    //             result = true;
+    //             int angleQuadrant = (int)roundAngle(getBody().getAngle());
+    //             String sideName = adjacencyMap.get(angleQuadrant)[i];
 
-        if (result) {
-            return side;
-        }
+    //             int side = -1;
 
-        else {
-            return closestSide;
-        }
-    }
+    //             if (sideName.equals("L")) {
+    //                 side = 0;
+    //             }
+    //             else if (sideName.equals("R")) {
+    //                 side = 1;
+    //             }
+    //             else if (sideName.equals("T")) {
+    //                 side = 2;
+    //             }
+    //             else {
+    //                 side = 3;
+    //             }
+    //             break; 
+    //         }       
+    //     }
+
+    //     if (result) {
+    //         return side;
+    //     }
+
+    //     else {
+    //         return closestSide;
+    //     }
+    // }
 
 
     /**
@@ -991,7 +1002,7 @@ public class ResourceObject extends PhysicalObject {
 
         public Vec2 getRelativePosition(Body thisResource){
 
-            Transform bodyXFos = body.getTransform();
+            Transform bodyXFos = thisResource.getTransform();
             Vec2 relativePos = Transform.mul(bodyXFos, this.position);
 
             return relativePos;

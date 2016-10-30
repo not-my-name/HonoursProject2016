@@ -22,15 +22,15 @@ import java.util.HashMap;
 
 public class NoveltyCodec extends HyperNEATCODEC {
 
-	private List<Genome> useList;
 	private Map<Genome,NoveltyBehaviour> genomePBMap;
+	private Map<Genome,NoveltyNetwork> genomeNNMap;
 	private ScoreCalculator scoreCalculator;
 	private int currGenNumber = 0;
 
 	public NoveltyCodec(CalculateScore scoreCalculator) {
 		this.scoreCalculator = (ScoreCalculator)scoreCalculator;
-		useList = new LinkedList<>();
 		genomePBMap = new HashMap<>();
+		genomeNNMap = new HashMap<>();
 	}
 
 	@Override
@@ -38,7 +38,7 @@ public class NoveltyCodec extends HyperNEATCODEC {
 
 		NoveltyNetwork novNetwork;
 
-		/**
+		/*
 		this method gets called first from the NoveltySearchStrategy in order to generate the current population
 		so that they can be evaluated at the same time
 
@@ -46,22 +46,26 @@ public class NoveltyCodec extends HyperNEATCODEC {
 
 		*/
 
-		NEATNetwork decoded = (NEATNetwork)super.decode(genome);
-		List<NEATLink> connectionArray = new LinkedList<>();
-		NEATLink[] connections = decoded.getLinks();
+		if( genomePBMap.containsKey(genome) ) { //check if the genome has already been decoded before during the current generation
 
-		for (int i = 0; i < connections.length; i++) {
-			connectionArray.add(connections[i]);
+			novNetwork = genomeNNMap.get(genome); //fetches the existing network for the current genome
+			novNetwork.setNoveltyBehaviour(genomePBMap.get(genome)); //places the existing behaviour for the genome (associates it with respective network)
 		}
+		else { //if this is the first time the genome comes through
 
-		novNetwork = new NoveltyNetwork(decoded.getInputCount(), decoded.getOutputCount(), connectionArray, decoded.getActivationFunctions());
+			//decode the genome to get the resultant network that then needs to be tested
+			NEATNetwork decoded = (NEATNetwork)super.decode(genome); 
+			List<NEATLink> connectionArray = new LinkedList<>();
+			NEATLink[] connections = decoded.getLinks();
 
-		if(useList.contains(genome)) {
-			novNetwork.setNoveltyBehaviour(genomePBMap.get(genome)); //adding the resultant novelty behaviour to 
-		}
-		else {
-			useList.add(genome); //keep track of which genomes have already been decodded
-			genomePBMap.put(genome, scoreCalculator.getNoveltyBehaviour(novNetwork));
+			for (int i = 0; i < connections.length; i++) {
+				connectionArray.add(connections[i]);
+			}
+
+			//sets up the network class
+			novNetwork = new NoveltyNetwork(decoded.getInputCount(), decoded.getOutputCount(), connectionArray, decoded.getActivationFunctions());
+			genomePBMap.put(genome, scoreCalculator.getNoveltyBehaviour(novNetwork)); //run the network in the simulation to establish the resultant behaviour
+			genomeNNMap.put(genome, novNetwork);
 		}
 		
 		return novNetwork;
@@ -70,6 +74,34 @@ public class NoveltyCodec extends HyperNEATCODEC {
 	public void clearMaps(LinkedList<Genome> persisted) {
 		//clear the maps
 		//delete all the entries that are not found in the persisted list
+
+		genomePBMap.clear();
+		genomeNNMap.clear();
+		scoreCalculator.clearCurrentGeneration();
+	}
+
+	//clears all the maps except for the genomes that get passed through (currPopGenomes)
+	//all the genomes that survive to pass to the next generation
+	public void clearCurrPop(List<Genome> currPopGenomes) {
+
+		List<Behaviour> currPopPBs = new LinkedList<>();
+		Map<Genome,NoveltyNetwork> phenotypesToBeKept = new HashMap<>();
+
+		for (Genome g : currPopGenomes) {
+
+			PhenotypeBehaviour pb = genomePBMap.get(g);
+			NoveltyNetwork phen = genomeNNMap.get(g);
+			phen.setNoveltyBehaviour(null);  //clears the associated novelty behaviour
+			currPopPBs.add(pb);
+			phenotypesToBeKept.put(g,phen);
+		}
+
+		//Clear current maps
+		genomePBMap.clear();
+		genomeNNMap.clear();
+
+		//Add the new generation
+		genomeNNMap.putAll(phenotypesToBeKept);
 	}
 	
 }

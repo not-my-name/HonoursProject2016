@@ -30,7 +30,8 @@ public class NoveltyBehaviour {
 	private Vec2[] avgResourceTrajectory;
 
 	//stores the final construction at the end of the simulation
-	private ConstructionZone[] constructionZones; 
+	//private ConstructionZone[] constructionZones; 
+	private ArrayList<ConstructionZone> constructionZones;
 	private ConstructionTask constructionTask;
 
 	private ResourceObject[] connectionOrder;
@@ -45,9 +46,9 @@ public class NoveltyBehaviour {
 	private double archiveNoveltyScore; //var to store the novelty of behaviour compared to behaviours stored in the archive
 	private double simulationNoveltyScore; //var to store the novelty of the behaviour compared to the behaviours produced in the other simulation runs
 
-	private ArrayList<double> simulationNeighbourhood;
-	private ArrayList<double> populationNeighbourhood;
-	private ArrayList<double> archiveNeighbourhood;
+	private ArrayList<Double> simulationNeighbourhood;
+	private ArrayList<Double> populationNeighbourhood;
+	private ArrayList<Double> archiveNeighbourhood;
 
 	private boolean archived;
 
@@ -88,9 +89,9 @@ public class NoveltyBehaviour {
 
 		archived = false;
 
-		simulationNeighbourhood = new ArrayList<double>();
-		populationNeighbourhood = new ArrayList<double>();
-		archiveNeighbourhood = new ArrayList<double>();
+		simulationNeighbourhood = new ArrayList<Double>();
+		populationNeighbourhood = new ArrayList<Double>();
+		archiveNeighbourhood = new ArrayList<Double>();
 
 	}
 
@@ -131,9 +132,11 @@ public class NoveltyBehaviour {
 
 		int numConstructionZones = getNumConstructionZones();
 
-		for(int k = 0; k < numConstructionZones; k++) { //iterate over all the existing construction zones
+		//for(int k = 0; k < numConstructionZones; k++) { //iterate over all the existing construction zones
+		for(ConstructionZone cZone : constructionZones) {
 
-			for(ResourceObject resObj : constructionZones[k].getConnectedResources()) { //iterate over the resources connected to the current construction zone
+			//for(ResourceObject resObj : constructionZones[k].getConnectedResources()) { //iterate over the resources connected to the current construction zone
+			for(ResourceObject resObj : cZone.getConnectedResources()) {
 
 				/**
 				make sure that this is moved over by value
@@ -312,7 +315,8 @@ public class NoveltyBehaviour {
 	}
 
 	public int getNumConstructionZones() {
-		return constructionZones.length
+		//return constructionZones.length;
+		return constructionZones.size();
 	}
 
 	//method to indicate that the current behaviour has been added to the archive
@@ -336,8 +340,12 @@ public class NoveltyBehaviour {
 		return this.numResources;
 	}
 
-	public ConstructionZone[] getConstructionZone() {
-		return this.constructionZones;
+	// public ConstructionZone[] getConstructionZone() {
+	// 	return this.constructionZones;
+	// }
+
+	public ArrayList<ConstructionZone> getConstructionZone() {
+		return constructionZones;
 	}
 
 	public ConstructionTask getConstructionTask() {

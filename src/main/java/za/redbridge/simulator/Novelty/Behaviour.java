@@ -17,11 +17,11 @@ score of an individual
 public class Behaviour {
 
 	private ConstructionTask constructionTask;
-	private ConstructionZone[] constructionZones;
+	//private ConstructionZone[] constructionZones;
+	private ArrayList<ConstructionZone> constructionZones;
 
 	private int numConstructionZones;
-	private int numPickups; //number of times robots picked up a resource
-	private double distanceTravelled; //the total distance travelled by a team of robots in a single simulation
+	private double numPickups; //number of times robots picked up a resource
 	private int schemaConfigNum; //the schema config number that is currently being used in this simulation
 
 	private ArrayList<ResourceObject> placedResources; //positions of all the resources at the end of the simulation
@@ -42,22 +42,21 @@ public class Behaviour {
 	private double adjacentScore;
 	private double correctSchemaScore;
 
-	public Behaviour(ConstructionTask constructionTask, ArrayList<RobotObject> currentRobots, ArrayList<ResourceObject> currentResources, double distanceTravelled, int schemaConfigNum) {
-		
+	public Behaviour(ConstructionTask constructionTask, ArrayList<RobotObject> currentRobots, ArrayList<ResourceObject> currentResources, int schemaConfigNum) {
+
 		this.constructionTask = constructionTask;
-		this.numConstructionZones = this.constructionTask.getNumConstructionZones();
 		/**
 		check if this constructionZones array gets referenced properly
 		*/
 		this.constructionZones = this.constructionTask.getConstructionZones();
 		this.schemaConfigNum = schemaConfigNum;
-		this.distanceTravelled = distanceTravelled;
+
+		numConstructionZones = this.constructionZones.size();
 
 		placedResources = new ArrayList<ResourceObject>();
 		placedRobots = new ArrayList<RobotObject>();
 
 		numPickups = 0;
-		distanceTravelled = 0;
 		avgResToResDist = 0;
 		avgRobToResDist = 0;
 		avgResToCZoneDist = 0;
@@ -69,20 +68,37 @@ public class Behaviour {
 		connectedC = 0;
 
 		//using methods to initialise values
+		//System.out.println("Behaviour: calling the constructor");
 		setPlacedRobots(currentRobots);
+		//System.out.println("Behaviour: setPlacedRobots()");
 		setPlacedResources(currentResources);
-		setDistanceTravelled(distanceTravelled);
-		countPickups();
+		//System.out.println("Behaviour: setPlacedResources()");
+		countPickups();	
+		//System.out.println("Behaviour: countPickups()");
 		countConnected();
+		//System.out.println("Behaviour: countConnected()");
 
 		calcResToResDist(); 
+		//System.out.println("Behaviour: calcResToResDist()");
 		calcRobToResDist();
+		//System.out.println("Behaviour: calcRobToResDist()");
 		calcResToCZoneDist();
-		calcCZoneScores();
-	}
+		//System.out.println("Behaviour: calcResToCZoneDist()");
+		//calcCZoneScores();
 
-	private void setDistanceTravelled(double distanceTravelled) {
-		this.distanceTravelled = distanceTravelled;
+		// System.out.println("");
+
+		// System.out.println("Behaviour:");
+		// System.out.println("NumPickups = " + numPickups);
+		// System.out.println("Avg dist betwn res = " + avgResToResDist);
+		// System.out.println("Avg robot to res dist = " + avgRobToResDist);
+		// System.out.println("Total A = " + connectedA);
+		// System.out.println("Total B = " + connectedB);
+		// System.out.println("Total C = " + connectedC);
+		// System.out.println("Avg res to cZone dist = " + avgResToCZoneDist);
+		// System.out.println("");
+
+		//System.out.println("Behaviour: FINISHED");
 	}
 
 	//method to get the resources and their respective locations at the end of the simulation
@@ -91,7 +107,6 @@ public class Behaviour {
 		for(ResourceObject rO : placedResources) {
 			this.placedResources.add(rO);
 		}
-
 	}
 
 	private void setPlacedRobots(ArrayList<RobotObject> placedRobots) {
@@ -112,23 +127,20 @@ public class Behaviour {
 		}
 
 		numPickups = numPickups / this.placedRobots.size(); //average number of pickups per robot
-
 	}
 
-	/**
-	need to make sure that this is what Geoff meant by counting the number of connected blocks
-	currently only checking the connected blocks in the construction zone
-	should probably check on all connected blocks somehow
-
-	THIS METHOD BELOW SHOULD PROBABLY BE REPLACED BY THE calcAdjacentScore method further down
-	*/
 	private void countConnected() {
 
-		for(int k = 0; k < numConstructionZones; k++) {
+		/**
+		change this to work with the biggest construction zone
+		*/
 
-			connectedA += constructionZones[k].getACount();
-			connectedB += constructionZones[k].getBCount();
-			connectedC += constructionZones[k].getCCount();
+		for(ConstructionZone cZone : constructionZones) {
+
+			connectedA += cZone.getACount();
+			connectedB += cZone.getBCount();
+			connectedC += cZone.getCCount();
+
 		}
 	}
 
@@ -145,7 +157,7 @@ public class Behaviour {
 				Vec2 resPosition = res.getBody().getPosition();
 				double actualDist = calculateDistance(robotPosition, resPosition);
 
-				if( actualDist < minDist ) {
+				if( actualDist < minDist ) { //find the distance of closest resource
 					minDist = actualDist;
 				}
 			}
@@ -157,17 +169,34 @@ public class Behaviour {
 
 	//method to calculate the average distance between each resource at the end of the simulation
 	private void calcResToResDist() {
-		/**
-		-also make sure that you only check the resources that are not in the construction zone
-		*/
-		for(int k = 0; k < placedResources.size()-1; k++) {
-			Vec2 origin = placedResources.get(k).getBody().getPosition();
 
-			for(int j = k+1; j < placedResources.size(); j++) {
+		avgResToResDist = 0;
 
-				Vec2 destination = placedResources.get(j).getBody().getPosition();
-				avgResToResDist += calculateDistance(origin, destination);
+		for(int k = 0; k < placedResources.size(); k++) {
+			ResourceObject currentResource = placedResources.get(k);
+
+			if(currentResource.isConstructed()) {
+				continue;
 			}
+
+			Vec2 origin = currentResource.getBody().getPosition();
+			double minDist = 100000000;
+
+			for(int j = 0; j < placedResources.size(); j++) {
+
+				if(j != k) { //check you dont compare the same resource to itself
+
+					ResourceObject otherResource = placedResources.get(j);
+					Vec2 destination = otherResource.getBody().getPosition();
+					double tempDist = calculateDistance(origin, destination);
+
+					if(tempDist < minDist) {
+						minDist = tempDist;
+					}
+				}
+			}
+
+			avgResToResDist += minDist;
 		}
 
 		avgResToResDist = avgResToResDist/placedResources.size();
@@ -176,53 +205,32 @@ public class Behaviour {
 	//method to calculate the average distance between the resources and the centre of the construction zone
 	private void calcResToCZoneDist() {
 
-		/**
-		should only be checking the resources that are not in the construction zone ??
-		*/
+		if(numConstructionZones > 0) { //check if there are even any construction zones
 
-		//iterate over all the resources
-		//find the cZone nearest to each resource
-		//use that distance for calculation
+			for(ResourceObject resObj : placedResources) { //iterate over all the resources
 
-		avgResToCZoneDist = 0;
-		int nearestCZ = -1;
-		float smallestDist = 100000000;
-
-		for(ResourceObject resObj : placedResources) { //iterate over all the resources
-
-			Vec2 originPoint = resObj.getBody().getPosition();
-
-			for(int k = 0; k < constructionZones.length; k++) { //finding the nearest construction zone
-
-				Vec2 destPoint = constructionZones[k].getCZonePosition();
-				float tempDist = calculateDistance(originPoint, destPoint);
-
-				if(tempDist < smallestDist) {
-
-					smallestDist = tempDist;
-					nearestCZ = k;
+				if(resObj.isConstructed()) { //skip the resources that are already in a construction zone
+					continue;
 				}
-			}
 
-			avgResToCZoneDist += smallestDist;
+				Vec2 origin = resObj.getBody().getPosition();
+				double smallestDist = 100000000;
+
+				for(ConstructionZone cZone : constructionZones) { //iterate over all the construction zones
+
+					Vec2 destination = cZone.getCZonePosition();
+					double tempDist = calculateDistance(origin, destination);
+
+					if(tempDist < smallestDist) {
+						smallestDist = tempDist;
+					}
+				}
+
+				avgResToCZoneDist += smallestDist;
+			}
 		}
 
 		avgResToCZoneDist = avgResToCZoneDist / placedResources.size(); //average distance to construction zone per resource
-	}
-
-	/**
-	check that all these calculations for the construction zones are done right
-	*/
-
-	//method to calculate the fitness for each construction zone
-	private void calcCZoneScores() {
-
-		adjacentScore = 0; //variable to store the combined score for connected resources over all construction zones
-		correctSchemaScore = 0; //variable to store the average score for resources connected according to the schema per construction zone (penalised for > 1 cZone)
-
-		adjacentScore += calcAdjacentScore();
-		correctSchemaScore += calcSchemaScore();
-
 	}
 
 	//method to calculate the score for the total number of resources that are connected
@@ -234,47 +242,13 @@ public class Behaviour {
 
 		int totalNumConnected = 0;
 
-		for(int k = 0; k < numConstructionZones; k++) {
-			totalNumConnected += constructionZones[k].getNumConnected();
+		for(ConstructionZone cZone : constructionZones) {
+			totalNumConnected += cZone.getNumConnected();
 		}
 
 		totalNumConnected = totalNumConnected/this.constructionTask.getTotalNumResources();
 
 		return totalNumConnected;
-	}
-
-	//method to calculate the average schema score for this behaviour
-	//average schema score per construction zone
-	//penalised for having > 1 construction zone
-	/**
-	need to get the schema config number from somewhere
-	can maybe set it from the simulation and send through to Behaviour's constructor
-	schemaConfig number needs to be set in the simulation
-	*/
-	private double calcSchemaScore() {
-
-		double finalScore = 0;
-
-		for(int k = 0; k < numConstructionZones; k++) { //iterate over the construction zones in the simulation
-
-			int cZScore = 0; //the total score for the current construction zone
-			ResourceObject[] resInCZone = constructionZones[k].getConnectionOrder();
-			int upperBound = constructionZones[k].getNumConnected(); //the number of resources that are placed in the ordered array above
-			int resScore = 0; //var to store (and sum) the scores for each individual resource
-
-			for(int j = 0; j < upperBound; j++) { //iterate over all the connected resources in the current construction zone
-
-				int correctSides = constructionTask.checkSchema(schemaConfigNum, resInCZone[j]); //var to store the number of correctly connected sides on each resource
-				int connectedSides = resInCZone[j].getNumAdjacent(); //var to count the total number of sides that the current resource is connected on
-				resScore += correctSides / connectedSides; //calc ratio of correctly connected sides to total connected sides
-
-			}
-
-			cZScore += (resScore/constructionTask.getTotalNumResources());
-			finalScore = cZScore / numConstructionZones; //getting the average fitness per construction zone
-		}
-
-		return finalScore;
 	}
 
 	private float calculateDistance(Vec2 originLocation, Vec2 destLocation) {
@@ -290,7 +264,6 @@ public class Behaviour {
                         Math.pow(firstY-secondY, 2));
 
         return distance;
-
     }
 
     public double getAdjacentScore() {
@@ -309,8 +282,8 @@ public class Behaviour {
     	return this.placedRobots.size();
     }
 
-	public ConstructionZone[] getConstructionZones() {
-		return this.constructionZones;
+	public ArrayList<ConstructionZone> getConstructionZones() {
+		return constructionZones;
 	}
 
 	public ConstructionTask getConstructionTask() {
@@ -321,12 +294,8 @@ public class Behaviour {
 		return this.placedResources;
 	}
 
-	public int getNumPickups() {
+	public double getNumPickups() {
 		return this.numPickups;
-	}
-
-	public double getDistanceTravelled() {
-		return this.distanceTravelled;
 	}
 
 	public double getAvgResToResDist() {

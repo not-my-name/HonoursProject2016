@@ -32,7 +32,7 @@ public class NoveltySearchStrategy implements Strategy {
 
 	private final int popSize;
 
-	private NoveltyTrainer mainTrain;
+	private NoveltyTrainEA mainTrain;
 	private final ScoreCalculator scoreCalculator;
 	private NoveltyCodec codec;
 
@@ -46,7 +46,7 @@ public class NoveltySearchStrategy implements Strategy {
 	 * @param train The training algorithm.
 	 */
 	public void init(MLTrain train) {
-		this.mainTrain = (NoveltyTrainer)train;
+		this.mainTrain = (NoveltyTrainEA)train;
 		codec = (NoveltyCodec)mainTrain.getCODEC();
 	}
 	
@@ -56,44 +56,26 @@ public class NoveltySearchStrategy implements Strategy {
 	 */
 	public void preIteration() {
 
-		for (Species species : mainTrain.getPopulation().getSpecies()) {
-			for (Genome g : species.getMembers()) {
+		if(mainTrain.getIteration == 0) {
 
-				MLMethod method = codec.decode(g); //this method is just called in order to 
+			for (Species species : mainTrain.getPopulation().getSpecies()) {
+				for (Genome g : species.getMembers()) {
+
+					MLMethod method = codec.decode(g); //this method is just called in order to 
+				}
 			}
+			
+			scoreCalculator.calculateNoveltyForPopulation();
 		}
-		
-		scoreCalculator.calculateNoveltyForPopulation();
-		scoreCalculator.printPop();
+		else {
+			calculateScore.clearCurrentGeneration();
+		}
 	}
 	
 	/**
 	 * Called just after a training iteration.
 	 */
 	public void postIteration() {
-
-		/**
-		use this method to clear the current generation list in the archive
-
-		also need to clear the map in NoveltyCodec
-		*/
-
-		/**
-		dont clear the genomes that persist into the new generation
-
-		get list of newest individuals created by the EA worker during the iteration
-		*/
-
-		LinkedList<Genome> newestPopulation = new LinkedList<Genome>();
-		for (Species species : mainTrain.getPopulation().getSpecies()) {
-			for (Genome g : species.getMembers()) {
-				newestPopulation.add(g);
-			}
-		}
-
-		//keep track of current generation in the coded?
-		//clear everythin
-
-		archive.clearCurrentGeneration();
+		
 	}
 }
