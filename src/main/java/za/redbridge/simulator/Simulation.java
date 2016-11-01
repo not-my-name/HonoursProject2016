@@ -37,6 +37,7 @@ import za.redbridge.simulator.factories.ResourceFactory;
 public class Simulation extends SimState {
 
     private static final float VELOCITY_THRESHOLD = 0.000001f;
+    public static final float DISCR_GAP = 0.1f;
 
     private Continuous2D environment;
     private World physicsWorld;
@@ -63,26 +64,27 @@ public class Simulation extends SimState {
     //private FitnessMonitor fitnessMonitor;
 
     private int schemaConfigNum;
-
     private ResourceFactory resourceFactory;
+    private ContToDiscrSpace discreteGrid;
+
+    private boolean performingNovelty;
+    private NoveltyBehaviour simBehaviour;
 
     //private final RobotObject[] existingRobots;
 
-    public Simulation(SimConfig config, RobotFactory robotFactory, ResourceFactory resourceFactory) {
+    public Simulation(SimConfig config, RobotFactory robotFactory, ResourceFactory resourceFactory, boolean isNovelty) {
+
         super(config.getSimulationSeed());
         this.config = config;
         this.robotFactory = robotFactory;
         this.resourceFactory = resourceFactory;
         Settings.velocityThreshold = VELOCITY_THRESHOLD;
-
-        //fitnessMonitor = new FitnessMonitor(); //can remove this ASAP
+        this.performingNovelty = isNovelty;
         schemaConfigNum = 0;
     }
 
     @Override
     public void start() {
-
-        //fitnessMonitor.setSchemaConfigNumber(schemaConfigNum);
 
         super.start();
 
@@ -102,63 +104,43 @@ public class Simulation extends SimState {
 
         // Create ALL the objects
         createWalls();
-
-        // Create target area
-        //createTargetArea();
-
-        //System.out.println("Simulation: placing instances");
-
         robotFactory.placeInstances(placementArea.new ForType<>(), physicsWorld, config.getTargetAreaPlacement());
 
-        //fitnessMonitor.setOriginalLocations(robotFactory.getPlacedRobots());
-
-        /*config.getResourceFactory().setResQuantity(construction.configResQuantity(config.getConfigNumber()));
-        config.getResourceFactory().placeInstances(placementArea.new ForType<>(), physicsWorld);
-        construction = new ConstructionTask("configs/schemaConfig.yml", physicsWorld);
-        */
-
-        schema = new SchemaConfig("configs/schemaConfig.yml", 1, 3);
-        //System.out.println("Simulation: the config number = " + config.getConfigNumber());
+        schema = new SchemaConfig("configs/schemaConfig.yml", 3, 3);
+        discreteGrid = new ContToDiscrSpace(20,20,1D,1D, DISCR_GAP, schema, schemaConfigNum);
         resourceFactory.setResQuantity(schema.getResQuantity(config.getConfigNumber()));
         resourceFactory.placeInstances(placementArea.new ForType<>(), physicsWorld);
-        construction = new ConstructionTask(schema,resourceFactory.getPlacedResources(),robotFactory.getPlacedRobots(),physicsWorld, config.getConfigNumber());
-        //ArrayList<ResourceObject> resources = config.getResourceFactory().getPlacedResources();
-        //construction.addResources(resources);
-
-        //construction.printConnected();
-        // construction.checkSchema(0);
-
-        //fitnessMonitor.setConstructionTask(construction);
+        construction = new ConstructionTask(schema,resourceFactory.getPlacedResources(),robotFactory.getPlacedRobots(),physicsWorld, config.getConfigNumber(), environment.getWidth(), environment.getHeight());
 
         // Now actually add the objects that have been placed to the world and schedule
         int count = 0;
         for (PhysicalObject object : placementArea.getPlacedObjects()) {
+
             drawProxy.registerDrawable(object.getPortrayal());
             schedule.scheduleRepeating(object);
-            /*if (object instanceof RobotObject) {
-                existingRobots[count] = (RobotObject) object;
-                count++;
-            }*/
         }
-        //System.out.println("Simulation: created the objects");
 
         schedule.scheduleRepeating(construction);
-        //System.out.println("SImulation: schedule repeating step");
 
         schedule.scheduleRepeating(simState ->
             physicsWorld.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS)
         );
+    }
 
-        //System.out.println("Simulation: finished the start method");
+    /**
+    Once a simulation run is finished, a behaviour characterization is then made and stored (only if novelty search is being used)
+    **/
+    @Override
+    public void finish() {
+
+        super.finish();
+
+        construction.updateCZones();
     }
 
     public void setSchemaConfigNumber(int i) {
         schemaConfigNum = i;
     }
-
-    // public void setArchive(Archive archive) {
-    //     fitnessMonitor.setArchive(archive);
-    // }
 
     // Walls are simply added to environment since they do not need updating
     private void createWalls() {
@@ -201,25 +183,6 @@ public class Simulation extends SimState {
 
         final int width, height;
         final Vec2 position;
-        // if (config.getTargetAreaPlacement() == SimConfig.Direction.SOUTH) {
-        //     width = environmentWidth;
-        //     height = config.getTargetAreaThickness();
-        //     position = new Vec2(width / 2f, height / 2f);
-        // } else if (config.getTargetAreaPlacement() == SimConfig.Direction.NORTH) {
-        //     width = environmentWidth;
-        //     height = config.getTargetAreaThickness();
-        //     position = new Vec2(environmentWidth - width / 2f, environmentHeight - height / 2f);
-        // } else if (config.getTargetAreaPlacement() == SimConfig.Direction.EAST) {
-        //     width = config.getTargetAreaThickness();
-        //     height = environmentHeight;
-        //     position = new Vec2(environmentWidth - width / 2f, height / 2f);
-        // } else if (config.getTargetAreaPlacement() == SimConfig.Direction.WEST) {
-        //     width = config.getTargetAreaThickness();
-        //     height = environmentHeight;
-        //     position = new Vec2(width / 2f, height / 2f);
-        // } else {
-        //     return; // Don't know where to place this target area
-        // }
 
         width = 3;
         height = width;
@@ -312,12 +275,6 @@ public class Simulation extends SimState {
         ArrayList<RobotObject> tempBots = robotFactory.getPlacedRobots();
         ArrayList<ResourceObject> tempResources = resourceFactory.getPlacedResources();
 
-        // System.out.println("Simulation: printing the final positions of the robots");
-
-        // for(RobotObject robObj : tempBots) {
-        //     System.out.println("the final position = " + robObj.getBody().getPosition());
-        // }
-
         //THIS IS FOR THE OBJECTIVE FITNESS
         Behaviour behaviour = new Behaviour(construction, tempBots, tempResources, schemaConfigNum);
 
@@ -325,6 +282,10 @@ public class Simulation extends SimState {
 
         return behaviour;
 
+    }
+
+    public ContToDiscrSpace getDiscreteGrid() {
+        return discreteGrid;
     }
 
     private float calculateDistance(Vec2 originLocation, Vec2 destLocation) {
@@ -347,43 +308,30 @@ public class Simulation extends SimState {
 
     }
 
-    // public double calculateObjectiveFitness(int numRuns) {
-    //     double finalFitness = 0;
+    // /**
+    //  * Run the simulation for a certain number of iterations.
+    //  * @param n the number of iterations
+    //  */
+    // public void runForNIterations(int n) {
+    //     start();
+    //     double aveDistOverNIterations = 0D;
 
-    //     finalFitness = objectiveFitness.calculate();
+    //     for (int i = 0; i < n; i++) {
 
-    //     finalFitness = finalFitness/numRuns; //average the fitness over number of times the individual was tested in the simulation
+    //         schedule.step(this);
+
+    //         for(int k = 0; k < robotFactory.getPlacedRobots().size(); k++) {
+    //             Vec2 before = robotFactory.getPlacedRobots().get(k).getPreviousPosition();
+    //             Vec2 after = robotFactory.getPlacedRobots().get(k).getBody().getPosition();
+    //             //fitnessMonitor.incrementDistanceTravelled(before, after);
+    //         }
+
+    //     }
+    //     ArrayList<RobotObject> tempBots = robotFactory.getPlacedRobots();
+    //     //fitnessMonitor.savePickupCounts(tempBots);
+    //     //fitnessMonitor.setPlacedResources(resourceFactory.getPlacedResources()); //retrieving the final positions of the resources after the simulation
+    //     finish();
     // }
-
-
-    /**
-    this bottom method can probably be removed completely at some point
-    */
-
-    /**
-     * Run the simulation for a certain number of iterations.
-     * @param n the number of iterations
-     */
-    public void runForNIterations(int n) {
-        start();
-        double aveDistOverNIterations = 0D;
-
-        for (int i = 0; i < n; i++) {
-
-            schedule.step(this);
-
-            for(int k = 0; k < robotFactory.getPlacedRobots().size(); k++) {
-                Vec2 before = robotFactory.getPlacedRobots().get(k).getPreviousPosition();
-                Vec2 after = robotFactory.getPlacedRobots().get(k).getBody().getPosition();
-                //fitnessMonitor.incrementDistanceTravelled(before, after);
-            }
-
-        }
-        ArrayList<RobotObject> tempBots = robotFactory.getPlacedRobots();
-        //fitnessMonitor.savePickupCounts(tempBots);
-        //fitnessMonitor.setPlacedResources(resourceFactory.getPlacedResources()); //retrieving the final positions of the resources after the simulation
-        finish();
-    }
 
     public boolean allResourcesCollected() {
         return resourceFactory.getNumberOfResources()
@@ -399,16 +347,6 @@ public class Simulation extends SimState {
     public void setStopOnceCollected(boolean stopOnceCollected) {
         this.stopOnceCollected = stopOnceCollected;
     }
-
-    /**
-    can also probably remove this completely or replace it with an equivalent 
-    function that uses the newest code
-    */
-
-    //return the score at this point in the simulation
-    // public double getFitness() {
-    //     return fitnessMonitor.getOverallFitness(); //not dividing by number robots for the distance travelled
-    // }
 
     /** Gets the progress of the simulation as a percentage */
     public double getProgressFraction() {
@@ -433,60 +371,5 @@ public class Simulation extends SimState {
     **/
     public void storeDistances(double distances, int n) {
         this.averageDistancesOverRun = distances/n;
-    }
-
-    public double getRobotToNearestResourceDistances () {
-        return averageDistancesOverRun;
-    }
-
-    public double getAverageDistance() {
-        //System.out.println("Simulation: getAverageDistance method called");
-        double aveDist = 0D;
-
-        ArrayList<RobotObject> existingRobots = robotFactory.getPlacedRobots();
-
-        //System.out.println("Simulation: made it this far");
-        //System.out.println("SIMULATION: resource factory = " + config.getResourceFactory());
-        //System.out.println("SIMULATION: placed resources = " + config.getResourceFactory().getPlacedResources());
-        //System.out.println("SIMULATION: number of placed resources = " + config.getResourceFactory().getPlacedResources().size());
-        ResourceObject firstResource = resourceFactory.getPlacedResources().get(0);
-        //System.out.println("SIMULATION: first resource = " + firstResource);
-        //System.out.println("SIMULATION: number of placed robots = " + existingRobots.length);
-        double [] robotDistances = new double [existingRobots.size()];
-        //System.out.println("Simulation: number of robots = " + existingRobots.length);
-        double sumDistances = 0D;
-        //System.out.println("SIMULATION: made it this far:)");
-        Vec2 frPos = firstResource.getBody().getPosition();
-        //System.out.println("SIMULATION: MADE IT PAST THE ERROR");
-        //System.out.println("SIMULATION: this is another test = " + frPos);
-        //System.out.println("SIMULATION: number of placed robots = " + existingRobots.length);
-        //initiliaze distances with each robot's distance to firstResource
-        for (int i = 0; i < existingRobots.size(); i++) {
-            //System.out.println("SIMULATION: the current robot = " + i);
-            //System.out.println("SIMULATION: the robot body = " + existingRobots[i]);
-            //Vec2 robotPos = existingRobots[i].getBody().getPosition();
-            Vec2 robotPos = existingRobots.get(i).getBody().getPosition();
-            Vec2 dist = robotPos.add(frPos.negate());
-            robotDistances[i] = Math.sqrt(Math.pow(dist.x,2) + Math.pow(dist.y,2));
-        }
-        for (int i = 0; i < existingRobots.size(); i++) {
-            //Vec2 robotPos = existingRobots[i].getBody().getPosition();
-            Vec2 robotPos = existingRobots.get(i).getBody().getPosition();
-            int cnt = 0;
-            for (ResourceObject res : resourceFactory.getPlacedResources()) {
-                if (cnt > 0) {
-                    Vec2 resPos = res.getBody().getPosition();
-                    Vec2 dist = robotPos.add(resPos.negate());
-                    double distBetween = Math.sqrt(Math.pow(dist.x,2) + Math.pow(dist.y,2));
-                    if (distBetween < robotDistances[i]) {
-                        robotDistances[i] = distBetween;
-                    }
-                }
-            }
-            sumDistances += robotDistances[i];
-        }
-
-        //System.out.println("Simulation: printing the average distance = " + sumDistances/(double)existingRobots.size());
-        return sumDistances/(double)existingRobots.size();
     }
 }

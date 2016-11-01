@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Arrays;
 import sim.util.Double2D;
+import java.util.*;
 
 import sim.engine.SimState;
 // import za.redbridge.simulator.FitnessStats;
@@ -61,7 +62,7 @@ public class ConstructionZone {
     //private final FitnessStats fitnessStats;
 
     //hash set so that object values only get added to forage area once
-    private final Set<ResourceObject> connectedResources = new HashSet<>();
+    private final Set<ResourceObject> connectedResources;
 
     // resources never get added to watched fixtures list
     private final List<Fixture> watchedFixtures = new ArrayList<>();
@@ -70,26 +71,73 @@ public class ConstructionZone {
     check how to make the connectionOrder array a variable size so that the number of resources in the simulation can be changed
     */
 
-    private ResourceObject[] connectionOrder = new ResourceObject[15]; //change the size to the number of resource in the zone
+    //private ResourceObject[] connectionOrder = new ResourceObject[15]; //change the size to the number of resource in the zone
+    private LinkedList<ResourceObject> connectionOrder;
     private int numConnected; //variable to keep track of how many resources are in the construction zone
+
+    private int cZoneIndex; //indicate the index of the current construction zone
+    private final Color czColor;
 
     /**
     check what the difference is between the numConnected var and the resource_count var
     check where resource count gets incremented below in the addResource method, if using numConnected then check if it needs to be incremented in the same if statement
     */
 
-    int resource_count = 0;
+    //int resource_count = 0;
     int ACount = 0;
     int BCount = 0;
     int CCount = 0;
 
-    /**
-    check why this constructor still creates the fitness stats object
-    make sure that youre not using any of the fitness stats methods in any of the code and that youre only using the
-    code from behaviour and the objective/novelty fitness classes
-    */
+    public ConstructionZone(List<ResourceObject>updatedResources, int czNum) {
 
-    public ConstructionZone() {} 
+        this.cZoneIndex = czNum;
+        connectionOrder = new LinkedList<>();
+        connectedResources = new HashSet<>();
+        numConnected = 0;
+
+        for (ResourceObject r : updatedResources) {
+            addResource(r, true);
+        }
+
+        Random rand = new Random();
+        int randVal1 = rand.nextInt((255 - 1) + 1) + 1;
+        int randVal2 = rand.nextInt((255 - 1) + 1) + 1;
+        int randVal3 = rand.nextInt((255 - 1) + 1) + 1;
+        czColor = new Color(255 - randVal1, 255 - randVal2, 255 - randVal3);
+        updateCZCenter();
+    }
+
+    public ConstructionZone(ResourceObject[] updatedResources, int czNum) {
+
+        this.cZoneIndex = czNum;
+        numConnected = 0;
+        Random rand = new Random();
+        int randVal1 = rand.nextInt((255 - 1) + 1) + 1;
+        int randVal2 = rand.nextInt((255 - 1) + 1) + 1;
+        int randVal3 = rand.nextInt((255 - 1) + 1) + 1;
+        czColor = new Color(255 - randVal1, 255 - randVal2, 255 - randVal3);
+        connectionOrder = new LinkedList<>();
+        connectedResources = new HashSet<>();
+
+        for (ResourceObject r : updatedResources) {
+            addResource(r, true);
+        }
+        
+        updateCZCenter();
+    }
+
+    public ConstructionZone (int czNum) {
+
+        this.cZoneIndex = czNum;
+        numConnected = 0;
+        connectionOrder = new LinkedList<>();
+        connectedResources = new HashSet<>();
+        Random rand = new Random();
+        int randVal1 = rand.nextInt((255 - 1) + 1) + 1;
+        int randVal2 = rand.nextInt((255 - 1) + 1) + 1;
+        int randVal3 = rand.nextInt((255 - 1) + 1) + 1;
+        czColor = new Color(255 - randVal1, 255 - randVal2, 255 - randVal3);
+    }
 
     public void startConstructionZone(ResourceObject r1, ResourceObject r2) {
         
@@ -101,28 +149,17 @@ public class ConstructionZone {
 
         addResource(r1);
         addResource(r2);
-
-        numConnected = 2;
-        connectionOrder[0] = r1;
-        connectionOrder[1] = r2;
     }
 
     /*
     Method that adds resource to the construction zone/target area
     @param ResourceObject resource: the resource that is to be added
-
-    This method adds fitness:
-        FResource(resource) = F(resource)*{1 if fitsInSchema; 0 otherwise}
     **/
     public void addResource(ResourceObject resource) {
 
         double FResource = 0D;
-        if (connectedResources.add(resource)) { //checks if the resource hasnt already been added
-            //fitnessStats.addToTeamFitness(resource.getValue());
 
-            if(resource.getValue() > 0) {
-                resource_count++;
-            }
+        if (connectedResources.add(resource)) { //checks if the resource hasnt already been added
 
             if (resource.getType().equals("A")) {
                 ACount++;
@@ -134,20 +171,128 @@ public class ConstructionZone {
                 CCount++;
             }
 
-            //System.out.println("ConstructionZone: " + Arrays.toString(resource.getAdjacentList()));
-            // Mark resource as collected (this breaks the joints)
-            //resource.setCollected(true);
-            resource.setConstructed();
-            /**
-            check that this connectionOrder and numConnected setup works properly when being used to iterate over the connected resources (especially in the Behaviour class when calculating
-            the correctSchemaScore for the behaviour)
-            */
-            connectionOrder[numConnected] = resource; //updating the connection order once a resource can be added
             numConnected++;
+            connectionOrder.add(resource);
 
+            resource.setConstructed();
+            resource.setConstructionZoneID(cZoneIndex);
             resource.getPortrayal().setPaint(Color.CYAN);
-            resource.getBody().setActive(false);
+            //resource.getBody().setActive(false);
+            resource.getBody().setType(BodyType.STATIC);
         }
+    }
+
+    public void addResource(ResourceObject resource, boolean isFirstConnection) {
+
+        double FResource = 0D;
+        if (connectedResources.add(resource)) {
+
+            if (isFirstConnection) {
+
+                if (resource.getType().equals("A")) {
+                    ACount++;
+                }
+                else if (resource.getType().equals("B")) {
+                    BCount++;
+                }
+                else if (resource.getType().equals("C")) {
+                    CCount++;
+                }
+
+                numConnected++;
+                connectionOrder.add(resource);
+
+                resource.setConstructed();
+                resource.setConstructionZoneID(cZoneIndex);
+                resource.getPortrayal().setPaint(czColor);
+                resource.getBody().setType(BodyType.STATIC);
+            }
+            else {
+
+                if (resource.pushedByMaxRobots()) {
+
+                    if (resource.getType().equals("A")) {
+                        ACount++;
+                    }
+                    else if (resource.getType().equals("B")) {
+                        BCount++;
+                    }
+                    else if (resource.getType().equals("C")) {
+                        CCount++;
+                    }
+
+                    numConnected++;
+                    connectionOrder.add(resource);
+
+                    // Mark resource as collected (this breaks the joints)
+                    resource.setConstructed();
+                    resource.setConstructionZoneID(cZoneIndex);
+                    resource.getPortrayal().setPaint(czColor);
+                    resource.getBody().setType(BodyType.STATIC);
+                }
+            }
+        }
+    }
+
+    public double getTotalResourceValue() {
+
+        //System.out.println("ConstructionZone: check where the getTotalResourceValue method is being called from");
+
+        int total = 0;
+        for(ResourceObject resObj : connectedResources) {
+            total += resObj.getValue();
+        }
+
+        return total;
+    }
+
+    public List<ResourceObject> updateCZNumber(int newCZNum) {
+
+        List<ResourceObject> returnResources = new LinkedList<>();
+        for (ResourceObject r : connectionOrder) {
+
+            r.setConstructionZoneID(newCZNum);
+            returnResources.add(r);
+        }
+
+        return returnResources;
+    }
+
+    /**
+    check that these new addResource methods do not conflict with each other
+    cause some or other weird results
+    */
+    public void addNewResources (List<ResourceObject> newResources) {
+
+        for (ResourceObject r : newResources) {
+            addResource(r, true);
+        }
+    }
+
+    public void clearCZ() {
+
+        connectedResources.clear();
+        connectionOrder.clear();
+        numConnected = 0;
+        ACount = 0;
+        BCount = 0;
+        CCount = 0;
+        cZonePosition = null;
+    }
+
+    public void updateCZCenter() {
+
+        Vec2 result = new Vec2();
+
+        for (ResourceObject res : connectedResources) {
+            result.add(res.getBody().getPosition());
+        }
+
+        cZonePosition = new Vec2(result.x/connectedResources.size(), result.y/connectedResources.size());
+    }
+
+    public Color getCZoneColour() {
+        return czColor;
     }
 
     public int getNumConnected() {
@@ -170,7 +315,7 @@ public class ConstructionZone {
         return cZonePosition;
     }
 
-    public ResourceObject[] getConnectionOrder() {
+    public LinkedList<ResourceObject> getConnectionOrder() {
         return this.connectionOrder;
     }
 
@@ -179,6 +324,7 @@ public class ConstructionZone {
     }
 
     public boolean isInConstructionZone(ResourceObject r) {
+
         if (connectedResources.contains(r)) {
             return true;
         }
@@ -188,83 +334,26 @@ public class ConstructionZone {
     }
 
     private void removeResource(ResourceObject resource) {
+
         if (connectedResources.remove(resource)) {
             //fitnessStats.addToTeamFitness(-resource.getValue());
 
-            if(resource.getValue() > 0) resource_count--;
+            if(resource.getValue() > 0) numConnected--;
             // Mark resource as no longer collected
             resource.setCollected(false);
             resource.getPortrayal().setPaint(Color.MAGENTA);
-
-            // Set<RobotObject> pushingBots = findRobotsNearResource(resource);
-
-            // if (!pushingBots.isEmpty()) {
-            //     double adjustedFitness = resource.getAdjustedValue() / pushingBots.size();
-            //     for (RobotObject robot : pushingBots) {
-            //         fitnessStats.addToPhenotypeFitness(robot.getPhenotype(), -adjustedFitness);
-            //     }
-            // }
         }
     }
 
-    /*
-     * Finds robots very close to the ResourceObject that can be blamed for pushing the resource
-     * in/out of target area.
-     */
-    // private Set<RobotObject> findRobotsNearResource(ResourceObject resource) {
-    //     // Check which robots pushed the resource out based on a bounding box
-    //     Fixture resourceFixture = resource.getBody().getFixtureList();
-    //     AABB resourceBox = resourceFixture.getAABB(0);
-
-    //     // Try query robots within the AABB of the resource
-    //     Set<RobotObject> robots = new HashSet<>();
-    //     RobotObjectQueryCallback callback = new RobotObjectQueryCallback(robots);
-    //     getBody().getWorld().queryAABB(callback, resourceBox);
-
-    //     if (!robots.isEmpty()) {
-    //         return robots;
-    //     }
-
-    //     // If no robots found, iteratively expand the dimensions of the query box
-    //     AABB blameBox = new AABB(resourceBox);
-    //     for (int i = 0; i < BLAME_BOX_TRIES; i++) {
-    //         float width = getAABBWidth(blameBox) * BLAME_BOX_EXPANSION_RATE;
-    //         float height = getAABBHeight(blameBox) * BLAME_BOX_EXPANSION_RATE;
-    //         resizeAABB(blameBox, width, height);
-    //         getBody().getWorld().queryAABB(callback, blameBox);
-
-    //         if (!robots.isEmpty()) {
-    //             break;
-    //         }
-    //     }
-    //     return robots;
-    // }
-
-    public int getNumberOfConnectedResources() {
-        return resource_count;
-        //connectedResources.size();
-    }
-
-    // public AABB getAabb() {
-    //     return aabb;
-    // }
-
-    // public int getWidth() {
-    //     return width;
-    // }
-
-    // public int getHeight() {
-    //     return height;
+    // public int getNumberOfConnectedResources() {
+    //     return numConnected;
+    //     //connectedResources.size();
     // }
 
     public int [] getResourceTypeCount () {
         int [] typeCount = {ACount, BCount, CCount};
         return typeCount;
     }
-
-    // public FitnessStats getFitnessStats() {
-    //     return fitnessStats;
-    // }
 
     // @Override
     public void handleBeginContact(Contact contact, Fixture otherFixture) {

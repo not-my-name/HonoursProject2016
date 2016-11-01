@@ -105,7 +105,7 @@ public class Main {
 
 		resConfig = options.environment;
 
-		schemaConfigIndex = 1;
+		schemaConfigIndex = 0;
 		ScoreCalculator scoreCalculator = new ScoreCalculator(simConfig, options.simulationRuns, 
 						morphology, options.populationSize, schemaConfigIndex); //got this from the Main class in last years Controller Master folder
 
@@ -144,18 +144,18 @@ public class Main {
 
 		scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
 
-		for(int i = 0; i < options.numGenerations; i++) { //for(int i = trainer.getIteration(); i < numIterations; i++)
-			trainer.iteration(); //training the network for a single iteration
-			statsRecorder.recordIterationStats();
+		// for(int i = 0; i < options.numGenerations; i++) { //for(int i = trainer.getIteration(); i < numIterations; i++)
+		// 	trainer.iteration(); //training the network for a single iteration
+		// 	statsRecorder.recordIterationStats();
 
-			//once an individual has found an optimal solution, break out of the training loop
-			if(trainer.getBestGenome().getScore() >= convergenceScore) {
-				log.info("convergence reached at epoch(iteration): " + trainer.getIteration());
-				break;
-			}
-		}
+		// 	//once an individual has found an optimal solution, break out of the training loop
+		// 	if(trainer.getBestGenome().getScore() >= convergenceScore) {
+		// 		log.info("convergence reached at epoch(iteration): " + trainer.getIteration());
+		// 		break;
+		// 	}
+		// }
 
-		scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
+		// scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
 		log.debug("Training Complete");
 
 	}
@@ -177,9 +177,9 @@ public class Main {
                 + " for the population")
         private double connectionDensity = 0.5;
         @Parameter(names = "--demo", description = "Show a GUI demo of a given genome")
-        private String genomePath = null;
+        //private String genomePath = null;
         //private String genomePath = "results/Hex-20160920T2134_null__NEAT/best networks/epoch-5/network.ser";
-        //private String genomePath = "results/ruben-GE72-2QD-20161030T1126_null/best networks/epoch-1/network.ser";
+        private String genomePath = "results/ruben-GE72-2QD-20161030T1126_null/best networks/epoch-1/network.ser";
 
         @Parameter(names = "--control", description = "Run with the control case")
         private boolean control = false;

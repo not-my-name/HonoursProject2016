@@ -84,16 +84,21 @@ public class ResourceObject extends PhysicalObject {
 
     private final Map<Integer, String[]> adjacencyMap;
 
+    
+    private boolean connected;
+    
     private final DetectionPoint[] detectionPoints;
     private String[] adjacentResources;
-    private boolean connected;
-
     private ResourceObject[] adjacentList;
 
     private LinkedList<Vec2> resourceTrajectory = new LinkedList<Vec2>();
 
     private int countConnected; //var to count the number of resources connected
     private Vec2 initialPos; //starting location of the resource
+
+    private int constructionZoneID = -1; //keep track of which construction zone this resource is connected to
+
+    private boolean visited; //variable to check whether or not this resource object has been traversed
 
     // is a hack
     // private ArrayList<ResourceObject> otherResources = new ArrayList<ResourceObject>();
@@ -111,6 +116,7 @@ public class ResourceObject extends PhysicalObject {
         this.fullyWelded = false;
         this.isConstructed = false;
         this.hasMoved = false;
+        this.visited = false;
 
         adjustedValue = value;
 
@@ -263,6 +269,22 @@ public class ResourceObject extends PhysicalObject {
         weldPoints[1] = rightPoint;
         weldPoints[2] = topPoint;
         weldPoints[3] = bottomPoint;
+    }
+
+    public void setVisited(boolean flag) {
+        visited = flag;
+    }
+
+    public boolean getVisited() {
+        return visited;
+    }
+
+    public int getConstructionZoneID() {
+        return constructionZoneID;
+    }
+
+    public void setConstructionZoneID(int id) {
+        constructionZoneID = id;
     }
 
     public void updateAdjacent(ArrayList<ResourceObject> resourceArray){

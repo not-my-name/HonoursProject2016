@@ -56,7 +56,7 @@ public class NoveltySearchStrategy implements Strategy {
 	 */
 	public void preIteration() {
 
-		if(mainTrain.getIteration == 0) {
+		if(mainTrain.getIteration() == 0) {
 
 			for (Species species : mainTrain.getPopulation().getSpecies()) {
 				for (Genome g : species.getMembers()) {
@@ -68,7 +68,7 @@ public class NoveltySearchStrategy implements Strategy {
 			scoreCalculator.calculateNoveltyForPopulation();
 		}
 		else {
-			calculateScore.clearCurrentGeneration();
+			scoreCalculator.clearCurrentGeneration();
 		}
 	}
 	

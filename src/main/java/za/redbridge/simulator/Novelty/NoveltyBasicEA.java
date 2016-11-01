@@ -7,6 +7,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.*;
 
 import org.encog.Encog;
 import org.encog.EncogError;
@@ -569,7 +570,7 @@ public class NoveltyBasicEA extends BasicEA {
 		this.oldBestGenome = this.bestGenome;
 
 		noveltyCodec.clearCurrPop(newPopulation); //clear all genomes except for the ones that persist into next generation
-		noveltyCoded.decode(this.bestGenome);
+		noveltyCodec.decode(this.bestGenome);
 
 		// execute species in parallel
 		this.threadList.clear();
@@ -632,7 +633,7 @@ public class NoveltyBasicEA extends BasicEA {
 		List<Genome> currentPopulation = new LinkedList<>();
 
 		for(Genome gen : this.newPopulation) {
-			currentPopulation.add(g);
+			currentPopulation.add(gen);
 		}
 
 		//calculate the novelty score for each individual in the current generation

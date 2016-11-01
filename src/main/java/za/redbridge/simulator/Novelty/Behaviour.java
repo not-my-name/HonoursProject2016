@@ -23,6 +23,7 @@ public class Behaviour {
 	private int numConstructionZones;
 	private double numPickups; //number of times robots picked up a resource
 	private int schemaConfigNum; //the schema config number that is currently being used in this simulation
+	private double maxDist;
 
 	private ArrayList<ResourceObject> placedResources; //positions of all the resources at the end of the simulation
 	private ArrayList<RobotObject> placedRobots;
@@ -41,6 +42,11 @@ public class Behaviour {
 	//variables to hold the respective scores for evaluating the constructoin zones of the behaviour
 	private double adjacentScore;
 	private double correctSchemaScore;
+
+	/**
+	perform calculations using the largest construction zone
+	can get the largest construction zone from the construction task
+	*/
 
 	public Behaviour(ConstructionTask constructionTask, ArrayList<RobotObject> currentRobots, ArrayList<ResourceObject> currentResources, int schemaConfigNum) {
 
@@ -66,6 +72,8 @@ public class Behaviour {
 		connectedA = 0;
 		connectedB = 0;
 		connectedC = 0;
+
+		maxDist = this.constructionTask.getMaxDistance();
 
 		//using methods to initialise values
 		//System.out.println("Behaviour: calling the constructor");
@@ -205,6 +213,9 @@ public class Behaviour {
 	//method to calculate the average distance between the resources and the centre of the construction zone
 	private void calcResToCZoneDist() {
 
+		int numNotConstructed = 0; //variable to keep track of the number of resources not connected in a construction zone
+		avgResToCZoneDist = 0;
+
 		if(numConstructionZones > 0) { //check if there are even any construction zones
 
 			for(ResourceObject resObj : placedResources) { //iterate over all the resources
@@ -212,25 +223,36 @@ public class Behaviour {
 				if(resObj.isConstructed()) { //skip the resources that are already in a construction zone
 					continue;
 				}
+				else {
 
-				Vec2 origin = resObj.getBody().getPosition();
-				double smallestDist = 100000000;
+					numNotConstructed++;
+					Vec2 origin = resObj.getBody().getPosition();
+					double smallestDist = 100000000;
 
-				for(ConstructionZone cZone : constructionZones) { //iterate over all the construction zones
+					for(ConstructionZone cZone : constructionZones) { //iterate over all the construction zones
 
-					Vec2 destination = cZone.getCZonePosition();
-					double tempDist = calculateDistance(origin, destination);
+						Vec2 destination = cZone.getCZonePosition();
+						double tempDist = calculateDistance(origin, destination);
 
-					if(tempDist < smallestDist) {
-						smallestDist = tempDist;
+						if(tempDist < smallestDist) {
+							smallestDist = tempDist;
+						}
 					}
+
+					avgResToCZoneDist += smallestDist;
 				}
-
-				avgResToCZoneDist += smallestDist;
 			}
-		}
 
-		avgResToCZoneDist = avgResToCZoneDist / placedResources.size(); //average distance to construction zone per resource
+			if (numNotConstructed > 0) { //if some resources are not connected to construction zones
+				avgResToCZoneDist = avgResToCZoneDist / numNotConstructed; //average distance to construction zone per resource; 
+			}
+			else if (numNotConstructed == 0) { //if all of the resources are connected to a construction zone
+				avgResToCZoneDist = 0; //should return 0 so that the function calculates a fitness of 1 (perfect score)
+			} //this else statement might not be necessary, if numNotConstructed
+		}
+		else if (numConstructionZones == 0) { //return the max possible distance so that the calc for fitness returns 0 (if no construction zones)
+			avgResToCZoneDist = maxDist;
+		}
 	}
 
 	//method to calculate the score for the total number of resources that are connected

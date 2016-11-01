@@ -19,6 +19,12 @@ import java.util.Iterator;
 import za.redbridge.simulator.ConstructionZone;
 import java.util.HashSet;
 
+import java.util.*;
+import za.redbridge.simulator.ContToDiscrSpace;
+
+import org.jbox2d.common.Transform;
+import org.jbox2d.common.Rot;
+
 /*
  *  The construction task class
  *
@@ -51,7 +57,18 @@ public class ConstructionTask implements Steppable{
 
     private ArrayList<ResourceObject> globalConstructionOrder;
 
-    public ConstructionTask(SchemaConfig schema, ArrayList<ResourceObject> r, ArrayList<RobotObject> robots, World world, int schemaNumber) {
+    private double idealScore; //variable to store the total score possible by connecting all the resources in the simulation
+    private double maxDistance; //max possible distance between two entities in the environment
+
+    private double environmentWidth;
+    private double environmentHeight;
+
+    private ContToDiscrSpace discreteGrid; //the discretized grid
+
+    private int constructionZoneID; //keep track of the ID of the construction zones that get created
+
+    public ConstructionTask(SchemaConfig schema, ArrayList<ResourceObject> r, ArrayList<RobotObject> robots, 
+                        World world, int schemaNumber, double envWidth, double envHeight) {
 
         this.schema = schema;
         this.schemaNumber = schemaNumber;
@@ -64,12 +81,22 @@ public class ConstructionTask implements Steppable{
             weldMap.put(resources.get(k), temp);
         }
 
+        idealScore = 0;
+        for(ResourceObject resObj : resources) {
+            idealScore += resObj.getValue();
+        }
+
         physicsWorld = world;
         int numResources = resources.size(); 
         this.constructionZones = new ArrayList<ConstructionZone>(); //the maximum number of construction zones possible
         movedResources = new HashSet<ResourceObject>();
 
-        update();
+        this.environmentHeight = envHeight;
+        this.environmentWidth = envWidth;
+        maxDistance = Math.sqrt(Math.pow(environmentWidth, 2) + Math.pow(environmentHeight, 2));
+        constructionZoneID = 0; //no construction zones yet
+
+        globalConstructionOrder = new ArrayList<>();
     }
 
     public ArrayList<ResourceObject> getSimulationResources() {
@@ -78,7 +105,147 @@ public class ConstructionTask implements Steppable{
 
     @Override
     public void step(SimState simState) {
-        update();
+
+        Simulation simulation = (Simulation) simState;
+        discreteGrid = simulation.getDiscreteGrid();
+
+        if(getTotalResourcesConnected() == resources.size()) {
+            System.out.println("ConstructionTask: all resources constructed");
+            simulation.finish();
+        }
+
+        for(ResourceObject resource : resources){
+            resource.updateAdjacent(resources);
+        }
+
+        for(ResourceObject resource : resources) {
+
+            if(!resource.isConstructed()) { //only check the resources that are not in construction zones
+
+                //get the neighbours of the current resource
+                String [] resAdjacentList = resource.getAdjacentResources();
+                ResourceObject[] adjObjects = resource.getAdjacentList();
+
+                for(int i = 0; i < resAdjacentList.length; i++) { //iterate over each of the current resource's neighbours
+
+                    if( !resAdjacentList[i].equals("_") ) { //check if the current resource has a neighbouring resource
+
+                        ResourceObject neighbour = adjObjects[i];
+
+                        if(resource.pushedByMaxRobots() || neighbour.pushedByMaxRobots()) { //check that at least one of the resources are being pushed by the correct number of robots
+
+                            if( checkSchema(resource) == resource.getNumConnected() && 
+                                checkSchema(neighbour) == neighbour.getNumConnected()) { //check that the resources can be connected to each other according to the schema
+
+                                if(neighbour.isConstructed()) { //check if the neighbouring resource belongs to a construction zone
+
+                                    constructionZones.get(neighbour.getConstructionZoneID()-1).addResource(resource); //adding the resource to the existing construction zone
+                                    globalConstructionOrder.add(resource);
+                                    alignResource(resource, neighbour, i);
+                                }
+                                else { //if the 2 resources are creating a new construction zone
+
+                                    constructionZoneID++;
+                                    ConstructionZone newZone = new ConstructionZone(constructionZoneID);
+                                    newZone.startConstructionZone(resource, neighbour);
+                                    constructionZones.add(newZone);
+                                    globalConstructionOrder.add(resource);
+                                    globalConstructionOrder.add(neighbour);
+
+                                    if(discreteGrid.canBeConnected(resource, neighbour, i)) {
+                                        alignResource(resource, null, i);
+                                        alignResource(neighbour, resource, i);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // for(ResourceObject resource : resources){
+
+        //     if(!resource.isConstructed()) { //check if the current resource being examined has already been connected to a construction zone
+
+        //         String [] resAdjacentList = resource.getAdjacentResources();
+        //         ResourceObject[] adjObjects = resource.getAdjacentList();
+
+        //         for (int i = 0; i < resAdjacentList.length; i++) { //iterate over the resources neighbouring the current resource
+
+        //             if( !resAdjacentList[i].equals("_") ) {
+
+        //                 ResourceObject neighbour = adjObjects[i];
+
+        //                 if(resource.pushedByMaxRobots() || neighbour.pushedByMaxRobots()) { //check that at least one of the resources are pushed by the required number of robots
+
+        //                     if( checkSchema(resource) == resource.getNumConnected() && 
+        //                         checkSchema(neighbour) == neighbour.getNumConnected()) { //check if all the connections on the resource are according to the construction schema
+
+        //                         if(constructionZones.size() == 0) { //if there are no existing construction zones
+
+        //                             constructionZoneID++;
+        //                             ConstructionZone newZone = new ConstructionZone(constructionZoneID);
+        //                             newZone.startConstructionZone(resource, neighbour);
+        //                             constructionZones.add(newZone);
+        //                             globalConstructionOrder.add(resource);
+        //                             globalConstructionOrder.add(neighbour);
+
+        //                             if(discreteGrid.canBeConnected(resource, neighbour, i)) {
+        //                                 alignResource(resource, true);
+        //                                 alignResource(neighbour, false);
+        //                             }
+                                    
+        //                         }
+        //                         else { //check if either of the resources are in a construction zone already
+
+        //                             if(resource.isConstructed()) }{}
+
+        //                             boolean found = false;
+
+        //                             for(ConstructionZone cZone : constructionZones) {
+
+        //                                 if( cZone.getConnectedResources().contains(resource) ) {
+
+        //                                     cZone.addResource(neighbour);
+        //                                     globalConstructionOrder.add(neighbour);
+        //                                     alignResource(neighbour, false);
+        //                                     found = true;
+        //                                     break;
+        //                                 }
+        //                                 else if( cZone.getConnectedResources().contains(neighbour) ) {
+
+        //                                     cZone.addResource(resource);
+        //                                     globalConstructionOrder.add(resource);
+        //                                     alignResource(resource, false);
+        //                                     found = true;
+        //                                     break;
+        //                                 }
+        //                             }
+
+        //                             //if there are construction zones but neither of the resources are found in any of them
+        //                             if( !found ) { //add a new construction zone and add these resources to it
+
+        //                                 constructionZoneID++;
+        //                                 ConstructionZone tempZone = new ConstructionZone(constructionZoneID);
+        //                                 tempZone.startConstructionZone(resource, neighbour);
+        //                                 constructionZones.add(tempZone);
+        //                                 globalConstructionOrder.add(resource);
+        //                                 globalConstructionOrder.add(neighbour);
+
+        //                                 if(discreteGrid.canBeConnected(resource, neighbour, i)) {
+
+        //                                     alignResource(resource, true);
+        //                                     alignResource(neighbour, false);
+        //                                 }
+        //                             }
+        //                         }
+        //                     }
+        //                 }  
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     /**
@@ -91,66 +258,10 @@ public class ConstructionTask implements Steppable{
         return false;
     }
 
-    //this update method gets called to check if the resources that have been added to the adjacency lists
-    public void update(){  
-
-        for(ResourceObject resource : resources){
-            resource.updateAdjacent(resources);
-        }
-
-        for(ResourceObject resource : resources){
-
-            resource.updateAdjacent(resources);
-            String [] resAdjacentList = resource.getAdjacentResources();
-            ResourceObject[] adjObjects = resource.getAdjacentList();
-
-            /**
-            need to add a check to see if the resources are connected according to the schema
-            */
-
-            for (int i = 0; i < resAdjacentList.length; i++) {
-
-                if( !resAdjacentList[i].equals("_") ) {
-
-                    ResourceObject neighbour = adjObjects[i];
-
-                    if(constructionZones.size() == 0) {
-
-                        ConstructionZone newZone = new ConstructionZone();
-                        newZone.startConstructionZone(resource, neighbour);
-                        constructionZones.add(newZone);
-                    }
-                    else { //check if either of the resources are in a construction zone already
-                        boolean found = false;
-
-                        for(ConstructionZone cZone : constructionZones) {
-
-                            if( cZone.getConnectedResources().contains(resource) ) {
-
-                                cZone.addResource(neighbour);
-                                found = true;
-                                break;
-                            }
-                            else if( cZone.getConnectedResources().contains(neighbour) ) {
-
-                                cZone.addResource(resource);
-                                found = true;
-                                break;
-                            }
-                        }
-
-                        //if there are construction zones but neither of the resources are found in any of them
-                        if( !found ) { //add a new construction zone and add these resources to it
-
-                            ConstructionZone tempZone = new ConstructionZone();
-                            tempZone.startConstructionZone(resource, neighbour);
-                            constructionZones.add(tempZone);
-                        }
-                    }
-                }
-            }
-        }
+    public ArrayList<ResourceObject> getGlobalConstructionOrder() {
+        return globalConstructionOrder;
     }
+
 
     //method to return the total number of resources that are placed in the particular simulation
     public int getTotalNumResources() {
@@ -173,15 +284,142 @@ public class ConstructionTask implements Steppable{
         }
     }
 
-    // public int checkSchema(int i) {
+    public double getIdealScore() {
+        return this.idealScore;
+    }
 
-    //     int correctSides = 0;
-    //     for(ResourceObject resource : resources) {
-    //         correctSides += schema.checkConfig(i, resource.getType(), resource.getAdjacentResources());
-    //     }
+    public double getMaxDistance() {
+        return maxDistance;
+    }
 
-    //     return correctSides;
-    // }
+    //method to align a given resource to the underlying discretized grid
+    //isFirst -> whether or not this resource is the first resource in a construction zone
+    public void alignResource(ResourceObject resObj, ResourceObject neighbour, int connectionSide) {
+
+        Body resourceBody = resObj.getBody();
+        Transform xFos = resourceBody.getTransform();
+
+        Transform newDiscrTransform = new Transform(discreteGrid.addResourceToDiscrSpace(resObj, neighbour, connectionSide), new Rot(0f));
+        xFos.set(newDiscrTransform);
+        resObj.getPortrayal().setTransform(xFos);
+        resObj.getBody().setTransform(xFos.p, xFos.q.getAngle());
+    }
+
+    //method to update the construction zones according to the updated neighbour lists
+    //this method is used to join neighbouring construction zones
+    public void updateCZones() {
+
+        System.out.println("ConstructionTask: updating the construction zones");
+
+        if(constructionZones.size() > 0) { //if there are existing construction zones
+
+            System.out.println("ConstructionTask: first if passed");
+
+            List<ResourceObject[]> generatedTraversals = new LinkedList<>();
+            boolean[] hasBeenChecked = new boolean[constructionZones.size()]; //array to indicate which of the construction zones have been checked
+
+            for(ResourceObject resObj : globalConstructionOrder) {
+                int constructionZoneID = resObj.getConstructionZoneID(); //get the ID of the construction zone that the resource is connected to
+
+                if(!hasBeenChecked[constructionZoneID-1]) { //check that the construction zone has not been traversed before
+
+                    List<ResourceObject> traversal = new LinkedList<>(); //list of resources that are correctly connected
+                    List<ResourceObject> ignoreList = new LinkedList<>(); //list of resources that should be ignored because of incorrect connection schemas
+
+                    discreteGrid.generateTraversal(traversal, resObj, ignoreList);
+
+                    if (!traversalsContains(traversal, generatedTraversals)) {
+                        
+                        //Calculate the value of the traversal
+                        int tValue = 0;
+                        for (ResourceObject tRes : traversal) {
+                            tValue += tRes.getValue();
+                        }
+
+                        if (tValue > constructionZones.get(constructionZoneID-1).getTotalResourceValue()) {
+                            generatedTraversals.add(traversal.toArray(new ResourceObject[0])); //add this traversal to the generated traversals list (should become a CZ)
+                            hasBeenChecked[constructionZoneID-1] = true;
+                        }
+                        else {
+                            generatedTraversals.add(constructionZones.get(constructionZoneID-1).getConnectionOrder().toArray(new ResourceObject[0]));
+                            hasBeenChecked[constructionZoneID-1] = true;
+                        }
+                    }
+
+                    for (ResourceObject r : resources) { //resetting these values in preparation for the next traversal
+                        r.setVisited(false);
+                    }  
+                }
+            }
+
+            if (generatedTraversals.size() > 0) {
+
+                int czNum = 1;
+                constructionZones.clear();
+
+                for (ResourceObject[] newCZTraversal : generatedTraversals) {
+
+                    constructionZones.add( new ConstructionZone(newCZTraversal, czNum) );
+                    czNum++;
+                }
+            }
+        }
+    }
+
+    //method to compare the generated traversal with previous traversals
+    public boolean traversalsContains(List<ResourceObject> t, List<ResourceObject[]> traversals) {
+
+        ResourceObject[] tCopy = t.toArray(new ResourceObject[0]);
+        boolean doesContain = false;
+
+        for ( ResourceObject[] prevTraversal : traversals) { //iterate over all the previous traversals
+
+            boolean isTraversalEquiv = true;
+
+            for (ResourceObject ptRes : prevTraversal) { //iterate over the individual resources in the traversal
+
+                if (!t.contains(ptRes)) {
+
+                    isTraversalEquiv = false;
+                    break;
+                }
+            }
+
+            if (isTraversalEquiv) { //check if the traversals are equal
+                doesContain = true;
+                break;
+            }
+        }
+
+        return doesContain;
+    }
+
+    //method to return the total number of resources in the environment that have been
+    //connected to another resource
+    public int getTotalResourcesConnected() {
+
+        int total = 0;
+
+        if(constructionZones.size() > 0) {
+
+            for(ConstructionZone cZone : constructionZones) {
+
+                total += cZone.getNumConnected();
+            }
+        }
+
+        return total;
+    }
+
+    public int checkSchema(int i) {
+
+        int correctSides = 0;
+        for(ResourceObject resource : resources) {
+            correctSides += schema.checkConfig(i, resource.getType(), resource.getAdjacentResources());
+        }
+
+        return correctSides;
+    }
 
     /**
     added this method so that the schema can be checked for each resource at a time

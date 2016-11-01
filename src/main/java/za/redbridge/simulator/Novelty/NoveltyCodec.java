@@ -84,12 +84,12 @@ public class NoveltyCodec extends HyperNEATCODEC {
 	//all the genomes that survive to pass to the next generation
 	public void clearCurrPop(List<Genome> currPopGenomes) {
 
-		List<Behaviour> currPopPBs = new LinkedList<>();
+		List<NoveltyBehaviour> currPopPBs = new LinkedList<>();
 		Map<Genome,NoveltyNetwork> phenotypesToBeKept = new HashMap<>();
 
 		for (Genome g : currPopGenomes) {
 
-			PhenotypeBehaviour pb = genomePBMap.get(g);
+			NoveltyBehaviour pb = genomePBMap.get(g);
 			NoveltyNetwork phen = genomeNNMap.get(g);
 			phen.setNoveltyBehaviour(null);  //clears the associated novelty behaviour
 			currPopPBs.add(pb);

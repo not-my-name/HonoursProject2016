@@ -61,6 +61,7 @@ public class ScoreCalculator implements CalculateScore {
 
     public ScoreCalculator(SimConfig simConfig, int simulationRuns,
             Morphology sensorMorphology, int populationSize, int schemaConfigNum) {
+        
         this.simConfig = simConfig;
         this.simulationRuns = simulationRuns;
         this.sensorMorphology = sensorMorphology;
@@ -93,57 +94,8 @@ public class ScoreCalculator implements CalculateScore {
         long start = System.nanoTime();
 
         /**
-        NOVELTY SEARCH
-        the results of each trial run for an individual is considered as a completely separate results
-        each trial run is treated like an individual
-        this means the values produced in the trial runs dont need to be averaged to get a representative behaviour
-        */
-        // double fitness = 0;
-        // for (int i = 0; i < simulationRuns; i++) {
-
-        //     /*
-        //     currentBehaviour will never be => numResults while the loop is still running
-        //     when currentBehaviour == numResults its because the last simulation for the last individual has been run (SHOULD BE)
-        //     */
-        //     if(currentBehaviour < numResults) {
-        //         currentPopulation[currentBehaviour] = simulation.runNovel(); //adding the simulation results to the array of results for the current generation
-        //         currentBehaviour++; //keep track of the index that the next behaviour will be stored in
-        //     }
-
-        // }
-
-        // if( currentBehaviour == numResults ) { //checking that the currentPopulation array is full 
-
-            
-        //     need to find the final novelty score per individual instead of having a score for each test run
-        //     iterate over the array of returned values
-        //     sum up the values in multiples of simulationRuns
-        //     divide by the number of simulation runs for each individual
-            
-
-        //     NoveltyFitness noveltyFitnessCalculator = new FitnessMonitor(currentPopulation);
-        //     double[] fitnessArray = noveltyFitnessCalculator.calculateNoveltyFitness();
-
-        //     for(int k = 0; k < fitnessArray.length; k += simulationRuns) { //iterate in steps of simulation runs
-        //         double score = 0; //the total avg fitness for an individual
-
-        //         for(int j = k; j < k+simulationRuns; j++) {
-        //             score += fitnessArray[j];
-        //         }
-
-        //         score = score / simulationRuns; //average score for an individual over simulationRuns
-        //         scoreStats.addValue(score); //recording the average score of the individual
-        //     }
-
-        //     //clearing the array and resetting the counter
-        //     currentBehaviour = 0;
-        //     Arrays.fill(currentPopulation, null);
-
-        // }
-
-        /**
         all of the actual simulation runs and score calculations are performed in the preIteration methods of the NoveltySStrategy class
-        when TrainEA calls iteration() and then calls .calculateScore() 
+        when TrainEA calls iteration() and then calls .calculateScore() which should just return the score for the current behaviour
         */
 
         if(PerformingNoveltyCalcs) { //need to have a way of checking when performing objective or novelty
@@ -160,64 +112,45 @@ public class ScoreCalculator implements CalculateScore {
             log.debug("NoveltyScore calculation completed: " + noveltyScore);
             return noveltyScore;
         }
+        else { //FOR OBJECTIVE SEARCH
 
-        /**
-        OBJECTIVE SEARCH
-        */
+            NEATNetwork neat_network = null;
+            RobotFactory robotFactory;
 
-        //System.out.println("ScoreCalculator: starting the calculate score method");
+            neat_network = (NEATNetwork) method;
+            robotFactory = new HomogeneousRobotFactory(getPhenotypeForNetwork(neat_network),
+                        simConfig.getRobotMass(), simConfig.getRobotRadius(), simConfig.getRobotColour(),
+                        simConfig.getObjectsRobots());
 
-        NEATNetwork neat_network = null;
-        RobotFactory robotFactory;
+            // create new configurable resource factory
+            String [] resQuantity = {"0","0","0"};
+            ResourceFactory resourceFactory = new ConfigurableResourceFactory();
+            resourceFactory.configure(simConfig.getResources(), resQuantity);
 
-        //System.out.println("ScoreCalculator: PHENOTYPE for NEATNetwork: " + getPhenotypeForNetwork(neat_network));
-        neat_network = (NEATNetwork) method;
-        robotFactory = new HomogeneousRobotFactory(getPhenotypeForNetwork(neat_network),
-                    simConfig.getRobotMass(), simConfig.getRobotRadius(), simConfig.getRobotColour(),
-                    simConfig.getObjectsRobots());
+            Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory, PerformingNoveltyCalcs);
+            simulation.setSchemaConfigNumber(schemaConfigNum);
 
-        //System.out.println("ScoreCalculator: finished creating the robot factory");
+            double fitness = 0;
+            for(int i = 0; i < simulationRuns; i++) {
 
-        // Create the simulation and run it
-        //System.out.println("ScoreCalculator: creating the simulation and starting the GUI");
-        // create new configurable resource factory
-        String [] resQuantity = {"0","0","0"};
-        ResourceFactory resourceFactory = new ConfigurableResourceFactory();
-        //System.out.println("ScoreCalculator: created the resource factory");
-        resourceFactory.configure(simConfig.getResources(), resQuantity);
-        //System.out.println("ScoreCalculator: configured the resource factory");
+                ObjectiveFitness objectiveFitness = new ObjectiveFitness(schemaConfigNum);
+                Behaviour resultantBehaviour = simulation.runObjective();
+                double tempFitness = objectiveFitness.calculate(resultantBehaviour);
+                fitness += tempFitness;
+            }
 
-        //creates a new aggregate behaviour for every individual in the population. represents the average behaviour of the individual over the test simulation runs
-        //AggregateBehaviour aggregateBehaviour = new AggregateBehaviour(schemaConfigNum); //creating a new aggregate behaviour to store the test runs results for this specific individual
+            double score = fitness / simulationRuns;
+            scoreStats.addValue(score);
 
-        //System.out.println("ScoreCalculator: created the aggregate behaviour object");
+            log.debug("Score calculation completed: " + score);
 
-        Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory);
-        simulation.setSchemaConfigNumber(schemaConfigNum);
+            long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
+            performanceStats.addValue(duration);
 
-        double fitness = 0;
-        System.out.println("");
-        for(int i = 0; i < simulationRuns; i++) {
+            return score;
 
-            ObjectiveFitness objectiveFitness = new ObjectiveFitness(schemaConfigNum);
-            Behaviour resultantBehaviour = simulation.runObjective();
-            double tempFitness = objectiveFitness.calculate(resultantBehaviour);
-            System.out.println("ScoreCalculator: fitness = " + tempFitness);
-            System.out.println("");
-            fitness += tempFitness;
         }
-
-        double score = fitness / simulationRuns;
-        System.out.println("ScoreCalculator: the final fitness = " + score);
-
-        scoreStats.addValue(score);
-
-        log.debug("Score calculation completed: " + score);
-
-        long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
-        performanceStats.addValue(duration);
-
-        return score;
+        
     }
 
     public void demo(MLMethod method) {
@@ -237,7 +170,7 @@ public class ScoreCalculator implements CalculateScore {
         ResourceFactory resourceFactory = new ConfigurableResourceFactory();
         resourceFactory.configure(simConfig.getResources(), resQuantity);
 
-        Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory);
+        Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory, PerformingNoveltyCalcs);
         simulation.start();
 
         SimulationGUI video = new SimulationGUI(simulation);
@@ -282,7 +215,7 @@ public class ScoreCalculator implements CalculateScore {
         ResourceFactory resourceFactory = new ConfigurableResourceFactory();
         resourceFactory.configure(simConfig.getResources(), resQuantity);
 
-        Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory);
+        Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory, PerformingNoveltyCalcs);
 
         simulation.setSchemaConfigNumber(schemaConfigNum);
 

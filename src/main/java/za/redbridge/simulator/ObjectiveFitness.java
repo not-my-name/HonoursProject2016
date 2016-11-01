@@ -172,34 +172,19 @@ Method to evaluate the overall objective fitness of a simulation run:
 		/*
 		calculate what the most ideal score is for if all the resources in the schema are connected
 		*/
-		double idealScore = 0;
-		int totalA = 0;
-		int totalB = 0;
-		int totalC = 0;
-		ArrayList<ResourceObject> allResources = behaviour.getPlacedResources();
-		for(ResourceObject resObj : allResources) {
-
-			String type = resObj.getType();
-
-			if(type.equals("A")) {
-				totalA++;
-			}
-			else if(type.equals("B")) {
-				totalB++;
-			}
-			else if(type.equals("C")) {
-				totalC++;
-			}
-		}
-
-		idealScore += totalA * connectionAWeight;
-		idealScore += totalB * connectionBWeight;
-		idealScore += totalC * connectionCWeight;
+		double idealScore = behaviour.getConstructionTask().getIdealScore();
 
 		double normalised = connectionScore / idealScore;
 
 		return normalised;
 	}
+
+	/**
+	PROBLEM TO SOLVE
+	this method will return the same value for if all of the resources are connected
+	or if none of them are connected
+	should not get a perfect score if there are no construction zones
+	*/
 
 	private double getAvgResToConstZoneDist(Behaviour behaviour) {
 

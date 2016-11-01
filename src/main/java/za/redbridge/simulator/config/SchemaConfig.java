@@ -57,6 +57,20 @@ public class SchemaConfig extends Config{
         return configs[i].getResQuantity();
     }
 
+    public int[] getIncorrectAdjacentSides (int i, String type, String[] adjacent) {
+        return configs[i].getIncorrectAdjacentSides(type, adjacent);
+    }
+
+    // public int getTotalResources(int i) {
+    //     int [] rq = configs[i].getResQuantity();
+    //     return rq[0] + rq[1] + rq[2];
+    // }
+
+    // public int getTotalRobotsRequired(int i) {
+    //     int [] rq = configs[i].getResQuantity();
+    //     return rq[0] + 2*rq[1] + 3*rq[2];
+    // }
+
     private static class Config{
         private HashMap<String,ResourceSchema> schema;
         private int [] resQuantityArray;
@@ -95,6 +109,43 @@ public class SchemaConfig extends Config{
                 correctSides++;
             }
             return correctSides;
+        }
+
+        /**
+        check if these getter methods even get called
+        */
+
+        // public int getACount() {
+        //     System.out.println("SchemaConfig: the getA method is called");
+        //     return ACount;
+        // }
+
+        // public int getBCount() {
+        //     System.out.println("SchemaConfig: the getB method is called");
+        //     return BCount;
+        // }
+
+        // public int getCCount() {
+        //     System.out.println("SchemaConfig: the getC method is called");
+        //     return CCount;
+        // }
+
+        public int[] getIncorrectAdjacentSides (String type, String[] adjacent) {
+
+            int[] incorrectSides = new int[4];
+            if(!schema.get(type).checkLeft(adjacent[0])){
+                incorrectSides[0] = 1;
+            }
+            if(!schema.get(type).checkRight(adjacent[1])){
+                incorrectSides[1] = 1;
+            }
+            if(!schema.get(type).checkUp(adjacent[2])){
+                incorrectSides[2] = 1;
+            }
+            if(!schema.get(type).checkDown(adjacent[3])){
+                incorrectSides[3] = 1;
+            }
+            return incorrectSides;
         }
     }
 
