@@ -52,7 +52,7 @@ public class CollisionSensor extends ClosestObjectSensor {
         if (object instanceof ResourceObject) {
             ResourceObject resource = (ResourceObject) object;
             // Filter out resources that are neither collected nor pushed by max robots
-            return !resource.isCollected() && !resource.pushedByMaxRobots();
+            return !resource.isConstructed() && !resource.pushedByMaxRobots();
         } else if (object instanceof RobotObject) {
             RobotObject robot = (RobotObject) object;
             // Filter out robots bound to resources

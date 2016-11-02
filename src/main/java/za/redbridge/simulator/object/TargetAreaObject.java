@@ -125,7 +125,7 @@ public class TargetAreaObject extends PhysicalObject implements Collideable {
             }
 
             // Mark resource as collected (this breaks the joints)
-            resource.setCollected(true);
+            resource.setConstructed(true);
             resource.getPortrayal().setPaint(Color.CYAN);
             resource.getPortrayal().setEnabled(false);
             // resource = null; // Naeem Ganey code.
@@ -139,7 +139,7 @@ public class TargetAreaObject extends PhysicalObject implements Collideable {
 
             if(resource.getValue() > 0) resource_count--;
             // Mark resource as no longer collected
-            resource.setCollected(false);
+            resource.setConstructed(false);
             resource.getPortrayal().setPaint(Color.MAGENTA);
 
             Set<RobotObject> pushingBots = findRobotsNearResource(resource);

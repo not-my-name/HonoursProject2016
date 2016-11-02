@@ -31,6 +31,7 @@ public class PickupHeuristic extends Heuristic {
     private ResourceObject currentResource = null;
 
     public PickupHeuristic(PickupSensor pickupSensor, RobotObject robot) {
+
         super(robot);
         this.pickupSensor = pickupSensor;
         setPriority(2);
@@ -38,6 +39,7 @@ public class PickupHeuristic extends Heuristic {
 
     @Override
     public Double2D step(List<List<Double>> list) {
+
         // Check for a resource in the sensor
         ResourceObject resource = pickupSensor.sense().map(o -> (ResourceObject) o.getObject()).orElse(null);
 
@@ -51,13 +53,8 @@ public class PickupHeuristic extends Heuristic {
             currentResource = resource;
             // Try pick it up
             if (resource.tryPickup(robot)) {
-                //robot.addPickupCounter();
-                // Success!
-                // set the current number of robots pushing this resource
-            //    CurrentNumPushingRobots = currentResource.getNumberPushingRobots();
+                
                 resetCounter(currentResource);
-                // Head for the target zone
-                // return wheelDriveForTargetAngle(targetAreaAngle());
                 return null;
             }
         }
@@ -76,6 +73,7 @@ public class PickupHeuristic extends Heuristic {
                 }
             }else if(SimStepCount >= MaxStepCounter){
                 // been holding this resourse for too long, detach from it and drive away
+                System.out.println("PickupHeuristic: the robot is about to detach");
                 currentResource.forceDetach();
                 resetCounter(currentResource);
                 return wheelDriveForTargetAngle(awayResourceTargetAngle());

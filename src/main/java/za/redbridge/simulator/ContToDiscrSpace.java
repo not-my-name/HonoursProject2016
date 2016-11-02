@@ -94,18 +94,19 @@ public class ContToDiscrSpace {
 		// System.out.println("res pos = " + res.getBody().getPosition());
 		// System.out.println("res adjacentList: " + Arrays.toString(res.getAdjacentList()));
 		if (resToConnectTo == null) {
+
 			Vec2 discrPos = getNearestDiscrPos(res.getBody().getPosition());
 			int[] gridPos = spaceToGrid.get(discrPos);
 				// System.out.println("Pos in grid " + Arrays.toString(gridPos));
 			grid.set(gridPos[0], gridPos[1], res);
-			System.out.println("Adding " + res + " at " + res.getBody().getPosition() + "=> " + discrPos + "(" + Arrays.toString(gridPos) + ")" + " IS FIRST");
+			//System.out.println("Adding " + res + " at " + res.getBody().getPosition() + "=> " + discrPos + "(" + Arrays.toString(gridPos) + ")" + " IS FIRST");
 			return discrPos;
 		}
 		else {
-			System.out.println("Pos of neighbour: " + resToConnectTo.getBody().getPosition());
+			//System.out.println("Pos of neighbour: " + resToConnectTo.getBody().getPosition());
 			int[] finalPosInGrid = new int[2];
 			int[] gridPos = spaceToGrid.get(resToConnectTo.getBody().getPosition());
-			System.out.println("Pos of neighbour in grid = " + Arrays.toString(gridPos));
+			//System.out.println("Pos of neighbour in grid = " + Arrays.toString(gridPos));
 			if (connectionType == 0) {
 				grid.set(gridPos[0]-1, gridPos[1], res);
 				finalPosInGrid[0] = gridPos[0]-1;
@@ -126,83 +127,12 @@ public class ContToDiscrSpace {
 				finalPosInGrid[0] = gridPos[0];
 				finalPosInGrid[1] = gridPos[1]+1;
 			}
-			System.out.println("Adding " + res + " at " + res.getBody().getPosition() + "=> " +  getDiscrPos(finalPosInGrid) + "(" + Arrays.toString(finalPosInGrid) + ")" + " ISNT FIRST");
+			//System.out.println("Adding " + res + " at " + res.getBody().getPosition() + "=> " +  getDiscrPos(finalPosInGrid) + "(" + Arrays.toString(finalPosInGrid) + ")" + " ISNT FIRST");
 			return getDiscrPos(finalPosInGrid);
 		}
 		
 		// return discrPos;
 	}
-
-
-	// public Vec2 addResourceToDiscrSpace (ResourceObject res, boolean isFirstInCZ) {
-
-	// 	if (isFirstInCZ) {
-
-	// 		Vec2 discrPos = getNearestDiscrPos(res.getBody().getPosition());
-	// 		int[] gridPos = spaceToGrid.get(discrPos);
-
-	// 		if (grid.get(gridPos[0], gridPos[1]) == null) {
-
-	// 			grid.set(gridPos[0], gridPos[1], res);
-	// 		}
-
-	// 		System.out.println("ContToDiscrSpace: adding resource " + res);
-	// 		System.out.println("ContToDiscrSpace: original location = " + res.getBody().getPosition());
-	// 		System.out.println("ContToDiscrSpace: dicretised location = " + discrPos);
-	// 		System.out.println("ContToDiscrSpace: gridPos = " + Arrays.toString(gridPos));
-
-	// 		return discrPos;
-	// 	}
-	// 	else {
-
-	// 		ResourceObject[] adjRes = res.getAdjacentList();
-	// 		int[] finalPosInGrid = new int[2];
-
-	// 		for (int i = 0; i < adjRes.length; i++) {
-
-	// 			if (adjRes[i] != null) {
-
-	// 				if (adjRes[i].isConstructed()) {
-
-	// 					Vec2 otherDiscrPos = getNearestDiscrPos(adjRes[i].getBody().getPosition());
-	// 					int[] gridPos = spaceToGrid.get(otherDiscrPos);
-
-	// 					if (i == 0) {
-
-	// 						grid.set(gridPos[0]+1, gridPos[1], res);
-	// 						finalPosInGrid[0] = gridPos[0]+1;
-	// 						finalPosInGrid[1] = gridPos[1];
-	// 					}
-	// 					else if (i == 1) {
-
-	// 						grid.set(gridPos[0]-1, gridPos[1], res);
-	// 						finalPosInGrid[0] = gridPos[0]-1;
-	// 						finalPosInGrid[1] = gridPos[1];
-	// 					}
-	// 					else if (i == 2) {
-
-	// 						grid.set(gridPos[0], gridPos[1]+1, res);
-	// 						finalPosInGrid[0] = gridPos[0];
-	// 						finalPosInGrid[1] = gridPos[1]+1;
-	// 					}
-	// 					else if (i == 3) {
-
-	// 						grid.set(gridPos[0], gridPos[1]-1, res);
-	// 						finalPosInGrid[0] = gridPos[0];
-	// 						finalPosInGrid[1] = gridPos[1]-1;
-	// 					}
-	// 				}
-
-	// 				System.out.println("ContToDiscrSpace: adding resource " + res);
-	// 				System.out.println("ContToDiscrSpace: original location = " + res.getBody().getPosition());
-	// 				System.out.println("ContToDiscrSpace: dicretised location = " + getDiscrPos(finalPosInGrid));
-	// 				System.out.println("ContToDiscrSpace: gridPos = " + Arrays.toString(finalPosInGrid));
-	// 			}
-	// 		}
-
-	// 		return getDiscrPos(finalPosInGrid);
-	// 	}
-	// }
 
 	public int[] getGridPos(Vec2 resPos) {
 
@@ -323,6 +253,7 @@ public class ContToDiscrSpace {
 				System.out.println("ISSUE with:");
 				System.out.println("\t" + r1);
 				System.out.println("\t" + r2);
+				System.out.println("Connection type = " + connectionType);
 				return false;
 			}
 		}
@@ -338,6 +269,7 @@ public class ContToDiscrSpace {
 				System.out.println("ISSUE with:");
 				System.out.println("\t" + r1);
 				System.out.println("\t" + r2);
+				System.out.println("Connection type = " + connectionType);
 				return false;
 			}
 		}
@@ -353,6 +285,7 @@ public class ContToDiscrSpace {
 				System.out.println("ISSUE with:");
 				System.out.println("\t" + r1);
 				System.out.println("\t" + r2);
+				System.out.println("Connection type = " + connectionType);
 				return false;
 			}
 		}
@@ -368,6 +301,7 @@ public class ContToDiscrSpace {
 				System.out.println("ISSUE with:");
 				System.out.println("\t" + r1);
 				System.out.println("\t" + r2);
+				System.out.println("Connection type = " + connectionType);
 				return false;
 			}
 		}

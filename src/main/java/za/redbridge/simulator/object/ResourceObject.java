@@ -73,7 +73,6 @@ public class ResourceObject extends PhysicalObject {
     private final String type;
 
     private double adjustedValue;
-    private boolean isCollected = false;
 
     private boolean fullyWelded;
     private boolean isConstructed; //if it is part of the construction zone
@@ -323,7 +322,7 @@ public class ResourceObject extends PhysicalObject {
 
                 for(int i=0;i<detectionPoints.length;i++){
 
-                    if (resourcePosition.sub(detectionPoints[i].getRelativePosition(this.getBody())).length() < 0.1f) {
+                    if (resourcePosition.sub(detectionPoints[i].getRelativePosition(this.getBody())).length() < (0.1f+Simulation.DISCR_GAP) ) {
 
                         int angleQuadrant = (int)roundAngle(getBody().getAngle());
                         String sideName = adjacencyMap.get(angleQuadrant)[i];
@@ -349,15 +348,6 @@ public class ResourceObject extends PhysicalObject {
                 }
             }
         }
-
-        countConnected = 0;
-        for(int k = 0; k < adjacentResources.length; k++) {
-
-            if( !adjacentResources[k].equals("_") ) { //count how many resources are connected to current resource
-                countConnected++;
-            }
-        }
-
     }
 
     public boolean isFullyWelded(){
@@ -404,6 +394,10 @@ public class ResourceObject extends PhysicalObject {
         this.isConstructed = true;
     }
 
+    public void setConstructed(boolean val) {
+        this.isConstructed = val;
+    }
+
     /**
     what the hell is this method for
     */
@@ -412,6 +406,16 @@ public class ResourceObject extends PhysicalObject {
     }
 
     public int getNumConnected() {
+
+        countConnected = 0;
+
+        for(int k = 0; k < adjacentResources.length; k++) {
+
+            if( !adjacentResources[k].equals("_") ) { //count how many resources are connected to current resource
+                countConnected++;
+            }
+        }
+
         return countConnected;
     }
 
@@ -475,7 +479,7 @@ public class ResourceObject extends PhysicalObject {
         }
 
         // Add an additional check here in case joints fail to be destroyed
-        if (isCollected && !joints.isEmpty()) {
+        if (isConstructed && !joints.isEmpty()) {
             for (Map.Entry<RobotObject, Joint> entry : joints.entrySet()) {
                 RobotObject robot = entry.getKey();
                 robot.setBoundToResource(false ,0);
@@ -574,7 +578,7 @@ public class ResourceObject extends PhysicalObject {
     }
 
     public boolean canBePickedUp() {
-        return !isCollected && !pushedByMaxRobots();
+        return !isConstructed && !pushedByMaxRobots();
     }
 
     /**
@@ -778,39 +782,39 @@ public class ResourceObject extends PhysicalObject {
      * Check whether this object has been collected
      * @return true if the object has been marked as collected (it has passed into the target area)
      */
-    public boolean isCollected() {
-        return isCollected;
-    }
+    // public boolean isCollected() {
+    //     return isCollected;
+    // }
 
     /** Mark this object as collected. i.e. mark it as being in the target area. */
-    public void setCollected(boolean isCollected) {
-        if (isCollected == this.isCollected) {
-            return;
-        }
+    // public void setCollected(boolean isCollected) {
+    //     if (isCollected == this.isCollected) {
+    //         return;
+    //     }
 
-        // Sticky side could be unset if resource "bumped" into target area without robots
-        // creating joints with it
-        if (isCollected && stickySide != null) {
-            // Break all the joints
-            for (Map.Entry<RobotObject, Joint> entry : joints.entrySet()) {
-                RobotObject robot = entry.getKey();
-                robot.setBoundToResource(false ,0);
-                getBody().getWorld().destroyJoint(entry.getValue());
-            }
-            joints.clear();
+    //     // Sticky side could be unset if resource "bumped" into target area without robots
+    //     // creating joints with it
+    //     if (isCollected && stickySide != null) {
+    //         // Break all the joints
+    //         for (Map.Entry<RobotObject, Joint> entry : joints.entrySet()) {
+    //             RobotObject robot = entry.getKey();
+    //             robot.setBoundToResource(false ,0);
+    //             getBody().getWorld().destroyJoint(entry.getValue());
+    //         }
+    //         joints.clear();
 
-            // Reset the anchor points
-            AnchorPoint[] anchorPoints = getAnchorPointsForSide(stickySide);
-            for (AnchorPoint anchorPoint : anchorPoints) {
-                anchorPoint.taken = false;
-            }
+    //         // Reset the anchor points
+    //         AnchorPoint[] anchorPoints = getAnchorPointsForSide(stickySide);
+    //         for (AnchorPoint anchorPoint : anchorPoints) {
+    //             anchorPoint.taken = false;
+    //         }
 
-            // Reset the sticky side
-            stickySide = null;
-        }
+    //         // Reset the sticky side
+    //         stickySide = null;
+    //     }
 
-        this.isCollected = isCollected;
-    }
+    //     this.isCollected = isCollected;
+    // }
 
     /**
     Method that calculates whether or not a resource is near enough to this resource to be considered 'connected'

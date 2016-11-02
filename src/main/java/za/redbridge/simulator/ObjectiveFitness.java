@@ -122,6 +122,7 @@ Method to evaluate the overall objective fitness of a simulation run:
 		System.out.println("Avg dist between resources = " + temp3);
 		System.out.println("Num connected blocks = " + temp4);
 		System.out.println("Avg dist between res and cZone = " + temp5);
+		System.out.println("");
 
 		return finalFitness;
 	}
@@ -161,13 +162,9 @@ Method to evaluate the overall objective fitness of a simulation run:
 
 		double connectionScore = 0;
 
-		//System.out.println("ObjectiveFitness: counting the number of connected resources");
-
 		connectionScore += behaviour.getConnectedA() * connectionAWeight;
 		connectionScore += behaviour.getConnectedB() * connectionBWeight;
 		connectionScore += behaviour.getConnectedC() * connectionCWeight;
-
-		//System.out.println("ObjectiveFitness: counted all connected");
 
 		/*
 		calculate what the most ideal score is for if all the resources in the schema are connected

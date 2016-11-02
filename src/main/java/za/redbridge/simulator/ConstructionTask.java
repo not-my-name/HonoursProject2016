@@ -135,25 +135,101 @@ public class ConstructionTask implements Steppable{
                         if(resource.pushedByMaxRobots() || neighbour.pushedByMaxRobots()) { //check that at least one of the resources are being pushed by the correct number of robots
 
                             if( checkSchema(resource) == resource.getNumConnected() && 
-                                checkSchema(neighbour) == neighbour.getNumConnected()) { //check that the resources can be connected to each other according to the schema
+                                    checkSchema(neighbour) == neighbour.getNumConnected()) { //check that the resources can be connected to each other according to the schema
 
                                 if(neighbour.isConstructed()) { //check if the neighbouring resource belongs to a construction zone
 
-                                    constructionZones.get(neighbour.getConstructionZoneID()-1).addResource(resource); //adding the resource to the existing construction zone
-                                    globalConstructionOrder.add(resource);
-                                    alignResource(resource, neighbour, i);
+                                    //System.out.println("ConstructionTask: adding to an existing construction zone");
+
+                                    int index = 0;
+                                    if(i == 0) {
+                                        index = 1;
+                                    }
+                                    else if(i == 1) {
+                                        index = 0;
+                                    }
+                                    else if(i == 2) {
+                                        index = 3;
+                                    }
+                                    else if(i == 3) {
+                                        index = 2;
+                                    }
+
+                                    //if(discreteGrid.canBeConnected(resource, neighbour, i)) {
+                                    if(discreteGrid.canBeConnected(neighbour, resource, index) ) {
+
+                                        System.out.println("ConstructionTask: can be added to construction zone");
+
+                                        constructionZones.get(neighbour.getConstructionZoneID()-1).addResource(resource); //adding the resource to the existing construction zone
+                                        globalConstructionOrder.add(resource);
+                                        // int index = 0;
+                                        // if(i == 0) {
+                                        //     index = 1;
+                                        // }
+                                        // else if(i == 1) {
+                                        //     index = 0;
+                                        // }
+                                        // else if(i == 2) {
+                                        //     index = 3;
+                                        // }
+                                        // else if(i == 3) {
+                                        //     index = 2;
+                                        // }
+                                        alignResource(resource, neighbour, index);
+                                        //alignResource(resource, neighbour, index);
+                                        //alignResource(neighbour, resource, index);
+                                        //alignResource(neighbour, resource, i);
+                                    }
+
                                 }
                                 else { //if the 2 resources are creating a new construction zone
 
-                                    constructionZoneID++;
-                                    ConstructionZone newZone = new ConstructionZone(constructionZoneID);
-                                    newZone.startConstructionZone(resource, neighbour);
-                                    constructionZones.add(newZone);
-                                    globalConstructionOrder.add(resource);
-                                    globalConstructionOrder.add(neighbour);
+                                    //System.out.println("ConstructionTask: trying to create a new construction zone");
 
-                                    if(discreteGrid.canBeConnected(resource, neighbour, i)) {
-                                        alignResource(resource, null, i);
+                                    int index = 0;
+                                    if(i == 0) {
+                                        index = 1;
+                                    }
+                                    else if(i == 1) {
+                                        index = 0;
+                                    }
+                                    else if(i == 2) {
+                                        index = 3;
+                                    }
+                                    else if(i == 3) {
+                                        index = 2;
+                                    }
+
+                                    //if(discreteGrid.canBeConnected(resource, neighbour, i)) {
+                                    if(discreteGrid.canBeConnected(neighbour, resource, index)) {
+
+                                        System.out.println("ConstructionTask: creating a new construction");
+
+                                        constructionZoneID++;
+                                        ConstructionZone newZone = new ConstructionZone(constructionZoneID);
+                                        newZone.startConstructionZone(resource, neighbour);
+                                        constructionZones.add(newZone);
+                                        globalConstructionOrder.add(resource);
+                                        globalConstructionOrder.add(neighbour);
+
+                                        alignResource(resource, null, index);
+                                        // alignResource(resource, null, i);
+
+                                        // int index = 0;
+                                        // if(i == 0) {
+                                        //     index = 1;
+                                        // }
+                                        // else if(i == 1) {
+                                        //     index = 0;
+                                        // }
+                                        // else if(i == 2) {
+                                        //     index = 3;
+                                        // }
+                                        // else if(i == 3) {
+                                        //     index = 2;
+                                        // }
+
+                                        //alignResource(neighbour, resource, index);
                                         alignResource(neighbour, resource, i);
                                     }
                                 }
@@ -163,89 +239,6 @@ public class ConstructionTask implements Steppable{
                 }
             }
         }
-
-        // for(ResourceObject resource : resources){
-
-        //     if(!resource.isConstructed()) { //check if the current resource being examined has already been connected to a construction zone
-
-        //         String [] resAdjacentList = resource.getAdjacentResources();
-        //         ResourceObject[] adjObjects = resource.getAdjacentList();
-
-        //         for (int i = 0; i < resAdjacentList.length; i++) { //iterate over the resources neighbouring the current resource
-
-        //             if( !resAdjacentList[i].equals("_") ) {
-
-        //                 ResourceObject neighbour = adjObjects[i];
-
-        //                 if(resource.pushedByMaxRobots() || neighbour.pushedByMaxRobots()) { //check that at least one of the resources are pushed by the required number of robots
-
-        //                     if( checkSchema(resource) == resource.getNumConnected() && 
-        //                         checkSchema(neighbour) == neighbour.getNumConnected()) { //check if all the connections on the resource are according to the construction schema
-
-        //                         if(constructionZones.size() == 0) { //if there are no existing construction zones
-
-        //                             constructionZoneID++;
-        //                             ConstructionZone newZone = new ConstructionZone(constructionZoneID);
-        //                             newZone.startConstructionZone(resource, neighbour);
-        //                             constructionZones.add(newZone);
-        //                             globalConstructionOrder.add(resource);
-        //                             globalConstructionOrder.add(neighbour);
-
-        //                             if(discreteGrid.canBeConnected(resource, neighbour, i)) {
-        //                                 alignResource(resource, true);
-        //                                 alignResource(neighbour, false);
-        //                             }
-                                    
-        //                         }
-        //                         else { //check if either of the resources are in a construction zone already
-
-        //                             if(resource.isConstructed()) }{}
-
-        //                             boolean found = false;
-
-        //                             for(ConstructionZone cZone : constructionZones) {
-
-        //                                 if( cZone.getConnectedResources().contains(resource) ) {
-
-        //                                     cZone.addResource(neighbour);
-        //                                     globalConstructionOrder.add(neighbour);
-        //                                     alignResource(neighbour, false);
-        //                                     found = true;
-        //                                     break;
-        //                                 }
-        //                                 else if( cZone.getConnectedResources().contains(neighbour) ) {
-
-        //                                     cZone.addResource(resource);
-        //                                     globalConstructionOrder.add(resource);
-        //                                     alignResource(resource, false);
-        //                                     found = true;
-        //                                     break;
-        //                                 }
-        //                             }
-
-        //                             //if there are construction zones but neither of the resources are found in any of them
-        //                             if( !found ) { //add a new construction zone and add these resources to it
-
-        //                                 constructionZoneID++;
-        //                                 ConstructionZone tempZone = new ConstructionZone(constructionZoneID);
-        //                                 tempZone.startConstructionZone(resource, neighbour);
-        //                                 constructionZones.add(tempZone);
-        //                                 globalConstructionOrder.add(resource);
-        //                                 globalConstructionOrder.add(neighbour);
-
-        //                                 if(discreteGrid.canBeConnected(resource, neighbour, i)) {
-
-        //                                     alignResource(resource, true);
-        //                                     alignResource(neighbour, false);
-        //                                 }
-        //                             }
-        //                         }
-        //                     }
-        //                 }  
-        //             }
-        //         }
-        //     }
-        // }
     }
 
     /**
@@ -262,16 +255,23 @@ public class ConstructionTask implements Steppable{
         return globalConstructionOrder;
     }
 
+    //method to find the most valuable construction zone
+    //from the list of existing construction zones
+    public ConstructionZone getBestConstructionZone() {
+
+        /**
+        remember to actually find the best one
+        **/
+
+        return constructionZones.get(0);
+
+    }
+
 
     //method to return the total number of resources that are placed in the particular simulation
     public int getTotalNumResources() {
         return resources.size();
     }
-
-    // //para: which construction zone to find
-    // public int getNumConnectedResources(int cZoneIndex) {
-    //     return constructionZones[cZoneIndex].getNumberOfConnectedResources();
-    // }
 
     public void printConnected() {
 
@@ -304,6 +304,11 @@ public class ConstructionTask implements Steppable{
         resObj.getPortrayal().setTransform(xFos);
         resObj.getBody().setTransform(xFos.p, xFos.q.getAngle());
     }
+
+    /**
+    check that the method below works
+    needs to join adjacent construction zones
+    */
 
     //method to update the construction zones according to the updated neighbour lists
     //this method is used to join neighbouring construction zones

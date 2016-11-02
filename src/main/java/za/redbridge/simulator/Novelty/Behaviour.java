@@ -19,6 +19,7 @@ public class Behaviour {
 	private ConstructionTask constructionTask;
 	//private ConstructionZone[] constructionZones;
 	private ArrayList<ConstructionZone> constructionZones;
+	private ConstructionZone mostValuableCZ; //variable to hold the most valuable construction zone that the robot team created during the simulation
 
 	private int numConstructionZones;
 	private double numPickups; //number of times robots picked up a resource
@@ -59,6 +60,8 @@ public class Behaviour {
 
 		numConstructionZones = this.constructionZones.size();
 
+		mostValuableCZ = this.constructionTask.getBestConstructionZone();
+
 		placedResources = new ArrayList<ResourceObject>();
 		placedRobots = new ArrayList<RobotObject>();
 
@@ -76,37 +79,14 @@ public class Behaviour {
 		maxDist = this.constructionTask.getMaxDistance();
 
 		//using methods to initialise values
-		//System.out.println("Behaviour: calling the constructor");
 		setPlacedRobots(currentRobots);
-		//System.out.println("Behaviour: setPlacedRobots()");
 		setPlacedResources(currentResources);
-		//System.out.println("Behaviour: setPlacedResources()");
 		countPickups();	
-		//System.out.println("Behaviour: countPickups()");
 		countConnected();
-		//System.out.println("Behaviour: countConnected()");
 
 		calcResToResDist(); 
-		//System.out.println("Behaviour: calcResToResDist()");
 		calcRobToResDist();
-		//System.out.println("Behaviour: calcRobToResDist()");
 		calcResToCZoneDist();
-		//System.out.println("Behaviour: calcResToCZoneDist()");
-		//calcCZoneScores();
-
-		// System.out.println("");
-
-		// System.out.println("Behaviour:");
-		// System.out.println("NumPickups = " + numPickups);
-		// System.out.println("Avg dist betwn res = " + avgResToResDist);
-		// System.out.println("Avg robot to res dist = " + avgRobToResDist);
-		// System.out.println("Total A = " + connectedA);
-		// System.out.println("Total B = " + connectedB);
-		// System.out.println("Total C = " + connectedC);
-		// System.out.println("Avg res to cZone dist = " + avgResToCZoneDist);
-		// System.out.println("");
-
-		//System.out.println("Behaviour: FINISHED");
 	}
 
 	//method to get the resources and their respective locations at the end of the simulation

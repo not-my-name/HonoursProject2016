@@ -340,7 +340,7 @@ public class ConstructionZone {
 
             if(resource.getValue() > 0) numConnected--;
             // Mark resource as no longer collected
-            resource.setCollected(false);
+            resource.setConstructed(false);
             resource.getPortrayal().setPaint(Color.MAGENTA);
         }
     }
