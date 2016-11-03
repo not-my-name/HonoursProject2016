@@ -35,6 +35,8 @@ public class Main {
 	private final static Logger log = LoggerFactory.getLogger(Main.class);
 	private final static double convergenceScore = 1000;
 
+	private final static boolean PerformingNoveltySearch;
+
 	private static int numInputs;
 	private int numOutputs = 2;
 	private int populationSize;
@@ -125,37 +127,35 @@ public class Main {
 		population.setActivationCycles(4); //THIS COULD BE IMPORTANT (FROM ONLINE EXAMPLE)
 		population.reset();
 
-		//System.out.println("MainClass: check if the population is HyperNEAT: " + population.isHyperNEAT());
+		TrainEA trainer;
+		if(PerformingNoveltySearch) {
 
-		//constructNEATTrainer creates a HyperNEAT trainer since a NEAT population is being sent as parameter
-		TrainEA trainer = NEATUtil.constructNEATTrainer(population, scoreCalculator);
-		//ObjectiveTrainEA trainer = NEATUtil.constructObjectiveTrainer(population, scoreCalculator);
-		/**
-		if performing the novelty search
-		*/
-		//NoveltyTrainEA trainer = NEATUtil.constructNoveltyTrainer(population, scoreCalculator);
-		//trainer.addStrategy(new NoveltySearchStrategy(options.populationSize, scoreCalculator));
-		//only need to add a strategy if you need to do something in the pre or post iteration methods
+			trainer = NEATUtil.constructNoveltyTrainer(population, scoreCalculator);
+			trainer.addStrategy(new NoveltySearchStrategy(options.populationSize, scoreCalculator));
+		}
+		else {
+
+			TrainEA trainer = NEATUtil.constructNEATTrainer(population, scoreCalculator);
+		}
 
 		trainer.setThreadCount(1);
 
 		final StatsRecorder statsRecorder = new StatsRecorder(trainer, scoreCalculator); //this is basically where the simulation runs
-		//statsRecorder.recordIterationStats(); //record the stats of the iterations
 
-		// scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
+		scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
 
-		// for(int i = 0; i < options.numGenerations; i++) { //for(int i = trainer.getIteration(); i < numIterations; i++)
-		// 	trainer.iteration(); //training the network for a single iteration
-		// 	statsRecorder.recordIterationStats();
+		for(int i = 0; i < options.numGenerations; i++) { //for(int i = trainer.getIteration(); i < numIterations; i++)
+			trainer.iteration(); //training the network for a single iteration
+			statsRecorder.recordIterationStats();
 
-		// 	//once an individual has found an optimal solution, break out of the training loop
-		// 	if(trainer.getBestGenome().getScore() >= convergenceScore) {
-		// 		log.info("convergence reached at epoch(iteration): " + trainer.getIteration());
-		// 		break;
-		// 	}
-		// }
+			//once an individual has found an optimal solution, break out of the training loop
+			if(trainer.getBestGenome().getScore() >= convergenceScore) {
+				log.info("convergence reached at epoch(iteration): " + trainer.getIteration());
+				break;
+			}
+		}
 
-		// scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
+		scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
 		log.debug("Training Complete");
 
 	}
@@ -177,10 +177,10 @@ public class Main {
                 + " for the population")
         private double connectionDensity = 0.5;
         @Parameter(names = "--demo", description = "Show a GUI demo of a given genome")
-        //private String genomePath = null;
+        private String genomePath = null;
         //private String genomePath = "results/Hex-20160920T2134_null__NEAT/best networks/epoch-5/network.ser";
         //private String genomePath = "results/ruben-GE72-2QD-20161030T1126_null/best networks/epoch-1/network.ser";
-        private String genomePath = "results/ruben-GE72-2QD-20161102T1342_null/best networks/epoch-1/network.ser";
+        //private String genomePath = "results/ruben-GE72-2QD-20161102T1342_null/best networks/epoch-1/network.ser";
 
         @Parameter(names = "--control", description = "Run with the control case")
         private boolean control = false;

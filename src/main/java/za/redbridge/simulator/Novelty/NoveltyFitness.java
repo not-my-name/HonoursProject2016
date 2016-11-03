@@ -289,6 +289,35 @@ public class NoveltyFitness{
 	}
 
 	/**
+	writing this method to work with the discrete construction zones
+	check which of these methods work better
+	*/
+
+	private double compareConstructionZones(NoveltyBehaviour currentBehaviour, NoveltyBehaviour otherBehaviour) {
+
+		int[][] currentDiscreteGrid = currentBehaviour.getDiscreteGrid();
+		int[][] otherDiscreteGrid = otherBehaviour.getDiscreteGrid();
+
+		double totalDifferenceScore = 0;
+		double perfectScore = 0;
+
+		for(int k = 0; k < 20; k++) {
+			for(int j = 0; j < 20; j++) {
+
+				if (currentDiscreteGrid[k][l] != otherDiscreteGrid[k][l]) { //check if the grids have the same type of block in the same position
+					totalDifferenceScore++;
+				}
+
+				perfectScore++;
+			}
+		}
+
+		double finalConstructionZoneFitness = totalDifferenceScore / perfectScore;
+
+		return finalConstructionZoneFitness;
+	}
+
+	/**
 	check how to do these calculations
 	*/
 

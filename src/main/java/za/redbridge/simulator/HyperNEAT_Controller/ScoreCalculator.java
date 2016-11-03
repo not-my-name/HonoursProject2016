@@ -75,7 +75,7 @@ public class ScoreCalculator implements CalculateScore {
         /**
         need to set this from the main method in order to run the experiments
         */
-        PerformingNoveltyCalcs = false;
+        PerformingNoveltyCalcs = true;
 
         /**
         need to change the schema config to work with the variables so that the config number can change

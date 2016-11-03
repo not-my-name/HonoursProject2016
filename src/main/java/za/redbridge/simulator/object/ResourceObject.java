@@ -99,6 +99,8 @@ public class ResourceObject extends PhysicalObject {
 
     private boolean visited; //variable to check whether or not this resource object has been traversed
 
+    private Vec2 gridPosition; //variable to keep track of the resource's position in the grid for later comparison
+
     // is a hack
     // private ArrayList<ResourceObject> otherResources = new ArrayList<ResourceObject>();
 
@@ -268,6 +270,16 @@ public class ResourceObject extends PhysicalObject {
         weldPoints[1] = rightPoint;
         weldPoints[2] = topPoint;
         weldPoints[3] = bottomPoint;
+    }
+
+    public void setGridPosition(int[] gridPos) {
+
+        gridPosition = new Vec2();
+        gridPosition.set( (float) gridPos[0], (float) gridPos[1]) );
+    }
+
+    public Vec2 getGridPosition() {
+        return gridPosition;
     }
 
     public void setVisited(boolean flag) {

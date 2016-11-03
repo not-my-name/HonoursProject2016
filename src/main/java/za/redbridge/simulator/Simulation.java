@@ -134,6 +134,7 @@ public class Simulation extends SimState {
     public void finish() {
 
         super.finish();
+        System.out.println("Simulation: calling the finish method");
 
         construction.updateCZones();
     }

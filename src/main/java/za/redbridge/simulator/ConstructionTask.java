@@ -308,6 +308,8 @@ public class ConstructionTask implements Steppable{
     /**
     check that the method below works
     needs to join adjacent construction zones
+
+    stop creating new construction zones after the first 3
     */
 
     //method to update the construction zones according to the updated neighbour lists
@@ -414,6 +416,10 @@ public class ConstructionTask implements Steppable{
         }
 
         return total;
+    }
+
+    public ArrayList<NoveltyBehaviour> getConstructionOrder() {
+        return this.globalConstructionOrder;
     }
 
     public int checkSchema(int i) {

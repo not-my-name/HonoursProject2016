@@ -33,8 +33,9 @@ public class NoveltyBehaviour {
 	//private ConstructionZone[] constructionZones; 
 	private ArrayList<ConstructionZone> constructionZones;
 	private ConstructionTask constructionTask;
+	private int[][] discreteConstructionZone;
 
-	private ResourceObject[] connectionOrder;
+	private ArrayList<ResourceObject> connectionOrder;
 
 	//number of samples in a trajectory
 	private int numRobotPosSamples; //number of positions that get saved in order to prepresent a trajectory (size of each trajectory array)
@@ -74,14 +75,23 @@ public class NoveltyBehaviour {
 		calcAvgTrajectory(numResources, numResPosSamples, avgResourceTrajectory, resourceTrajectories);
 
 		this.constructionTask = constructionTask;
+		this.connectionOrder = this.constructionTask.getConstructionOrder();
+
 		/**
 		check for if this gets copied over properly
 		should it be done in a loop for every individual
+
+		change this to only work with 3 construction zones
 		*/
 		this.constructionZones = this.constructionTask.getConstructionZones();
 
 		//create the cumulative representation
 		populateConnections();
+		/**
+		change this to work with the variable environment dimensions
+		*/
+		discreteConstructionZone = new int[20][20];
+		populateGrid();
 
 		populationNoveltyScore = 0;
 		archiveNoveltyScore = 0;
@@ -115,6 +125,44 @@ public class NoveltyBehaviour {
 			resourceTrajectories.add(trajectory); //each element in the resourceTrajectories list will be a LinkedList of Vec2
 		}
 
+	}
+
+	//method to create the 2D grid representing the structure that was built in the environment
+	//iterate over all the resources (or iterate over the resources per construction zone)
+	//get their grid positions and add them to the corresponding element in the array
+	private void populateGrid() {
+
+		/*
+		EMPTY -> 0
+		A -> 1
+		B -> 2
+		C -> 3
+		*/
+
+		for(int k = 0; k < 20; k++) {
+			for(int j = 0; j < 20; j++) {
+				discreteConstructionZone[k][j] = 0;
+			}
+		}
+
+		for(ResourceObject resObj : connectionOrder) { //iterate over the resource that have been connected (first 3 construction zones)
+
+			String type = resObj.getType();
+			Vec2 gridLocation = resObj.getGridPosition();
+			int row = gridLocation.y;
+			int col = gridLocation.x;
+
+			int typeIndex = -1;
+			if(type.equals("A")) {
+				typeIndex = 1;
+			}
+			else if(type.equals("B")) {
+				typeIndex = 2;
+			}
+			else if(type.equals("C")) {
+				typeIndex = 3;
+			}
+		}
 	}
 
 	//rewriting this method to sue lists instead of arrays for the connections
@@ -358,6 +406,10 @@ public class NoveltyBehaviour {
 
 	public Vec2[] getRobotTrajectory() {
 		return avgRobotTrajectory;
+	}
+
+	public int[][] getDiscreteConstructionZone() {
+		return discreteConstructionZone;
 	}
 
 	// public String[][] getAConnections() {

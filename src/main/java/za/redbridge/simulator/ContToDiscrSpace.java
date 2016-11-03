@@ -96,6 +96,8 @@ public class ContToDiscrSpace {
 		if (resToConnectTo == null) {
 
 			Vec2 discrPos = getNearestDiscrPos(res.getBody().getPosition());
+			res.setGridPosition(getGridPos(res));
+
 			int[] gridPos = spaceToGrid.get(discrPos);
 				// System.out.println("Pos in grid " + Arrays.toString(gridPos));
 			grid.set(gridPos[0], gridPos[1], res);
@@ -127,6 +129,9 @@ public class ContToDiscrSpace {
 				finalPosInGrid[0] = gridPos[0];
 				finalPosInGrid[1] = gridPos[1]+1;
 			}
+
+			res.setGridPosition(finalPosInGrid);
+
 			//System.out.println("Adding " + res + " at " + res.getBody().getPosition() + "=> " +  getDiscrPos(finalPosInGrid) + "(" + Arrays.toString(finalPosInGrid) + ")" + " ISNT FIRST");
 			return getDiscrPos(finalPosInGrid);
 		}
@@ -306,64 +311,6 @@ public class ContToDiscrSpace {
 			}
 		}
 	}
-
-
-	// public boolean canBeConnected (ResourceObject r1, ResourceObject r2, int connectionType) {
-	// 	//Get discriticesd position of r1
-	// 	int[] r1GridPos = spaceToGrid.get(getNearestDiscrPos(r1.getBody().getPosition()));
-
-
-	// 	//Calculate where r2 should be placed according to the connectionType
-	// 	int[] r2GridPos = new int[2];
-	// 	if (connectionType == 0) {
-	// 		// r2 is to the left of r1
-	// 		r2GridPos[0] = r1GridPos[0]-1;
-	// 		r2GridPos[1] = r1GridPos[1];
-	// 		// this position is not taken
-	// 		if (grid.get(r2GridPos[0], r2GridPos[1]) == null) {
-	// 			return true;
-	// 		}
-	// 		else {
-	// 			return false;
-	// 		}
-	// 	}
-	// 	else if (connectionType == 1) {
-	// 		// r2 is to the right of r1
-	// 		r2GridPos[0] = r1GridPos[0]+1;
-	// 		r2GridPos[1] = r1GridPos[1];
-	// 		// this position is not taken
-	// 		if (grid.get(r2GridPos[0], r2GridPos[1]) == null) {
-	// 			return true;
-	// 		}
-	// 		else {
-	// 			return false;
-	// 		}
-	// 	}
-	// 	else if (connectionType == 2) {
-	// 		// r2 is above r1
-	// 		r2GridPos[0] = r1GridPos[0];
-	// 		r2GridPos[1] = r1GridPos[1]-1;
-	// 		// this position is not taken
-	// 		if (grid.get(r2GridPos[0], r2GridPos[1]) == null) {
-	// 			return true;
-	// 		}
-	// 		else {
-	// 			return false;
-	// 		}
-	// 	}
-	// 	else {
-	// 		// r2 is below r1
-	// 		r2GridPos[0] = r1GridPos[0];
-	// 		r2GridPos[1] = r1GridPos[1]+1;
-	// 		// this position is not taken
-	// 		if (grid.get(r2GridPos[0], r2GridPos[1]) == null) {
-	// 			return true;
-	// 		}
-	// 		else {
-	// 			return false;
-	// 		}
-	// 	}
-	// }
 
 	/*
 	Recursively move through all neighbours and collate all resources that are considered within the same cz
