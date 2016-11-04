@@ -6,6 +6,7 @@ import za.redbridge.simulator.object.RobotObject;
 import za.redbridge.simulator.ConstructionTask;
 import za.redbridge.simulator.ConstructionZone;
 import org.jbox2d.common.Vec2;
+import sim.field.grid.ObjectGrid2D;
 
 /*
 this is the class that will be created for each time that an individual gets tested
@@ -30,10 +31,10 @@ public class NoveltyBehaviour {
 	private Vec2[] avgResourceTrajectory;
 
 	//stores the final construction at the end of the simulation
-	//private ConstructionZone[] constructionZones; 
+	//private ConstructionZone[] constructionZones;
 	private ArrayList<ConstructionZone> constructionZones;
 	private ConstructionTask constructionTask;
-	private int[][] discreteConstructionZone;
+	private ObjectGrid2D discreteConstructionZone;
 
 	private ArrayList<ResourceObject> connectionOrder;
 
@@ -52,6 +53,9 @@ public class NoveltyBehaviour {
 	private ArrayList<Double> archiveNeighbourhood;
 
 	private boolean archived;
+
+	private int envHeight = 20;
+	private int envWidth = 20;
 
 	public NoveltyBehaviour(ArrayList<RobotObject> currentRobots, ArrayList<ResourceObject> currentResources, ConstructionTask constructionTask) {
 
@@ -84,14 +88,14 @@ public class NoveltyBehaviour {
 		change this to only work with 3 construction zones
 		*/
 		this.constructionZones = this.constructionTask.getConstructionZones();
+		this.discreteConstructionZone = this.constructionTask.getDiscreteGrid().getGrid();
+
 
 		//create the cumulative representation
 		populateConnections();
 		/**
 		change this to work with the variable environment dimensions
 		*/
-		discreteConstructionZone = new int[20][20];
-		populateGrid();
 
 		populationNoveltyScore = 0;
 		archiveNoveltyScore = 0;
@@ -127,46 +131,8 @@ public class NoveltyBehaviour {
 
 	}
 
-	//method to create the 2D grid representing the structure that was built in the environment
-	//iterate over all the resources (or iterate over the resources per construction zone)
-	//get their grid positions and add them to the corresponding element in the array
-	private void populateGrid() {
-
-		/*
-		EMPTY -> 0
-		A -> 1
-		B -> 2
-		C -> 3
-		*/
-
-		for(int k = 0; k < 20; k++) {
-			for(int j = 0; j < 20; j++) {
-				discreteConstructionZone[k][j] = 0;
-			}
-		}
-
-		for(ResourceObject resObj : connectionOrder) { //iterate over the resource that have been connected (first 3 construction zones)
-
-			String type = resObj.getType();
-			Vec2 gridLocation = resObj.getGridPosition();
-			int row = gridLocation.y;
-			int col = gridLocation.x;
-
-			int typeIndex = -1;
-			if(type.equals("A")) {
-				typeIndex = 1;
-			}
-			else if(type.equals("B")) {
-				typeIndex = 2;
-			}
-			else if(type.equals("C")) {
-				typeIndex = 3;
-			}
-		}
-	}
-
 	//rewriting this method to sue lists instead of arrays for the connections
-	//if using arrays, creating the arrays to a max dimension and then need to keep track 
+	//if using arrays, creating the arrays to a max dimension and then need to keep track
 	//how many of the actual positions are filled and not empty elements
 	//dont need to check that with lists, just use fancy for loop over elements
 	private void populateConnections() {
@@ -284,7 +250,7 @@ public class NoveltyBehaviour {
 	/*
 	method to calculate an average trajectory that represents the combined overall
 	trajectories of all the robots in the team
-	so that there is one average trajectory per controller that can be compared to 
+	so that there is one average trajectory per controller that can be compared to
 	the trajectories of other controllers in the generation
 
 	iterate over the trajectories of each robot in a team
@@ -342,20 +308,38 @@ public class NoveltyBehaviour {
 	}
 
 	//method to calculate the individuals novelty based on its average distance to k-nearest neighbours
-	public double calulatePopulationNovelty() {
+	public double calculatePopulationNovelty() {
 
 		populationNoveltyScore = 0;
 		int numNeighbours = 0;
 
 		for(double d : populationNeighbourhood) { //iterate over the nearest neighbours in the population
 
-			simulationNoveltyScore += d;
+			populationNoveltyScore += d;
 			numNeighbours++;
 		}
 
 		populationNoveltyScore = populationNoveltyScore / numNeighbours;
+
+		//System.out.println("NoveltyBehaviour: finished calculating population score = " + populationNoveltyScore);
 		return populationNoveltyScore;
 	}
+
+	/*
+	method to print out the discretised representation of the constructed structures
+	*/
+	// private void printGrid() {
+	//
+	// 	System.out.println("NoveltyBehaviour: Printing the grid");
+	//
+	// 	for(int r = 0; r < envHeight; r++) {
+	// 		for(int c = 0; c < envWidth; c++) {
+	// 			System.out.print(discreteConstructionZone[r][c] + " ");
+	// 		}
+	// 		System.out.println("");
+	// 	}
+	// 	System.out.println("");
+	// }
 
 	//check if the current Behaviour has been added to the archive
 	public boolean isArchived() {
@@ -377,6 +361,7 @@ public class NoveltyBehaviour {
 	}
 
 	public void addPopulationNeighbour(double newNeighbour) {
+		//System.out.println("NoveltyBehaviour: adding a new novelty neighbour = " + newNeighbour);
 		populationNeighbourhood.add(newNeighbour);
 	}
 
@@ -391,6 +376,10 @@ public class NoveltyBehaviour {
 	// public ConstructionZone[] getConstructionZone() {
 	// 	return this.constructionZones;
 	// }
+
+	public double getPopulationScore() {
+		return populationNoveltyScore;
+	}
 
 	public ArrayList<ConstructionZone> getConstructionZone() {
 		return constructionZones;
@@ -408,7 +397,7 @@ public class NoveltyBehaviour {
 		return avgRobotTrajectory;
 	}
 
-	public int[][] getDiscreteConstructionZone() {
+	public ObjectGrid2D getDiscreteConstructionZone() {
 		return discreteConstructionZone;
 	}
 
@@ -435,5 +424,5 @@ public class NoveltyBehaviour {
 	public ArrayList<String[]> getCConnections() {
 		return CConnectionsList;
 	}
-	
+
 }

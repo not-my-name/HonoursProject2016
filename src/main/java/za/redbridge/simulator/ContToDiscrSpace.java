@@ -33,9 +33,10 @@ public class ContToDiscrSpace {
 	private SchemaConfig schema;
 	private int schemaNumber;
 
-	public ContToDiscrSpace(int nWidth, int nHeight, double resWidth, double resHeight, float gap, SchemaConfig schema, int schemaNumber) {
+	//a map to keep the mapping between a resources physical location and the discretized grid location
+	private Map<ResourceObject, int[]> resToGridPosMap;
 
-		System.out.println("ContToDiscrSpace: CREATING THE GRID");
+	public ContToDiscrSpace(int nWidth, int nHeight, double resWidth, double resHeight, float gap, SchemaConfig schema, int schemaNumber) {
 
 		this.schema = schema;
 		this.schemaNumber = schemaNumber;
@@ -53,6 +54,7 @@ public class ContToDiscrSpace {
 		// grid = new ObjectGrid2D(nWidth, nHeight, nullPlacer);
 		grid = new ObjectGrid2D(nWidth, nHeight);
 		spaceToGrid = new HashMap<>();
+		resToGridPosMap = new HashMap<>();
 		initCentrePoints();
 	}
 
@@ -73,7 +75,7 @@ public class ContToDiscrSpace {
 				centrePoints[cnt] = new Vec2(newX, newY);
 				int[] gridPos = {x,y};
 				spaceToGrid.put(centrePoints[cnt], gridPos);
-				
+
 				// System.out.println(centrePoints[cnt] + " " + Arrays.toString(gridPos));
 				cnt++;
 			}
@@ -90,54 +92,54 @@ public class ContToDiscrSpace {
 		connectionType = 2 => resToConnectTo '_ _ res _'
 		connectionType = 3 => resToConnectTo '_ _ _ res'
 	**/
-	public Vec2 addResourceToDiscrSpace (ResourceObject res, ResourceObject resToConnectTo, int connectionType) {
-		// System.out.println("res pos = " + res.getBody().getPosition());
-		// System.out.println("res adjacentList: " + Arrays.toString(res.getAdjacentList()));
-		if (resToConnectTo == null) {
-
-			Vec2 discrPos = getNearestDiscrPos(res.getBody().getPosition());
-			res.setGridPosition(getGridPos(res));
-
-			int[] gridPos = spaceToGrid.get(discrPos);
-				// System.out.println("Pos in grid " + Arrays.toString(gridPos));
-			grid.set(gridPos[0], gridPos[1], res);
-			//System.out.println("Adding " + res + " at " + res.getBody().getPosition() + "=> " + discrPos + "(" + Arrays.toString(gridPos) + ")" + " IS FIRST");
-			return discrPos;
-		}
-		else {
-			//System.out.println("Pos of neighbour: " + resToConnectTo.getBody().getPosition());
-			int[] finalPosInGrid = new int[2];
-			int[] gridPos = spaceToGrid.get(resToConnectTo.getBody().getPosition());
-			//System.out.println("Pos of neighbour in grid = " + Arrays.toString(gridPos));
-			if (connectionType == 0) {
-				grid.set(gridPos[0]-1, gridPos[1], res);
-				finalPosInGrid[0] = gridPos[0]-1;
-				finalPosInGrid[1] = gridPos[1];
-			}
-			else if (connectionType == 1) {
-				grid.set(gridPos[0]+1, gridPos[1], res);
-				finalPosInGrid[0] = gridPos[0]+1;
-				finalPosInGrid[1] = gridPos[1];
-			}
-			else if (connectionType == 2) {
-				grid.set(gridPos[0], gridPos[1]-1, res);
-				finalPosInGrid[0] = gridPos[0];
-				finalPosInGrid[1] = gridPos[1]-1;
-			}
-			else if (connectionType == 3) {
-				grid.set(gridPos[0], gridPos[1]+1, res);
-				finalPosInGrid[0] = gridPos[0];
-				finalPosInGrid[1] = gridPos[1]+1;
-			}
-
-			res.setGridPosition(finalPosInGrid);
-
-			//System.out.println("Adding " + res + " at " + res.getBody().getPosition() + "=> " +  getDiscrPos(finalPosInGrid) + "(" + Arrays.toString(finalPosInGrid) + ")" + " ISNT FIRST");
-			return getDiscrPos(finalPosInGrid);
-		}
-		
-		// return discrPos;
-	}
+	// public Vec2 addResourceToDiscrSpace (ResourceObject res, ResourceObject resToConnectTo, int connectionType) {
+	// 	// System.out.println("res pos = " + res.getBody().getPosition());
+	// 	// System.out.println("res adjacentList: " + Arrays.toString(res.getAdjacentList()));
+	// 	if (resToConnectTo == null) {
+	//
+	// 		Vec2 discrPos = getNearestDiscrPos(res.getBody().getPosition());
+	// 		res.setGridPosition(getGridPos(discrPos));
+	//
+	// 		int[] gridPos = spaceToGrid.get(discrPos);
+	// 			// System.out.println("Pos in grid " + Arrays.toString(gridPos));
+	// 		grid.set(gridPos[0], gridPos[1], res);
+	// 		//System.out.println("Adding " + res + " at " + res.getBody().getPosition() + "=> " + discrPos + "(" + Arrays.toString(gridPos) + ")" + " IS FIRST");
+	// 		return discrPos;
+	// 	}
+	// 	else {
+	// 		//System.out.println("Pos of neighbour: " + resToConnectTo.getBody().getPosition());
+	// 		int[] finalPosInGrid = new int[2];
+	// 		int[] gridPos = spaceToGrid.get(resToConnectTo.getBody().getPosition());
+	// 		//System.out.println("Pos of neighbour in grid = " + Arrays.toString(gridPos));
+	// 		if (connectionType == 0) {
+	// 			grid.set(gridPos[0]-1, gridPos[1], res);
+	// 			finalPosInGrid[0] = gridPos[0]-1;
+	// 			finalPosInGrid[1] = gridPos[1];
+	// 		}
+	// 		else if (connectionType == 1) {
+	// 			grid.set(gridPos[0]+1, gridPos[1], res);
+	// 			finalPosInGrid[0] = gridPos[0]+1;
+	// 			finalPosInGrid[1] = gridPos[1];
+	// 		}
+	// 		else if (connectionType == 2) {
+	// 			grid.set(gridPos[0], gridPos[1]-1, res);
+	// 			finalPosInGrid[0] = gridPos[0];
+	// 			finalPosInGrid[1] = gridPos[1]-1;
+	// 		}
+	// 		else if (connectionType == 3) {
+	// 			grid.set(gridPos[0], gridPos[1]+1, res);
+	// 			finalPosInGrid[0] = gridPos[0];
+	// 			finalPosInGrid[1] = gridPos[1]+1;
+	// 		}
+	//
+	// 		res.setGridPosition(finalPosInGrid);
+	//
+	// 		//System.out.println("Adding " + res + " at " + res.getBody().getPosition() + "=> " +  getDiscrPos(finalPosInGrid) + "(" + Arrays.toString(finalPosInGrid) + ")" + " ISNT FIRST");
+	// 		return getDiscrPos(finalPosInGrid);
+	// 	}
+	//
+	// 	// return discrPos;
+	// }
 
 	public int[] getGridPos(Vec2 resPos) {
 
@@ -204,7 +206,7 @@ public class ContToDiscrSpace {
 					else {
 						adjacentResources[1] = adjRes;
 					}
-				}	
+				}
 			}
 		}
 
@@ -240,76 +242,228 @@ public class ContToDiscrSpace {
 	@return true if both resources can be placed without overlapping previous
 	**/
 	public boolean canBeConnected (ResourceObject r1, ResourceObject r2, int connectionType) {
+
 		//Get discriticesd position of r1
-		int[] r1GridPos = spaceToGrid.get(getNearestDiscrPos(r1.getBody().getPosition()));
+		int[] r2GridPos;
+		int[] r1GridPos = new int[2];
 
+		if (r2.isConstructed()) {
+			r2GridPos = spaceToGrid.get(r2.getBody().getPosition());
+		}
+		else {
+			r2GridPos = spaceToGrid.get(getNearestDiscrPos(r2.getBody().getPosition()));
+			if ((r2GridPos[0] > 0 && r2GridPos[0] < grid.field.length)&&(r2GridPos[1] > 0 && r2GridPos[1] < grid.field.length)) {
+				if (grid.get(r2GridPos[0], r2GridPos[1]) != null) {
+					return false;
+				}
+			}
+			else {
+				return false;
+			}
+		}
 
-		//Calculate where r2 should be placed according to the connectionType
-		int[] r2GridPos = new int[2];
+		//Given where r2 is placed, figure out where r1 would need to be placed:
+		//If r2 is to the left of r1
 		if (connectionType == 0) {
-			// r2 is to the left of r1
-			r2GridPos[0] = r1GridPos[0]-1;
-			r2GridPos[1] = r1GridPos[1];
-			// this position is not taken
-			if (grid.get(r2GridPos[0], r2GridPos[1]) == null) {
-				return true;
+			r1GridPos[0] = r2GridPos[0] + 1;
+			r1GridPos[1] = r2GridPos[1];
+			if ((r1GridPos[0] > 0 && r1GridPos[0] < grid.field.length)&&(r1GridPos[1] > 0 && r1GridPos[1] < grid.field.length)) {
+				//If this position is not taken, return true
+				if (grid.get(r1GridPos[0], r1GridPos[1]) == null) {
+					// grid.set(r1GridPos[0], r1GridPos[1], r1);
+					// grid.set(r2GridPos[0], r2GridPos[1], r2);
+					resToGridPosMap.put(r1, r1GridPos);
+					resToGridPosMap.put(r2, r2GridPos);
+					return true;
+				}
+				else {
+					return false;
+				}
 			}
 			else {
-				System.out.println("ISSUE with:");
-				System.out.println("\t" + r1);
-				System.out.println("\t" + r2);
-				System.out.println("Connection type = " + connectionType);
 				return false;
 			}
 		}
+		//If r2 is to the right of r1
 		else if (connectionType == 1) {
-			// r2 is to the right of r1
-			r2GridPos[0] = r1GridPos[0]+1;
-			r2GridPos[1] = r1GridPos[1];
-			// this position is not taken
-			if (grid.get(r2GridPos[0], r2GridPos[1]) == null) {
-				return true;
+			r1GridPos[0] = r2GridPos[0] - 1;
+			r1GridPos[1] = r2GridPos[1];
+			if ((r1GridPos[0] > 0 && r1GridPos[0] < grid.field.length)&&(r1GridPos[1] > 0 && r1GridPos[1] < grid.field.length)) {
+				//if this pos is not taken:
+				if (grid.get(r1GridPos[0], r1GridPos[1]) == null) {
+					// grid.set(r1GridPos[0], r1GridPos[1], r1);
+					// grid.set(r2GridPos[0], r2GridPos[1], r2);
+					resToGridPosMap.put(r1, r1GridPos);
+					resToGridPosMap.put(r2, r2GridPos);
+					return true;
+				}
+				else {
+					return false;
+				}
 			}
 			else {
-				System.out.println("ISSUE with:");
-				System.out.println("\t" + r1);
-				System.out.println("\t" + r2);
-				System.out.println("Connection type = " + connectionType);
 				return false;
 			}
 		}
+		//If r2 is above r1
 		else if (connectionType == 2) {
-			// r2 is above r1
-			r2GridPos[0] = r1GridPos[0];
-			r2GridPos[1] = r1GridPos[1]-1;
-			// this position is not taken
-			if (grid.get(r2GridPos[0], r2GridPos[1]) == null) {
-				return true;
+			r1GridPos[0] = r2GridPos[0];
+			r1GridPos[1] = r2GridPos[1] + 1;
+			if ((r1GridPos[0] > 0 && r1GridPos[0] < grid.field.length)&&(r1GridPos[1] > 0 && r1GridPos[1] < grid.field.length)) {
+				//if this pos is not taken:
+				if (grid.get(r1GridPos[0], r1GridPos[1]) == null) {
+					// grid.set(r1GridPos[0], r1GridPos[1], r1);
+					// grid.set(r2GridPos[0], r2GridPos[1], r2);
+					resToGridPosMap.put(r1, r1GridPos);
+					resToGridPosMap.put(r2, r2GridPos);
+					return true;
+				}
+				else {
+					return false;
+				}
 			}
 			else {
-				System.out.println("ISSUE with:");
-				System.out.println("\t" + r1);
-				System.out.println("\t" + r2);
-				System.out.println("Connection type = " + connectionType);
 				return false;
 			}
 		}
 		else {
-			// r2 is below r1
-			r2GridPos[0] = r1GridPos[0];
-			r2GridPos[1] = r1GridPos[1]+1;
-			// this position is not taken
-			if (grid.get(r2GridPos[0], r2GridPos[1]) == null) {
-				return true;
+			r1GridPos[0] = r2GridPos[0];
+			r1GridPos[1] = r2GridPos[1] - 1;
+			if ((r1GridPos[0] > 0 && r1GridPos[0] < grid.field.length)&&(r1GridPos[1] > 0 && r1GridPos[1] < grid.field.length)) {
+				//if this pos is not taken:
+				if (grid.get(r1GridPos[0], r1GridPos[1]) == null) {
+					// grid.set(r1GridPos[0], r1GridPos[1], r1);
+					// grid.set(r2GridPos[0], r2GridPos[1], r2);
+					resToGridPosMap.put(r1, r1GridPos);
+					resToGridPosMap.put(r2, r2GridPos);
+					return true;
+				}
+				else {
+					return false;
+				}
 			}
 			else {
-				System.out.println("ISSUE with:");
-				System.out.println("\t" + r1);
-				System.out.println("\t" + r2);
-				System.out.println("Connection type = " + connectionType);
 				return false;
 			}
 		}
+	}
+
+	/**
+	Method that calculates the corresponding discritized position of a resource
+	@param res the resource that should be discritized
+	@param resToConnectTo the resource to be connected to (null if res is first for a constructionZone)
+	@param connectionType the side (L,R,T,B) that res must be connect to resToConnectTo
+		connectionType = 0 => res 'resToConnectTo _ _ _'
+		connectionType = 1 => res '_ resToConnectTo _ _'
+		connectionType = 2 => res '_ _ resToConnectTo _'
+		connectionType = 3 => res '_ _ _ resToConnectTo'
+	**/
+	public Vec2 addResourceToDiscrSpace (ResourceObject res) {
+		// System.out.println("res pos = " + res.getBody().getPosition());
+		// System.out.println("res adjacentList: " + Arrays.toString(res.getAdjacentList()));
+		// if (resToConnectTo == null) {
+			Vec2 discrPos;
+			int[] gridPos;
+				// System.out.println("Pos in grid " + Arrays.toString(gridPos));
+			if (resToGridPosMap.containsKey(res)) {
+				discrPos = getDiscrPos(resToGridPosMap.get(res));
+				gridPos = resToGridPosMap.get(res);
+			}
+			else {
+				discrPos = getNearestDiscrPos(res.getBody().getPosition());
+				gridPos = spaceToGrid.get(discrPos);
+			}
+			grid.set(gridPos[0], gridPos[1], res);
+			// System.out.println("Adding " + res + " at " + res.getBody().getPosition() + "=> " + discrPos + "(" + Arrays.toString(gridPos) + ")" + " IS FIRST");
+			//res.setGridPosition(gridPos);
+			return discrPos;
+}
+
+
+
+	/**
+	Method to work out wether two resources can start a new CZ given their gridPositions and connectiontype (r1 cType r2)
+	connectionType = 0 => r1 'r2 _ _ _'
+	connectionType = 1 => r1 '_ r2 _ _'
+	connectionType = 2 => r1 '_ _ r2 _'
+	connectionType = 3 => r1 '_ _ _ r2'
+	@return true if both resources can be placed without overlapping previous
+	**/
+	// public boolean canBeConnected (ResourceObject r1, ResourceObject r2, int connectionType) {
+	// 	//Get discriticesd position of r1
+	// 	int[] r1GridPos = spaceToGrid.get(getNearestDiscrPos(r1.getBody().getPosition()));
+	//
+	//
+	// 	//Calculate where r2 should be placed according to the connectionType
+	// 	int[] r2GridPos = new int[2];
+	// 	if (connectionType == 0) {
+	// 		// r2 is to the left of r1
+	// 		r2GridPos[0] = r1GridPos[0]-1;
+	// 		r2GridPos[1] = r1GridPos[1];
+	// 		// this position is not taken
+	// 		if (grid.get(r2GridPos[0], r2GridPos[1]) == null) {
+	// 			return true;
+	// 		}
+	// 		else {
+	// 			System.out.println("ISSUE with:");
+	// 			System.out.println("\t" + r1);
+	// 			System.out.println("\t" + r2);
+	// 			System.out.println("Connection type = " + connectionType);
+	// 			return false;
+	// 		}
+	// 	}
+	// 	else if (connectionType == 1) {
+	// 		// r2 is to the right of r1
+	// 		r2GridPos[0] = r1GridPos[0]+1;
+	// 		r2GridPos[1] = r1GridPos[1];
+	// 		// this position is not taken
+	// 		if (grid.get(r2GridPos[0], r2GridPos[1]) == null) {
+	// 			return true;
+	// 		}
+	// 		else {
+	// 			System.out.println("ISSUE with:");
+	// 			System.out.println("\t" + r1);
+	// 			System.out.println("\t" + r2);
+	// 			System.out.println("Connection type = " + connectionType);
+	// 			return false;
+	// 		}
+	// 	}
+	// 	else if (connectionType == 2) {
+	// 		// r2 is above r1
+	// 		r2GridPos[0] = r1GridPos[0];
+	// 		r2GridPos[1] = r1GridPos[1]-1;
+	// 		// this position is not taken
+	// 		if (grid.get(r2GridPos[0], r2GridPos[1]) == null) {
+	// 			return true;
+	// 		}
+	// 		else {
+	// 			System.out.println("ISSUE with:");
+	// 			System.out.println("\t" + r1);
+	// 			System.out.println("\t" + r2);
+	// 			System.out.println("Connection type = " + connectionType);
+	// 			return false;
+	// 		}
+	// 	}
+	// 	else {
+	// 		// r2 is below r1
+	// 		r2GridPos[0] = r1GridPos[0];
+	// 		r2GridPos[1] = r1GridPos[1]+1;
+	// 		// this position is not taken
+	// 		if (grid.get(r2GridPos[0], r2GridPos[1]) == null) {
+	// 			return true;
+	// 		}
+	// 		else {
+	// 			System.out.println("ISSUE with:");
+	// 			System.out.println("\t" + r1);
+	// 			System.out.println("\t" + r2);
+	// 			System.out.println("Connection type = " + connectionType);
+	// 			return false;
+	// 		}
+	// 	}
+	// }
+
+	public ObjectGrid2D getGrid() {
+		return grid;
 	}
 
 	/*
@@ -333,6 +487,8 @@ public class ContToDiscrSpace {
 			}
 		}
 
+		System.out.println("ContToDiscrSpace: current resource = " + currRes + " the neighbours list = " + Arrays.toString(nToCheck.toArray(new ResourceObject[0])));
+
 		//Base Case: no neighbours to look at
 		if (nToCheck.size() == 0) {
 			currRes.setVisited(true);
@@ -342,8 +498,8 @@ public class ContToDiscrSpace {
 		else {
 			currRes.setVisited(true);
 			czList.add(currRes);
-			
-			//Go through each neighbour, 
+
+			//Go through each neighbour,
 			for (ResourceObject nRes : nToCheck) {
 				generateTraversal(czList, nRes, ignoreList);
 			}

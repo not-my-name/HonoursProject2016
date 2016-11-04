@@ -1,6 +1,6 @@
 ---
 config0:
-  resQuantity : 15 0 0
+  resQuantity : 30 0 0
   resource0:
     left: A B C
     right: A B C

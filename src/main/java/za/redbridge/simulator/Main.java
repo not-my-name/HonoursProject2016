@@ -35,7 +35,9 @@ public class Main {
 	private final static Logger log = LoggerFactory.getLogger(Main.class);
 	private final static double convergenceScore = 1000;
 
-	private final static boolean PerformingNoveltySearch;
+	private final static boolean PerformingObjectiveSearch = false;
+	private final static boolean PerformingNoveltySearch = true;
+	private final static boolean PerformingHybridSearch = false;
 
 	private static int numInputs;
 	private int numOutputs = 2;
@@ -51,35 +53,6 @@ public class Main {
 	private static String resConfig;
 
 	public static void main(String args[]) throws IOException, ParseException{
-
-		/**
-		look for all the bright pink hilights to check what still needs to be done
-
-		make sure you have the correct number of inputs for the different updated sensors (something to do with only reading the closest resource or something along those lines)
-
-		check that all the heuristics are in place
-
-		check that all the calculations are executed in the correct order as each others
-		since there aer so many different ways of implementing it
-
-		robots should only be able to move a resource when enough of them have attached
-		does this affect the total resource pickup count in some way? should probably add some sort of check
-
-		check you have the isAligned and isConnected checks for the resources and the constructionZone 
-
-		what did daniel do to get his code to run so much faster
-
-		take out the empty connections for the resources in the schema config file
-
-		find a way to static reference the archive from this Main class so that all local copies will have the same content and get updated accordingly
-
-		check that all the yml files are in order and 
-
-		check that all the data structures and functions work with the correct variables. such as for the total number of resources in each simulation will change, that needs to be addressed/reference properly
-		the same thing goes for the schema number and so forth
-
-
-		*/
 
 		Args options = new Args();
 		new JCommander(options, args);
@@ -103,12 +76,11 @@ public class Main {
 		else {
 			simConfig = new SimConfig();
 		}
-		//simConfig.setRobotCount(populationSize);
 
 		resConfig = options.environment;
 
 		schemaConfigIndex = 0;
-		ScoreCalculator scoreCalculator = new ScoreCalculator(simConfig, options.simulationRuns, 
+		ScoreCalculator scoreCalculator = new ScoreCalculator(simConfig, options.simulationRuns,
 						morphology, options.populationSize, schemaConfigIndex); //got this from the Main class in last years Controller Master folder
 
 		if (!isBlank(options.genomePath)) {
@@ -127,37 +99,55 @@ public class Main {
 		population.setActivationCycles(4); //THIS COULD BE IMPORTANT (FROM ONLINE EXAMPLE)
 		population.reset();
 
-		TrainEA trainer;
 		if(PerformingNoveltySearch) {
 
-			trainer = NEATUtil.constructNoveltyTrainer(population, scoreCalculator);
+			NoveltyTrainEA trainer = NEATUtil.constructNoveltyTrainer(population, scoreCalculator);
 			trainer.addStrategy(new NoveltySearchStrategy(options.populationSize, scoreCalculator));
+			trainer.setThreadCount(1);
+
+			scoreCalculator.setPerformNovelty(true);
+
+			final StatsRecorder statsRecorder = new StatsRecorder(trainer, scoreCalculator); //this is basically where the simulation runs
+
+			scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
+
+			for(int i = 0; i < options.numGenerations; i++) { //for(int i = trainer.getIteration(); i < numIterations; i++)
+				trainer.iteration(); //training the network for a single iteration
+				statsRecorder.recordIterationStats();
+
+				//once an individual has found an optimal solution, break out of the training loop
+				if(trainer.getBestGenome().getScore() >= convergenceScore) {
+					log.info("convergence reached at epoch(iteration): " + trainer.getIteration());
+					break;
+				}
+			}
+
+			scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
+			log.debug("Training Complete");
 		}
 		else {
 
 			TrainEA trainer = NEATUtil.constructNEATTrainer(population, scoreCalculator);
-		}
+			trainer.setThreadCount(1);
 
-		trainer.setThreadCount(1);
+			final StatsRecorder statsRecorder = new StatsRecorder(trainer, scoreCalculator); //this is basically where the simulation runs
 
-		final StatsRecorder statsRecorder = new StatsRecorder(trainer, scoreCalculator); //this is basically where the simulation runs
+			scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
 
-		scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
+			for(int i = 0; i < options.numGenerations; i++) { //for(int i = trainer.getIteration(); i < numIterations; i++)
+				trainer.iteration(); //training the network for a single iteration
+				statsRecorder.recordIterationStats();
 
-		for(int i = 0; i < options.numGenerations; i++) { //for(int i = trainer.getIteration(); i < numIterations; i++)
-			trainer.iteration(); //training the network for a single iteration
-			statsRecorder.recordIterationStats();
-
-			//once an individual has found an optimal solution, break out of the training loop
-			if(trainer.getBestGenome().getScore() >= convergenceScore) {
-				log.info("convergence reached at epoch(iteration): " + trainer.getIteration());
-				break;
+				//once an individual has found an optimal solution, break out of the training loop
+				if(trainer.getBestGenome().getScore() >= convergenceScore) {
+					log.info("convergence reached at epoch(iteration): " + trainer.getIteration());
+					break;
+				}
 			}
+
+			scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
+			log.debug("Training Complete");
 		}
-
-		scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
-		log.debug("Training Complete");
-
 	}
 
 	private static class Args {
@@ -177,10 +167,10 @@ public class Main {
                 + " for the population")
         private double connectionDensity = 0.5;
         @Parameter(names = "--demo", description = "Show a GUI demo of a given genome")
-        private String genomePath = null;
+        //private String genomePath = null;
         //private String genomePath = "results/Hex-20160920T2134_null__NEAT/best networks/epoch-5/network.ser";
         //private String genomePath = "results/ruben-GE72-2QD-20161030T1126_null/best networks/epoch-1/network.ser";
-        //private String genomePath = "results/ruben-GE72-2QD-20161102T1342_null/best networks/epoch-1/network.ser";
+        private String genomePath = "results/ruben-GE72-2QD-20161102T1342_null/best networks/epoch-1/network.ser";
 
         @Parameter(names = "--control", description = "Run with the control case")
         private boolean control = false;
@@ -216,4 +206,3 @@ public class Main {
     }
 
 }
-

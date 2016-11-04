@@ -5,6 +5,7 @@ import za.redbridge.simulator.AggregateBehaviour;
 import org.jbox2d.common.Vec2;
 import za.redbridge.simulator.ConstructionZone;
 import za.redbridge.simulator.object.ResourceObject;
+import sim.field.grid.ObjectGrid2D;
 
 /*
 a class to monitor and manage all the necessary structures to calculate the novelty fitness
@@ -16,7 +17,7 @@ public class NoveltyFitness{
 	Notes from Josh
 
 	for comparing the trajectories to each other, compare each robot in a team to the same robot in the other team then sum the differences in an array
-	one array element corresponds to the total trajectory difference for a pair of robots 
+	one array element corresponds to the total trajectory difference for a pair of robots
 
 	sum the values from that array into one double and then divide by the number of robots in a team (length of the array)
 
@@ -53,6 +54,13 @@ public class NoveltyFitness{
 	private int numResources; //the number of resources that were used in a simulation
 	private int populationSize; //keep track of how many results are in each generation
 
+	private int envHeight = 20;
+	private int envWidth = 20;
+
+	public NoveltyFitness() {
+
+	}
+
 	/**
 	check that all these calculations are done the same way and correct
 
@@ -85,10 +93,6 @@ public class NoveltyFitness{
 
 		this.numResources = this.currentGeneration[0].getNumResources(); //all of the simulations within a generation were run using the same number of resources
 		this.numResSamples = this.currentGeneration[0].getResourceTrajectory().length; //the number of times the position was sampled to build the trajectory
-		//resourceTrajectoryDifferences = new double[numResources][numResSamples]; 
-
-		// calculateRobTrajDist();
-		// calculateResTrajDist();
 	}
 
 	//rewriting this method for the same reason the calculatePopulationNovelty method below was rewritten
@@ -128,42 +132,6 @@ public class NoveltyFitness{
 		return currentGeneration[index];
 	}
 
-	// //method to calculate which of the simulation runs produced the most novel behaviour
-	// //compared to all the other results from the simulation for that network
-	// public NoveltyBehaviour calcSimulationLocalNovelty(int numNearest) {
-
-	// 	//iterate over each behaviour and calulate its relative novelty
-	// 	for(int k = 0; k < numBehaviours-1; k++) {
-	// 		NoveltyBehaviour currentBehaviour = currentGeneration[k];
-
-	// 		for(int j = k+1; j < numBehaviours; j++) {
-
-	// 			NoveltyBehaviour otherBehaviour = currentGeneration[j];
-	// 			double noveltyDistance = calculateNoveltyDistance(currentBehaviour, otherBehaviour); //the distance between these 2 individuals in the behaviour space
-
-	// 			//now have novelty distance between these two behaviours
-	// 			currentBehaviour.addSimulationNeighbour(noveltyDistance); //recording the distance between current and neighbour
-	// 			otherBehaviour.addSimulationNeighbour(noveltyDistance); //adding to both to helo reduce computation time, dont now need to calc noveltydistance between otherBehaviour and currentBehaviour again
-	// 		}
-	// 	}
-
-	// 	NoveltyBehaviour mostNovel;
-	// 	double max = -1;
-
-	// 	for(int k = 0; k < numBehaviours; k++) {
-	// 		double tempValue  = currentGeneration[k].calculateSimulationNovelty();
-
-	// 		if(tempValue > max) {
-
-	// 			max = tempValue;
-	// 			mostNovel = currentGeneration[k];
-	// 		}
-	// 	}
-
-	// 	return mostNovel;
-
-	// }
-
 	//rewriting this method to work with the current compareConstructionOrder method
 	//cant do dynamic programming since comparing constructionZones requires each behaviour to be analysed separately
 	//the novelty of currentConstructionZone compare to otherCZone is not the same as novelty between otherCZone and currentCZone
@@ -187,6 +155,10 @@ public class NoveltyFitness{
 					}
 				}
 			}
+		}
+
+		for(NoveltyBehaviour novBeh : currentGeneration) {
+			novBeh.calculatePopulationNovelty();
 		}
 	}
 
@@ -227,12 +199,16 @@ public class NoveltyFitness{
 		dist += compareConstructionOrder(currentBehaviour, otherBehaviour) * constructionOrderWeight;
 		dist += compareConstructionZones(currentBehaviour, otherBehaviour) * constructionZonesWeight;
 
+		System.out.println("");
+
 		return dist;
 	}
 
 	//method to calculate the average distance between the robot trajectories of these 2 behaviours
 	//sum the distance between each behaviour at each time step in the trajectories
 	private double compareRobotTrajectories(NoveltyBehaviour currentBehaviour, NoveltyBehaviour otherBehaviour) {
+
+		//System.out.println("NoveltyFitness: comparing robot trajectories");
 
 		Vec2[] currentTrajectory = currentBehaviour.getRobotTrajectory();
 		Vec2[] otherTrajectory = otherBehaviour.getRobotTrajectory();
@@ -248,6 +224,8 @@ public class NoveltyFitness{
 
 		totalDistance = totalDistance / numRobotSamples; //avg distance per time step in the trajectory
 
+		System.out.println("NoveltyFItness compareRobotTrajectories = " + totalDistance);
+
 		return totalDistance;
 	}
 
@@ -259,6 +237,8 @@ public class NoveltyFitness{
 		changed this statement to keep updating the trajectory even if its in a constructionzone
 		temporary fix
 		*/
+
+		//System.out.println("NoveltyFitness: comparing resource trajectories");
 
 		Vec2[] currentTrajectory = currentBehaviour.getResourceTrajectory();
 		Vec2[] otherTrajectory = otherBehaviour.getResourceTrajectory();
@@ -274,6 +254,8 @@ public class NoveltyFitness{
 
 		totalDistance = totalDistance / numResSamples;
 
+		System.out.println("NoveltyFItness compareResourceTrajectories = " + totalDistance);
+
 		return totalDistance;
 	}
 
@@ -283,10 +265,70 @@ public class NoveltyFitness{
 	*/
 	private double compareConstructionOrder(NoveltyBehaviour currentBehaviour, NoveltyBehaviour otherBehaviour) {
 
-		double dummyReturn = 10; //this is just to test the current implementation until i can figure out how to return the array values
+		double differenceScore = 0;
 
-		return dummyReturn;
+		//System.out.println("NoveltyFitness: comparing construction order");
+
+		ArrayList<ResourceObject> currentConstructionOrder = currentBehaviour.getConstructionTask().getGlobalConstructionOrder();
+		ArrayList<ResourceObject> otherConstructionOrder = otherBehaviour.getConstructionTask().getGlobalConstructionOrder();
+
+		int currentCOLength = currentConstructionOrder.size();
+		int otherCOLength = otherConstructionOrder.size();
+		int differenceLength = Math.abs(currentCOLength - otherCOLength);
+		differenceScore += differenceLength;
+
+		//check which behaviour has the shortest connection order to see which one to iterate over
+		if(currentCOLength <= otherCOLength) {
+
+			for (int k = 0; k < currentCOLength; k++) {
+
+				if( !currentConstructionOrder.get(k).getType().equals( otherConstructionOrder.get(k).getType() ) ) {
+					differenceScore++;
+				}
+			}
+		}
+		else { //iterate over the other construction order
+
+			for(int k = 0; k < otherCOLength; k++) {
+
+				if( !otherConstructionOrder.get(k).getType().equals( otherConstructionOrder.get(k).getType() ) ) {
+					differenceScore++;
+				}
+			}
+		}
+
+		System.out.println("NoveltyFitness: compareConstructionOrder = " + differenceScore);
+
+		return differenceScore;
 	}
+
+	// public int[][] compareConstructionZones(int[][] currentDiscreteGrid, int[][] otherDiscreteGrid) {
+	//
+	// 	double totalDifferenceScore = 0;
+	// 	double perfectScore = 0;
+	//
+	// 	int[][] returnGrid = new int[20][20];
+	//
+	// 	for(int k = 0; k < 20; k++) {
+	// 		for(int j = 0; j < 20; j++) {
+	// 			returnGrid[k][j] = 0;
+	// 		}
+	// 	}
+	//
+	// 	for(int k = 0; k < 20; k++) {
+	// 		for(int j = 0; j < 20; j++) {
+	//
+	// 			if(currentDiscreteGrid[k][j] != otherDiscreteGrid[k][j]) {
+	// 				returnGrid[k][j] = 9;
+	// 			}
+	// 			else {
+	// 				returnGrid[k][j] = 0;
+	// 			}
+	// 		}
+	// 	}
+	//
+	// 	return returnGrid;
+	// }
 
 	/**
 	writing this method to work with the discrete construction zones
@@ -295,26 +337,38 @@ public class NoveltyFitness{
 
 	private double compareConstructionZones(NoveltyBehaviour currentBehaviour, NoveltyBehaviour otherBehaviour) {
 
-		int[][] currentDiscreteGrid = currentBehaviour.getDiscreteGrid();
-		int[][] otherDiscreteGrid = otherBehaviour.getDiscreteGrid();
+		//System.out.println("NoveltyFitness: comparing constructionZones");
+
+		ObjectGrid2D currentDiscreteGrid = currentBehaviour.getDiscreteConstructionZone();
+		ObjectGrid2D otherDiscreteGrid = otherBehaviour.getDiscreteConstructionZone();
 
 		double totalDifferenceScore = 0;
-		double perfectScore = 0;
 
 		for(int k = 0; k < 20; k++) {
 			for(int j = 0; j < 20; j++) {
 
-				if (currentDiscreteGrid[k][l] != otherDiscreteGrid[k][l]) { //check if the grids have the same type of block in the same position
+				ResourceObject currentResObj = (ResourceObject) currentDiscreteGrid.get(k,j);
+				ResourceObject otherResObj = (ResourceObject) otherDiscreteGrid.get(k,j);
+
+				if ( (currentResObj == null) && (otherResObj == null) ) { //if both locations are empty
+					continue;
+				}
+				else if( (currentResObj == null) || (otherResObj == null) ) { //if one of the locations is empty
 					totalDifferenceScore++;
 				}
-
-				perfectScore++;
+				else if ( !currentResObj.getType().equals(otherResObj.getType()) ) { //check if the resources at the same locations have the same type of block
+					totalDifferenceScore++;
+				} //neither of the grid locations are empty
 			}
 		}
 
-		double finalConstructionZoneFitness = totalDifferenceScore / perfectScore;
+		System.out.println("NoveltyFitness: compareConstructionZones = " + totalDifferenceScore);
 
-		return finalConstructionZoneFitness;
+		return totalDifferenceScore;
+	}
+
+	public NoveltyBehaviour[] getGeneration() {
+		return this.currentGeneration;
 	}
 
 	/**
@@ -325,65 +379,65 @@ public class NoveltyFitness{
 	method to calculate the difference between the structures that
 	were constructed at the end of the simulation
 	*/
-	private double compareConstructionZones(NoveltyBehaviour currentBehaviour, NoveltyBehaviour otherBehaviour) {
+	// private double compareConstructionZones(NoveltyBehaviour currentBehaviour, NoveltyBehaviour otherBehaviour) {
 
-		ArrayList<String[]> currentAConnections = currentBehaviour.getAConnections();
-		ArrayList<String[]> currentBConnections = currentBehaviour.getBConnections();
-		ArrayList<String[]> currentCConnections = currentBehaviour.getCConnections();
+	// 	ArrayList<String[]> currentAConnections = currentBehaviour.getAConnections();
+	// 	ArrayList<String[]> currentBConnections = currentBehaviour.getBConnections();
+	// 	ArrayList<String[]> currentCConnections = currentBehaviour.getCConnections();
 
-		ArrayList<String[]> otherAConnections = otherBehaviour.getAConnections();
-		ArrayList<String[]> otherBConnections = otherBehaviour.getBConnections();
-		ArrayList<String[]> otherCConnections = otherBehaviour.getCConnections();
+	// 	ArrayList<String[]> otherAConnections = otherBehaviour.getAConnections();
+	// 	ArrayList<String[]> otherBConnections = otherBehaviour.getBConnections();
+	// 	ArrayList<String[]> otherCConnections = otherBehaviour.getCConnections();
 
-		//keep track of how many A blocks there are with unique connections
-		int totalADiffs = 0;
-		totalADiffs += compareConnections(currentAConnections, otherAConnections); //count how many differences in currentConnections
+	// 	//keep track of how many A blocks there are with unique connections
+	// 	int totalADiffs = 0;
+	// 	totalADiffs += compareConnections(currentAConnections, otherAConnections); //count how many differences in currentConnections
 
-		int totalBDiffs = 0;
-		totalBDiffs += compareConnections(currentBConnections, otherBConnections);
+	// 	int totalBDiffs = 0;
+	// 	totalBDiffs += compareConnections(currentBConnections, otherBConnections);
 
-		int totalCDiffs = 0;
-		totalCDiffs += compareConnections(currentCConnections, otherCConnections);
+	// 	int totalCDiffs = 0;
+	// 	totalCDiffs += compareConnections(currentCConnections, otherCConnections);
 
-		int totalReturn = totalADiffs + totalBDiffs + totalCDiffs;
+	// 	int totalReturn = totalADiffs + totalBDiffs + totalCDiffs;
 
-		return totalReturn;
-	}
+	// 	return totalReturn;
+	// }
 
 	//method to count how many blocks in currentConnections have a unique set of connections
 	//compared to the otherConnections
-	private int compareConnections(ArrayList<String[]> currentConnections, ArrayList<String[]> otherConnections) {
+	// private int compareConnections(ArrayList<String[]> currentConnections, ArrayList<String[]> otherConnections) {
 
-		int diffCounter = 0; //count how many resources have a unique collection of connections
+	// 	int diffCounter = 0; //count how many resources have a unique collection of connections
 
-		for(String[] current : currentConnections) { //iterate over all the resource connection configurations
-			boolean found = false; //check if a resource with identical connections has been found
+	// 	for(String[] current : currentConnections) { //iterate over all the resource connection configurations
+	// 		boolean found = false; //check if a resource with identical connections has been found
 
-			for(String[] other : otherConnections) {
+	// 		for(String[] other : otherConnections) {
 
-				int sideCounter = 0; //count how many of the connections are the same between the 2 resources
+	// 			int sideCounter = 0; //count how many of the connections are the same between the 2 resources
 
-				for(int k = 0; k < 4; k++) {
+	// 			for(int k = 0; k < 4; k++) {
 
-					if( current[k].equals(other[k]) ) { //check if they have the same type of block connected to the same side
+	// 				if( current[k].equals(other[k]) ) { //check if they have the same type of block connected to the same side
 
-						sideCounter++;
-					}
-				}
+	// 					sideCounter++;
+	// 				}
+	// 			}
 
-				if(sideCounter == 4) { //if they share all the same connections
-					found = true;
-					break;
-				}
-			}
+	// 			if(sideCounter == 4) { //if they share all the same connections
+	// 				found = true;
+	// 				break;
+	// 			}
+	// 		}
 
-			if(!found) { //counting how many resources have a unique set of connections
-				diffCounter++;
-			}
-		}
+	// 		if(!found) { //counting how many resources have a unique set of connections
+	// 			diffCounter++;
+	// 		}
+	// 	}
 
-		return diffCounter;
-	}
+	// 	return diffCounter;
+	// }
 
 	/**
 	the float being returned gets cast to a double in the compareRobotTrajectories method
@@ -401,12 +455,11 @@ public class NoveltyFitness{
 		double destinationX = destination.x;
 		double destinationY = destination.y;
 
-		float distance = (float) Math.sqrt(
-						 Math.pow(destinationX - originX, 2) + 
-						 Math.pow(destinationY - originY, 2));
+		float distance = (float) (Math.pow(destinationX - originX, 2) +
+						 								  Math.pow(destinationY - originY, 2));
 
 		return distance;
 
 	}
-	
+
 }

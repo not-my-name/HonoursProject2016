@@ -29,7 +29,7 @@ import java.util.*;
 
 /**
  * Test runner for the simulation.
- * 
+ *
  * Created by jamie on 2014/09/09.
  */
 public class ScoreCalculator implements CalculateScore {
@@ -57,11 +57,11 @@ public class ScoreCalculator implements CalculateScore {
     /**
     need to set this from the main method in order to run the experiments
     */
-    private boolean PerformingNoveltyCalcs; 
+    private boolean PerformingNoveltyCalcs = false;
 
     public ScoreCalculator(SimConfig simConfig, int simulationRuns,
             Morphology sensorMorphology, int populationSize, int schemaConfigNum) {
-        
+
         this.simConfig = simConfig;
         this.simulationRuns = simulationRuns;
         this.sensorMorphology = sensorMorphology;
@@ -75,7 +75,7 @@ public class ScoreCalculator implements CalculateScore {
         /**
         need to set this from the main method in order to run the experiments
         */
-        PerformingNoveltyCalcs = true;
+        //PerformingNoveltyCalcs = true;
 
         /**
         need to change the schema config to work with the variables so that the config number can change
@@ -107,7 +107,7 @@ public class ScoreCalculator implements CalculateScore {
                 return 0;
             }
 
-            double noveltyScore = archive.getNovelty(beh);
+            double noveltyScore = beh.getPopulationScore();
             scoreStats.addValue(noveltyScore);
             log.debug("NoveltyScore calculation completed: " + noveltyScore);
             return noveltyScore;
@@ -150,7 +150,7 @@ public class ScoreCalculator implements CalculateScore {
             return score;
 
         }
-        
+
     }
 
     public void demo(MLMethod method) {
@@ -180,6 +180,10 @@ public class ScoreCalculator implements CalculateScore {
         console.setVisible(true);
     }
 
+    public void setPerformNovelty(boolean flag) {
+      PerformingNoveltyCalcs = flag;
+    }
+
     public void calculateNoveltyForPopulation() {
         //have access to the archive
         //in archive calculate novelty for each individual in the current generation
@@ -196,8 +200,6 @@ public class ScoreCalculator implements CalculateScore {
     }
 
     public NoveltyBehaviour getNoveltyBehaviour(MLMethod method) {
-
-        System.out.println("ScoreCalculator: the getNoveltyBehaviour() method is being called");
 
         NEATNetwork neat_network = null;
         RobotFactory robotFactory;
@@ -231,7 +233,7 @@ public class ScoreCalculator implements CalculateScore {
 
         NoveltyBehaviour[] resultsArray = new NoveltyBehaviour[simulationResults.size()];
         simulationResults.toArray(resultsArray);
-        
+
         // double index = archive.findMostNovel(resultsArra);
         // return resultsArray(index);
         //OR

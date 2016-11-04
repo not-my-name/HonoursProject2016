@@ -54,20 +54,25 @@ public class NoveltyCodec extends HyperNEATCODEC {
 		else { //if this is the first time the genome comes through
 
 			//decode the genome to get the resultant network that then needs to be tested
-			NEATNetwork decoded = (NEATNetwork)super.decode(genome); 
-			List<NEATLink> connectionArray = new LinkedList<>();
-			NEATLink[] connections = decoded.getLinks();
+			NEATNetwork decoded = (NEATNetwork)super.decode(genome);
 
-			for (int i = 0; i < connections.length; i++) {
-				connectionArray.add(connections[i]);
+			if(decoded == null) {
+				return null;
 			}
 
-			//sets up the network class
-			novNetwork = new NoveltyNetwork(decoded.getInputCount(), decoded.getOutputCount(), connectionArray, decoded.getActivationFunctions());
-			genomePBMap.put(genome, scoreCalculator.getNoveltyBehaviour(novNetwork)); //run the network in the simulation to establish the resultant behaviour
-			genomeNNMap.put(genome, novNetwork);
+				List<NEATLink> connectionArray = new LinkedList<>();
+				NEATLink[] connections = decoded.getLinks();
+
+				for (int i = 0; i < connections.length; i++) {
+					connectionArray.add(connections[i]);
+				}
+
+				//sets up the network class
+				novNetwork = new NoveltyNetwork(decoded.getInputCount(), decoded.getOutputCount(), connectionArray, decoded.getActivationFunctions());
+				genomePBMap.put(genome, scoreCalculator.getNoveltyBehaviour(novNetwork)); //run the network in the simulation to establish the resultant behaviour
+				genomeNNMap.put(genome, novNetwork);
 		}
-		
+
 		return novNetwork;
 	}
 
@@ -103,5 +108,5 @@ public class NoveltyCodec extends HyperNEATCODEC {
 		//Add the new generation
 		genomeNNMap.putAll(phenotypesToBeKept);
 	}
-	
+
 }

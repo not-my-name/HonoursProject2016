@@ -41,7 +41,7 @@ public class ResourceObject extends PhysicalObject {
     //private static final Paint DEFAULT_COLOUR = new Color(255, 235, 82);
     private static final Paint DEFAULT__TRASH_COLOUR = new Color(43, 54, 50);
     private static final Paint DEFAULT__RESOURCE_COLOUR = new Color(2, 12, 156);
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     public enum Side {
         LEFT, RIGHT, TOP, BOTTOM
@@ -83,9 +83,9 @@ public class ResourceObject extends PhysicalObject {
 
     private final Map<Integer, String[]> adjacencyMap;
 
-    
+
     private boolean connected;
-    
+
     private final DetectionPoint[] detectionPoints;
     private String[] adjacentResources;
     private ResourceObject[] adjacentList;
@@ -94,6 +94,10 @@ public class ResourceObject extends PhysicalObject {
 
     private int countConnected; //var to count the number of resources connected
     private Vec2 initialPos; //starting location of the resource
+
+    //variables to store the initial starting location of the resource object
+    private final float initialX;
+    private final float initialY;
 
     private int constructionZoneID = -1; //keep track of which construction zone this resource is connected to
 
@@ -160,10 +164,12 @@ public class ResourceObject extends PhysicalObject {
         countConnected = 0;
 
         if (DEBUG) {
-            getPortrayal().setChildDrawable(new DebugPortrayal(Color.BLACK, true));
+            getPortrayal().setChildDrawable(new DebugPortrayal(Color.BLACK, false));
         }
 
         initialPos = getBody().getPosition();
+        initialX = initialPos.x;
+        initialY = initialPos.y;
     }
 
     protected static Portrayal createPortrayal(double width, double height, String type) {
@@ -272,11 +278,11 @@ public class ResourceObject extends PhysicalObject {
         weldPoints[3] = bottomPoint;
     }
 
-    public void setGridPosition(int[] gridPos) {
-
-        gridPosition = new Vec2();
-        gridPosition.set( (float) gridPos[0], (float) gridPos[1]) );
-    }
+    // public void setGridPosition(int[] gridPos) {
+    //
+    //     gridPosition = new Vec2();
+    //     gridPosition.set( (float) gridPos[0], (float) gridPos[1] );
+    // }
 
     public Vec2 getGridPosition() {
         return gridPosition;
@@ -410,12 +416,12 @@ public class ResourceObject extends PhysicalObject {
         this.isConstructed = val;
     }
 
-    /**
-    what the hell is this method for
-    */
-    public void updateAlignment(){
-
-    }
+    // /**
+    // what the hell is this method for
+    // */
+    // public void updateAlignment(){
+    //
+    // }
 
     public int getNumConnected() {
 
@@ -522,9 +528,9 @@ public class ResourceObject extends PhysicalObject {
 
         if( simState.schedule.getSteps() % 5 == 0 ) {
             Vec2 currentPosition = this.getBody().getPosition();
-            Vec2 resultantPosition = currentPosition.sub(initialPos);
+            Vec2 resultantPosition = currentPosition.sub(new Vec2(initialX, initialY));
             resourceTrajectory.add(resultantPosition);
-        } 
+        }
     }
 
     public LinkedList<Vec2> getTrajectory() {
@@ -864,8 +870,8 @@ public class ResourceObject extends PhysicalObject {
     //             else {
     //                 side = 3;
     //             }
-    //             break; 
-    //         }       
+    //             break;
+    //         }
     //     }
 
     //     if (result) {
@@ -1103,17 +1109,17 @@ public class ResourceObject extends PhysicalObject {
         public DebugPortrayal(Paint paint, boolean filled) {
             super(4, paint, filled);
 
-            final float width = (float) getWidth() * 0.8f;
-            final float height = (float) getHeight() * 0.1f;
+            final float width = (float) getWidth();
+            final float height = (float) getHeight();
 
-            final float dy = (float) getHeight() * 0.3f;
+            //final float dy = (float) getHeight() * 0.3f;
 
             float halfWidth = width / 2;
             float halfHeight = height / 2;
-            vertices[0].set(-halfWidth, -halfHeight - dy);
-            vertices[1].set(halfWidth, -halfHeight - dy);
-            vertices[2].set(halfWidth, halfHeight - dy);
-            vertices[3].set(-halfWidth, halfHeight - dy);
+            vertices[0].set(-halfWidth, -halfHeight);
+            vertices[1].set(halfWidth, -halfHeight);
+            vertices[2].set(halfWidth, halfHeight);
+            vertices[3].set(-halfWidth, halfHeight);
         }
     }
 

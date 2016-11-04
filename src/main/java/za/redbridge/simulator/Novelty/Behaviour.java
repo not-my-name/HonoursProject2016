@@ -81,10 +81,10 @@ public class Behaviour {
 		//using methods to initialise values
 		setPlacedRobots(currentRobots);
 		setPlacedResources(currentResources);
-		countPickups();	
+		countPickups();
 		countConnected();
 
-		calcResToResDist(); 
+		calcResToResDist();
 		calcRobToResDist();
 		calcResToCZoneDist();
 	}
@@ -224,7 +224,7 @@ public class Behaviour {
 			}
 
 			if (numNotConstructed > 0) { //if some resources are not connected to construction zones
-				avgResToCZoneDist = avgResToCZoneDist / numNotConstructed; //average distance to construction zone per resource; 
+				avgResToCZoneDist = avgResToCZoneDist / numNotConstructed; //average distance to construction zone per resource;
 			}
 			else if (numNotConstructed == 0) { //if all of the resources are connected to a construction zone
 				avgResToCZoneDist = 0; //should return 0 so that the function calculates a fitness of 1 (perfect score)
@@ -261,9 +261,12 @@ public class Behaviour {
         double secondX = destLocation.x;
         double secondY = destLocation.y;
 
-        float distance = (float) Math.sqrt(
-                        Math.pow(firstX-secondX, 2) +
-                        Math.pow(firstY-secondY, 2));
+        // float distance = (float) Math.sqrt(
+        //                 Math.pow(firstX-secondX, 2) +
+        //                 Math.pow(firstY-secondY, 2));
+
+				float distance = (float)(Math.pow(firstX-secondX, 2) +
+                        				Math.pow(firstY-secondY, 2));
 
         return distance;
     }

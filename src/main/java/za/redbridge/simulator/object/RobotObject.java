@@ -81,7 +81,10 @@ public class RobotObject extends PhysicalObject {
 
     private double numPickups;
 
-    private Vec2 positionHistory;
+    //variables to store the initial starting location of the robot object
+    //used to compare for the trajectories
+    private final float initialX;
+    private final float initialY;
 
     private LinkedList<Vec2> robotTrajectory = new LinkedList<Vec2>();
 
@@ -108,8 +111,9 @@ public class RobotObject extends PhysicalObject {
 
         numPickups = 0;
 
-        positionHistory = new Vec2(); //creating an empty Vec2 to store the updated positions of the robot
-
+        Vec2 initialPos = getBody().getPosition(); //creating an empty Vec2 to store the updated positions of the robot
+        initialX = initialPos.x;
+        initialY = initialPos.y;
     }
 
     public String getActiveHeuristic() {
@@ -181,14 +185,14 @@ public class RobotObject extends PhysicalObject {
         return (float) ((CirclePortrayal) getPortrayal()).getRadius();
     }
 
-    public Vec2 getPreviousPosition() {
-        return positionHistory;
-    }
+    // public Vec2 getPreviousPosition() {
+    //     return positionHistory;
+    // }
 
     @Override
     public void step(SimState sim) {
 
-        positionHistory = new Vec2(getBody().getPosition()); //storing the previous position of the robot
+        //positionHistory = new Vec2(getBody().getPosition()); //storing the previous position of the robot
 
         //moves robot
         super.step(sim);
@@ -230,7 +234,8 @@ public class RobotObject extends PhysicalObject {
         //storing the position of the robot every 5 timesteps to be used for novelty calculation
         if( sim.schedule.getSteps() % 5 == 0 ) {
             Vec2 currentPosition = this.getBody().getPosition();
-            robotTrajectory.add(currentPosition);
+            Vec2 resultantPosition = currentPosition.sub(new Vec2(initialX, initialY));
+            robotTrajectory.add(resultantPosition);
         }
 
         // System.out.println("Pos: "+this.getBody().getPosition().x+" "+this.getBody().getPosition().y);

@@ -95,15 +95,16 @@ public class ConstructionZone {
         connectedResources = new HashSet<>();
         numConnected = 0;
 
-        for (ResourceObject r : updatedResources) {
-            addResource(r, true);
-        }
-
         Random rand = new Random();
         int randVal1 = rand.nextInt((255 - 1) + 1) + 1;
         int randVal2 = rand.nextInt((255 - 1) + 1) + 1;
         int randVal3 = rand.nextInt((255 - 1) + 1) + 1;
         czColor = new Color(255 - randVal1, 255 - randVal2, 255 - randVal3);
+
+        for (ResourceObject r : updatedResources) {
+            addResource(r, true);
+        }
+
         updateCZCenter();
     }
 
@@ -122,7 +123,7 @@ public class ConstructionZone {
         for (ResourceObject r : updatedResources) {
             addResource(r, true);
         }
-        
+
         updateCZCenter();
     }
 
@@ -140,7 +141,7 @@ public class ConstructionZone {
     }
 
     public void startConstructionZone(ResourceObject r1, ResourceObject r2) {
-        
+
         Vec2 r1Pos = r1.getBody().getPosition();
         Vec2 r2Pos = r2.getBody().getPosition();
         float aveX = (r1Pos.x + r2Pos.x)/2;
@@ -176,7 +177,7 @@ public class ConstructionZone {
 
             resource.setConstructed();
             resource.setConstructionZoneID(cZoneIndex);
-            resource.getPortrayal().setPaint(Color.CYAN);
+            resource.getPortrayal().setPaint(czColor);
             //resource.getBody().setActive(false);
             resource.getBody().setType(BodyType.STATIC);
         }

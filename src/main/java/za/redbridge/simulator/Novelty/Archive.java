@@ -80,7 +80,7 @@ public class Archive {
 			//should there be a copy constructor
 			//first create the empty object and then assign?
 			currentPopulation[k] = noveltyArchive.get(k);
-		}		
+		}
 
 		//repeat for the current generation
 		for(int k = 0; k < numGeneration; k++) {
@@ -97,7 +97,21 @@ public class Archive {
 		add the most novel behaviour to the archive
 		calculate most novel in the NoveltyFitness method and return either an object or index to the current population
 		*/
+
+		System.out.println("Archive: printing fitness vals BEFORE:");
+		for(int k = 0; k < totalSize; k++) {
+			System.out.println("Behaviour " + k + " = " + currentPopulation[k].getPopulationScore() );
+		}
+		System.out.println("");
+
 		noveltyFitness.calculatePopulationNovelty();
+
+		currentPopulation = noveltyFitness.getGeneration();
+
+		System.out.println("Archive: printing fitness vals AFTER:");
+		for(int k = 0; k < totalSize; k++) {
+			System.out.println("Behaviour " + k + " = " + currentPopulation[k].getPopulationScore() );
+		}
 
 	}
 
@@ -115,5 +129,5 @@ public class Archive {
 		//System.out.println("Archive: clearing the generation");
 		currentGeneration.clear();
 	}
-	
+
 }
