@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.*;
 
 import za.redbridge.simulator.object.ResourceObject;
 import za.redbridge.simulator.config.SchemaConfig;
@@ -474,8 +475,27 @@ public class ContToDiscrSpace {
 		//Count up number of neighbours that need to be looked at
 		List<ResourceObject> nToCheck = new LinkedList<>();
 		ResourceObject[] neighbours = getResNeighbourhood(currRes);
+		int temp = neighbours.length;
+		String[] neighboursString = new String[temp];
 
+		for(int k = 0; k < temp; k++) {
+			if(neighbours[k] != null) {
+
+				String tempType = neighbours[k].getType();
+				if(tempType != null) {
+					neighboursString[k] = neighbours[k].getType();
+				}
+				else{
+					neighboursString[k] = "_";
+				}
+			}
+		}
+
+		//int[] incorrectSides =  schema.getIncorrectAdjacentSides(schemaNumber, currRes.getType(), neighboursString);
 		int[] incorrectSides =  schema.getIncorrectAdjacentSides(schemaNumber, currRes.getType(), currRes.getAdjacentResources());
+		//System.out.println("ContToDiscrSpace: num incorrect sides = " + Arrays.toString(incorrectSides));
+		//System.out.println("ContToDiscrSpace: the neighbouring resources");
+		//System.out.println(Arrays.toString(neighbours));
 
 		for (int i = 0; i < neighbours.length; i++) {
 
@@ -487,7 +507,13 @@ public class ContToDiscrSpace {
 			}
 		}
 
-		System.out.println("ContToDiscrSpace: current resource = " + currRes + " the neighbours list = " + Arrays.toString(nToCheck.toArray(new ResourceObject[0])));
+		//System.out.println("ContToDiscrSpace: the list of neighbours to chec:");
+		//System.out.println(nToCheck);
+		//System.out.println("ContToDiscrSpace: the ignore list:");
+		//System.out.println(ignoreList);
+		//System.out.println("");
+
+		//System.out.println("ContToDiscrSpace: current resource = " + currRes + " the neighbours list = " + Arrays.toString(nToCheck.toArray(new ResourceObject[0])));
 
 		//Base Case: no neighbours to look at
 		if (nToCheck.size() == 0) {

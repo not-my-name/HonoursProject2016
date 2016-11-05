@@ -36,7 +36,7 @@ public class Main {
 	private final static double convergenceScore = 1000;
 
 	private final static boolean PerformingObjectiveSearch = false;
-	private final static boolean PerformingNoveltySearch = true;
+	private final static boolean PerformingNoveltySearch = false;
 	private final static boolean PerformingHybridSearch = false;
 
 	private static int numInputs;
@@ -51,6 +51,9 @@ public class Main {
 	private static int schemaConfigIndex; //the schema against which the construction zone should be checked
 
 	private static String resConfig;
+
+	private static double envHeight;
+	private static double envWidth;
 
 	public static void main(String args[]) throws IOException, ParseException{
 
@@ -79,9 +82,12 @@ public class Main {
 
 		resConfig = options.environment;
 
+		envWidth = simConfig.getEnvironmentWidth();
+		envHeight = simConfig.getEnvironmentHeight();
+
 		schemaConfigIndex = 0;
 		ScoreCalculator scoreCalculator = new ScoreCalculator(simConfig, options.simulationRuns,
-						morphology, options.populationSize, schemaConfigIndex); //got this from the Main class in last years Controller Master folder
+						morphology, options.populationSize, schemaConfigIndex, envHeight, envWidth); //got this from the Main class in last years Controller Master folder
 
 		if (!isBlank(options.genomePath)) {
             NEATNetwork network = (NEATNetwork) readObjectFromFile(options.genomePath);

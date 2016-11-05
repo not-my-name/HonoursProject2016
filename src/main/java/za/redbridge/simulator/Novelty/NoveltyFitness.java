@@ -56,8 +56,10 @@ public class NoveltyFitness{
 
 	private int envHeight = 20;
 	private int envWidth = 20;
+	private double maxDist;
 
 	public NoveltyFitness() {
+		System.out.println("NoveltyFitness: calling the empty constructor");
 
 	}
 
@@ -93,6 +95,8 @@ public class NoveltyFitness{
 
 		this.numResources = this.currentGeneration[0].getNumResources(); //all of the simulations within a generation were run using the same number of resources
 		this.numResSamples = this.currentGeneration[0].getResourceTrajectory().length; //the number of times the position was sampled to build the trajectory
+
+		this.maxDist = Math.sqrt( Math.pow(envHeight, 2) + Math.pow(envWidth, 2) );
 	}
 
 	//rewriting this method for the same reason the calculatePopulationNovelty method below was rewritten
@@ -455,8 +459,12 @@ public class NoveltyFitness{
 		double destinationX = destination.x;
 		double destinationY = destination.y;
 
-		float distance = (float) (Math.pow(destinationX - originX, 2) +
-						 								  Math.pow(destinationY - originY, 2));
+		// float distance = (float) (Math.pow(destinationX - originX, 2) +
+		// 				 								  Math.pow(destinationY - originY, 2));
+
+		float distance = (float) Math.sqrt(
+										Math.pow(destinationX - originX, 2) +
+										Math.pow(destinationY - originY, 2));
 
 		return distance;
 

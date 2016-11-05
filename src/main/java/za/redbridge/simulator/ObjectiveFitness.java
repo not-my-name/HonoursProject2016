@@ -25,9 +25,12 @@ public class ObjectiveFitness {
 	private float connectionCWeight;
 
 	private double maxDistance;
-	private int schemaNumber; 
+	private int schemaNumber;
 
-	public ObjectiveFitness(int schemaNumber) {
+	private double envWidth;
+	private double envHeight;
+
+	public ObjectiveFitness(int schemaNumber, double envWidth, double envHeight) {
 
 		this.schemaNumber = schemaNumber;
 
@@ -43,11 +46,15 @@ public class ObjectiveFitness {
 		connectionBWeight = 2;
 		connectionCWeight = 3;
 
+		this.envWidth = envWidth;
+		this.envHeight = envHeight;
+
 		/**
 		need to change this to work with the dimensions of the environment
 		needs to be the diagonal distance
 		*/
-		maxDistance = 20;
+		maxDistance = Math.sqrt(Math.pow(20, 2) + Math.pow(20, 2));
+
 
 	}
 
@@ -116,13 +123,14 @@ Method to evaluate the overall objective fitness of a simulation run:
 		//System.out.println("ObjectiveFitness: finished the calculation");
 		//System.out.println("ObjectiveFitness: the finalFitness = " + finalFitness);
 
-		System.out.println("Objective Fitness: the individual fitness components");
-		System.out.println("Avg Dist between robot and resource = " + temp1);
-		System.out.println("Avg pickup count = " + temp2);
-		System.out.println("Avg dist between resources = " + temp3);
-		System.out.println("Num connected blocks = " + temp4);
-		System.out.println("Avg dist between res and cZone = " + temp5);
-		System.out.println("");
+		// System.out.println("Objective Fitness: the individual fitness components");
+		// System.out.println("Avg Dist between robot and resource = " + temp1);
+		// System.out.println("Avg pickup count = " + temp2);
+		// System.out.println("Avg dist between resources = " + temp3);
+		// System.out.println("Num connected blocks = " + temp4);
+		// System.out.println("Avg dist between res and cZone = " + temp5);
+		System.out.println("Final Fitness for this behaviour = " + finalFitness);
+		//System.out.println("");
 
 		return finalFitness;
 	}
@@ -186,9 +194,11 @@ Method to evaluate the overall objective fitness of a simulation run:
 	private double getAvgResToConstZoneDist(Behaviour behaviour) {
 
 		double rawDist = behaviour.getAvgResToCZoneDist();
+		//System.out.println("ObjectiveFitness: the raw avg distance = " + rawDist);
+		//System.out.println("ObjectiveFitness: the maximum distance is = " + maxDistance);
 		double normalised = (maxDistance - rawDist) / maxDistance;
 
 		return normalised;
 	}
-	
+
 }

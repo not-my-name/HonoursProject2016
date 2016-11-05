@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
 
+import java.util.*;
+
 public class SchemaConfig extends Config{
     private Config [] configs;
     private String [] resourceArray = {"A","B","C"};
@@ -111,25 +113,6 @@ public class SchemaConfig extends Config{
             return correctSides;
         }
 
-        /**
-        check if these getter methods even get called
-        */
-
-        // public int getACount() {
-        //     System.out.println("SchemaConfig: the getA method is called");
-        //     return ACount;
-        // }
-
-        // public int getBCount() {
-        //     System.out.println("SchemaConfig: the getB method is called");
-        //     return BCount;
-        // }
-
-        // public int getCCount() {
-        //     System.out.println("SchemaConfig: the getC method is called");
-        //     return CCount;
-        // }
-
         public int[] getIncorrectAdjacentSides (String type, String[] adjacent) {
 
             int[] incorrectSides = new int[4];
@@ -160,6 +143,14 @@ public class SchemaConfig extends Config{
             right = copyArray(r);
             up = copyArray(u);
             down = copyArray(d);
+
+            System.out.println("");
+            System.out.println("SchemaConfig: printing the resource schema");
+            System.out.println("left = " + Arrays.toString(left));
+            System.out.println("right = " + Arrays.toString(right));
+            System.out.println("up = " + Arrays.toString(up));
+            System.out.println("down = " + Arrays.toString(down));
+            System.out.println("");
         }
 
         private String [] copyArray(String [] temp){

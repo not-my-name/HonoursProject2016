@@ -128,6 +128,8 @@ public class SimConfig extends Config {
         configNumber = (Integer)(config.get("config"));
         resources = (Map) config.get("resources");
 
+        System.out.println("SimConfig: the config number = " + getConfigNumber());
+
         // Robots
         String robot_input = "";
         Map bots = (Map) config.get("robots");
@@ -154,7 +156,7 @@ public class SimConfig extends Config {
             }
 
         }
-        
+
         inputReader.close();
         this.simulationSeed = seed;
         this.simulationIterations = iterations;

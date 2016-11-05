@@ -113,13 +113,13 @@ public class ConstructionTask implements Steppable{
         Simulation simulation = (Simulation) simState;
         discreteGrid = simulation.getDiscreteGrid();
 
+        for(ResourceObject resource : resources){
+            resource.updateAdjacent(resources);
+        }
+
         if(getTotalResourcesConnected() == resources.size()) {
             System.out.println("ConstructionTask: all resources constructed");
             simulation.finish();
-        }
-
-        for(ResourceObject resource : resources){
-            resource.updateAdjacent(resources);
         }
 
         for(ResourceObject resource : resources) {
@@ -206,37 +206,40 @@ public class ConstructionTask implements Steppable{
 
                                     //if(discreteGrid.canBeConnected(resource, neighbour, i)) {
                                     //if(discreteGrid.canBeConnected(neighbour, resource, index)) { //WORKING
-                                    if(discreteGrid.canBeConnected(resource, neighbour, i)) {
+                                    //if(constructionZones.size() < 3) { //limiting the number of construction zones for later calculations
 
-                                        constructionZoneID++;
-                                        ConstructionZone newZone = new ConstructionZone(constructionZoneID);
-                                        newZone.startConstructionZone(resource, neighbour);
-                                        constructionZones.add(newZone);
-                                        globalConstructionOrder.add(resource);
-                                        globalConstructionOrder.add(neighbour);
+                                      if(discreteGrid.canBeConnected(resource, neighbour, i)) {
 
-                                        //alignResource(resource, null, index); //WORKING
-                                        // alignResource(resource, null, i);
-                                        alignResource(resource);
+                                          constructionZoneID++;
+                                          ConstructionZone newZone = new ConstructionZone(constructionZoneID);
+                                          newZone.startConstructionZone(resource, neighbour);
+                                          constructionZones.add(newZone);
+                                          globalConstructionOrder.add(resource);
+                                          globalConstructionOrder.add(neighbour);
 
-                                        // int index = 0;
-                                        // if(i == 0) {
-                                        //     index = 1;
-                                        // }
-                                        // else if(i == 1) {
-                                        //     index = 0;
-                                        // }
-                                        // else if(i == 2) {
-                                        //     index = 3;
-                                        // }
-                                        // else if(i == 3) {
-                                        //     index = 2;
-                                        // }
+                                          //alignResource(resource, null, index); //WORKING
+                                          // alignResource(resource, null, i);
+                                          alignResource(resource);
 
-                                        //alignResource(neighbour, resource, index);
-                                        //alignResource(neighbour, resource, i); //WORKING
-                                        alignResource(neighbour); //WORKING
-                                    }
+                                          // int index = 0;
+                                          // if(i == 0) {
+                                          //     index = 1;
+                                          // }
+                                          // else if(i == 1) {
+                                          //     index = 0;
+                                          // }
+                                          // else if(i == 2) {
+                                          //     index = 3;
+                                          // }
+                                          // else if(i == 3) {
+                                          //     index = 2;
+                                          // }
+
+                                          //alignResource(neighbour, resource, index);
+                                          //alignResource(neighbour, resource, i); //WORKING
+                                          alignResource(neighbour); //WORKING
+                                      }
+                                    //}
                                 }
                             }
                         }
@@ -268,8 +271,24 @@ public class ConstructionTask implements Steppable{
         remember to actually find the best one
         **/
 
-        return constructionZones.get(0);
+        ConstructionZone returnZone; //the empty construction zone that needs to be assigned and returned
+        double maxScore = 0;
+        int maxIndex = -1;
 
+        for(int k = 0; k < constructionZones.size(); k++) {
+
+          ArrayList<ResourceObject> connectedRes = new ArrayList<>();
+          connectedRes.addAll( constructionZones.get(k).getConnectionOrder() );
+          double tempScore = getConstructionValue(connectedRes);
+
+          if(tempScore > maxScore) {
+
+            maxScore = tempScore;
+            maxIndex = k;
+          }
+        }
+
+        return constructionZones.get(maxIndex);
     }
 
 
@@ -312,16 +331,22 @@ public class ConstructionTask implements Steppable{
 
     public void updateConstructionZones() {
 
+        System.out.println("ConstructionTask: checkng the traversals");
+
         ArrayList<ConstructionZone> newConstructionZones = new ArrayList<>();
 
         // check if there are construction zones
         if (constructionZones.size() > 0) {
+
+            System.out.println("ConstructionTAsk: first if statement");
 
             int czNum = 0;
             // go through every construction zone
             for(ConstructionZone cz : constructionZones){
                 // list of possible traversals for a construction zone
                 ArrayList<ArrayList<ResourceObject>> generatedTraversals = new ArrayList<>();
+
+                System.out.println("ConstructionTask: num connected res in current construction zone = " + cz.getConnectionOrder().size());
 
                 //For each resource (in order of construction)
                 for (ResourceObject res : cz.getConnectionOrder()) {
@@ -334,6 +359,11 @@ public class ConstructionTask implements Steppable{
                     //Generate the traversal
                     discreteGrid.generateTraversal(traversal, res, ignoreList);
 
+                    System.out.println("ConstructionTask: traversal size = " + traversal.size());
+                    System.out.println("ConstructionTask: printing the newly generated traversal");
+                    System.out.println(traversal);
+                    System.out.println("");
+
                     //If there is no equivalent traversal already generated
                     if (!traversalsContains(traversal, generatedTraversals)) {
 
@@ -344,12 +374,11 @@ public class ConstructionTask implements Steppable{
                         }
 
                         //If this traversal has a higher value than the starting resource's CZ value
-                        if (tValue >= constructionZones.get(resCZNum-1).getTotalResourceValue()) {
+                        if (tValue >= cz.getTotalResourceValue()) {
                             // System.out.println("This traversal is more valuable!");
                             generatedTraversals.add(traversal); //add this traversal to the generated traversals list (should become a CZ)
                         }
                     }
-
 
                     for (ResourceObject generalResource : resources) {
                         generalResource.setVisited(false);
@@ -371,17 +400,26 @@ public class ConstructionTask implements Steppable{
                     czNum++;
                 }
             }
+            System.out.println("ConstructionTask: printing the old constructionzones");
+            for(ConstructionZone cz : constructionZones) {
+                System.out.println(cz.getConnectionOrder());
+            }
+            System.out.println("");
             constructionZones.clear();
+            System.out.println("ConstructionTask: printing the new constructionZone");
             for(ConstructionZone cz : newConstructionZones){
+                System.out.println(cz.getConnectionOrder());
                 constructionZones.add(cz);
             }
+            System.out.println("");
+            System.out.println("");
         }
     }
 
     private int getConstructionValue(ArrayList<ResourceObject> possibleConstructionZone) {
 
       int totalScore = 0;
-      
+
       for(ResourceObject resObj : possibleConstructionZone) {
         totalScore += resObj.getValue();
       }
@@ -397,63 +435,63 @@ public class ConstructionTask implements Steppable{
     stop creating new construction zones after the first 3
     */
 
-    //method to update the construction zones according to the updated neighbour lists
-    //this method is used to join neighbouring construction zones
-    public void updateCZones() {
-
-        if(constructionZones.size() > 0) { //if there are existing construction zones
-
-            List<ResourceObject[]> generatedTraversals = new LinkedList<>();
-            boolean[] hasBeenChecked = new boolean[constructionZones.size()]; //array to indicate which of the construction zones have been checked
-
-            for(ResourceObject resObj : globalConstructionOrder) {
-                int constructionZoneID = resObj.getConstructionZoneID(); //get the ID of the construction zone that the resource is connected to
-
-                if(!hasBeenChecked[constructionZoneID-1]) { //check that the construction zone has not been traversed before
-
-                    List<ResourceObject> traversal = new LinkedList<>(); //list of resources that are correctly connected
-                    List<ResourceObject> ignoreList = new LinkedList<>(); //list of resources that should be ignored because of incorrect connection schemas
-
-                    discreteGrid.generateTraversal(traversal, resObj, ignoreList);
-
-                    if (!traversalsContains(traversal, generatedTraversals)) {
-
-                        //Calculate the value of the traversal
-                        int tValue = 0;
-                        for (ResourceObject tRes : traversal) {
-                            tValue += tRes.getValue();
-                        }
-
-                        if (tValue > constructionZones.get(constructionZoneID-1).getTotalResourceValue()) {
-                            generatedTraversals.add(traversal.toArray(new ResourceObject[0])); //add this traversal to the generated traversals list (should become a CZ)
-                            hasBeenChecked[constructionZoneID-1] = true;
-                        }
-                        else {
-                            generatedTraversals.add(constructionZones.get(constructionZoneID-1).getConnectionOrder().toArray(new ResourceObject[0]));
-                            hasBeenChecked[constructionZoneID-1] = true;
-                        }
-                    }
-
-                    for (ResourceObject r : resources) { //resetting these values in preparation for the next traversal
-                        r.setVisited(false);
-                    }
-                }
-            }
-
-            if (generatedTraversals.size() > 0) {
-
-                int czNum = 1;
-                constructionZones.clear();
-
-                for (ResourceObject[] newCZTraversal : generatedTraversals) {
-
-                    constructionZones.add( new ConstructionZone(newCZTraversal, czNum) );
-                    czNum++;
-                    System.out.println("ConstructionTask: the newCZTraversal = " + Arrays.toString(newCZTraversal));
-                }
-            }
-        }
-    }
+    // //method to update the construction zones according to the updated neighbour lists
+    // //this method is used to join neighbouring construction zones
+    // public void updateCZones() {
+    //
+    //     if(constructionZones.size() > 0) { //if there are existing construction zones
+    //
+    //         List<ResourceObject[]> generatedTraversals = new LinkedList<>();
+    //         boolean[] hasBeenChecked = new boolean[constructionZones.size()]; //array to indicate which of the construction zones have been checked
+    //
+    //         for(ResourceObject resObj : globalConstructionOrder) {
+    //             int constructionZoneID = resObj.getConstructionZoneID(); //get the ID of the construction zone that the resource is connected to
+    //
+    //             if(!hasBeenChecked[constructionZoneID-1]) { //check that the construction zone has not been traversed before
+    //
+    //                 List<ResourceObject> traversal = new LinkedList<>(); //list of resources that are correctly connected
+    //                 List<ResourceObject> ignoreList = new LinkedList<>(); //list of resources that should be ignored because of incorrect connection schemas
+    //
+    //                 discreteGrid.generateTraversal(traversal, resObj, ignoreList);
+    //
+    //                 if (!traversalsContains(traversal, generatedTraversals)) {
+    //
+    //                     //Calculate the value of the traversal
+    //                     int tValue = 0;
+    //                     for (ResourceObject tRes : traversal) {
+    //                         tValue += tRes.getValue();
+    //                     }
+    //
+    //                     if (tValue > constructionZones.get(constructionZoneID-1).getTotalResourceValue()) {
+    //                         generatedTraversals.add(traversal.toArray(new ResourceObject[0])); //add this traversal to the generated traversals list (should become a CZ)
+    //                         hasBeenChecked[constructionZoneID-1] = true;
+    //                     }
+    //                     else {
+    //                         generatedTraversals.add(constructionZones.get(constructionZoneID-1).getConnectionOrder().toArray(new ResourceObject[0]));
+    //                         hasBeenChecked[constructionZoneID-1] = true;
+    //                     }
+    //                 }
+    //
+    //                 for (ResourceObject r : resources) { //resetting these values in preparation for the next traversal
+    //                     r.setVisited(false);
+    //                 }
+    //             }
+    //         }
+    //
+    //         if (generatedTraversals.size() > 0) {
+    //
+    //             int czNum = 1;
+    //             constructionZones.clear();
+    //
+    //             for (ResourceObject[] newCZTraversal : generatedTraversals) {
+    //
+    //                 constructionZones.add( new ConstructionZone(newCZTraversal, czNum) );
+    //                 czNum++;
+    //                 System.out.println("ConstructionTask: the newCZTraversal = " + Arrays.toString(newCZTraversal));
+    //             }
+    //         }
+    //     }
+    // }
 
     //method to compare the generated traversal with previous traversals
     public boolean traversalsContains(List<ResourceObject> t, ArrayList<ArrayList<ResourceObject>> generatedTraversals) {
@@ -483,33 +521,33 @@ public class ConstructionTask implements Steppable{
         return doesContain;
     }
 
-    //method to compare the generated traversal with previous traversals
-    public boolean traversalsContains(List<ResourceObject> t, List<ResourceObject[]> traversals) {
-
-        ResourceObject[] tCopy = t.toArray(new ResourceObject[0]);
-        boolean doesContain = false;
-
-        for ( ResourceObject[] prevTraversal : traversals) { //iterate over all the previous traversals
-
-            boolean isTraversalEquiv = true;
-
-            for (ResourceObject ptRes : prevTraversal) { //iterate over the individual resources in the traversal
-
-                if (!t.contains(ptRes)) {
-
-                    isTraversalEquiv = false;
-                    break;
-                }
-            }
-
-            if (isTraversalEquiv) { //check if the traversals are equal
-                doesContain = true;
-                break;
-            }
-        }
-
-        return doesContain;
-    }
+    // //method to compare the generated traversal with previous traversals
+    // public boolean traversalsContains(List<ResourceObject> t, List<ResourceObject[]> traversals) {
+    //
+    //     ResourceObject[] tCopy = t.toArray(new ResourceObject[0]);
+    //     boolean doesContain = false;
+    //
+    //     for ( ResourceObject[] prevTraversal : traversals) { //iterate over all the previous traversals
+    //
+    //         boolean isTraversalEquiv = true;
+    //
+    //         for (ResourceObject ptRes : prevTraversal) { //iterate over the individual resources in the traversal
+    //
+    //             if (!t.contains(ptRes)) {
+    //
+    //                 isTraversalEquiv = false;
+    //                 break;
+    //             }
+    //         }
+    //
+    //         if (isTraversalEquiv) { //check if the traversals are equal
+    //             doesContain = true;
+    //             break;
+    //         }
+    //     }
+    //
+    //     return doesContain;
+    // }
 
     //method to return the total number of resources in the environment that have been
     //connected to another resource

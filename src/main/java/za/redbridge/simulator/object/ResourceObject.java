@@ -356,7 +356,7 @@ public class ResourceObject extends PhysicalObject {
                         else if (sideName.equals("T")) {
                             side = 2;
                         }
-                        else {
+                        else if (sideName.equals("B")) {
                             side = 3;
                         }
 
@@ -414,6 +414,22 @@ public class ResourceObject extends PhysicalObject {
 
     public void setConstructed(boolean val) {
         this.isConstructed = val;
+    }
+
+    public String getConnectedLeft() {
+        return adjacentResources[0];
+    }
+
+    public String getConnectedRight() {
+        return adjacentResources[1];
+    }
+
+    public String getConnectedTop() {
+        return adjacentResources[2];
+    }
+
+    public String getConnectedBottom() {
+        return adjacentResources[3];
     }
 
     // /**

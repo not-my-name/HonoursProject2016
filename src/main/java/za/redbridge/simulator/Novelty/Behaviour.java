@@ -229,10 +229,15 @@ public class Behaviour {
 			else if (numNotConstructed == 0) { //if all of the resources are connected to a construction zone
 				avgResToCZoneDist = 0; //should return 0 so that the function calculates a fitness of 1 (perfect score)
 			} //this else statement might not be necessary, if numNotConstructed
+
 		}
 		else if (numConstructionZones == 0) { //return the max possible distance so that the calc for fitness returns 0 (if no construction zones)
+			System.out.println("Behaviour: no construction zones. score should be 0");
 			avgResToCZoneDist = maxDist;
 		}
+
+
+
 	}
 
 	//method to calculate the score for the total number of resources that are connected
@@ -261,12 +266,12 @@ public class Behaviour {
         double secondX = destLocation.x;
         double secondY = destLocation.y;
 
-        // float distance = (float) Math.sqrt(
-        //                 Math.pow(firstX-secondX, 2) +
-        //                 Math.pow(firstY-secondY, 2));
+        float distance = (float) Math.sqrt(
+                        Math.pow(firstX-secondX, 2) +
+                        Math.pow(firstY-secondY, 2));
 
-				float distance = (float)(Math.pow(firstX-secondX, 2) +
-                        				Math.pow(firstY-secondY, 2));
+				// float distance = (float)(Math.pow(firstX-secondX, 2) +
+        //                 				Math.pow(firstY-secondY, 2));
 
         return distance;
     }
