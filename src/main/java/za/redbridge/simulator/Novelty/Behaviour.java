@@ -104,6 +104,8 @@ public class Behaviour {
 		}
 	}
 
+	//SHOULD MAYBE TAKE OUT THE COUNTPICKUPS FROM THE OBJECTIVE CALCULATION
+
 	/*
 	method to iterate over the list of robots at the end of the simulation
 	and sum the total number of times that a resource was picked up

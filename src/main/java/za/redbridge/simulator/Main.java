@@ -140,18 +140,18 @@ public class Main {
 
 			scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
 
-			for(int i = 0; i < options.numGenerations; i++) { //for(int i = trainer.getIteration(); i < numIterations; i++)
-				trainer.iteration(); //training the network for a single iteration
-				statsRecorder.recordIterationStats();
-
-				//once an individual has found an optimal solution, break out of the training loop
-				if(trainer.getBestGenome().getScore() >= convergenceScore) {
-					log.info("convergence reached at epoch(iteration): " + trainer.getIteration());
-					break;
-				}
-			}
-
-			scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
+			// for(int i = 0; i < options.numGenerations; i++) { //for(int i = trainer.getIteration(); i < numIterations; i++)
+			// 	trainer.iteration(); //training the network for a single iteration
+			// 	statsRecorder.recordIterationStats();
+			//
+			// 	//once an individual has found an optimal solution, break out of the training loop
+			// 	if(trainer.getBestGenome().getScore() >= convergenceScore) {
+			// 		log.info("convergence reached at epoch(iteration): " + trainer.getIteration());
+			// 		break;
+			// 	}
+			// }
+			//
+			// scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
 			log.debug("Training Complete");
 		}
 	}

@@ -186,7 +186,7 @@ public class ConstructionZone {
     public void addResource(ResourceObject resource, boolean isFirstConnection) {
 
         //System.out.println("ConstructionZone: adding resource " + resource + " with adjacent list = " + Arrays.toString(resource.getAdjacentList()) );
-
+        
         double FResource = 0D;
         if (connectedResources.add(resource)) {
 
