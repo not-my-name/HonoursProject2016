@@ -83,9 +83,9 @@ public final class NEATUtil {
         result.setChampMutation(weightMutation);
         result.addOperation(0.5, new NEATCrossover());
         result.addOperation(0.493, weightMutation);
-        result.addOperation(0.001, new NEATMutateAddNode());
-        result.addOperation(0.005, new NEATMutateAddLink());
-        result.addOperation(0.001, new NEATMutateRemoveLink());
+        result.addOperation(0.25, new NEATMutateAddNode());
+        result.addOperation(0.8, new NEATMutateAddLink());
+        result.addOperation(0.002, new NEATMutateRemoveLink());
         result.getOperators().finalizeStructure();
 
         //result.setCODEC(new NEATCODEC());
@@ -130,9 +130,9 @@ public final class NEATUtil {
         result.setChampMutation(weightMutation);
         result.addOperation(0.5, new NEATCrossover());
         result.addOperation(0.493, weightMutation);
-        result.addOperation(0.001, new NEATMutateAddNode());
-        result.addOperation(0.005, new NEATMutateAddLink());
-        result.addOperation(0.001, new NEATMutateRemoveLink());
+        result.addOperation(0.25, new NEATMutateAddNode());
+        result.addOperation(0.8, new NEATMutateAddLink());
+        result.addOperation(0.002, new NEATMutateRemoveLink());
         result.getOperators().finalizeStructure();
 
         //result.setCODEC(new HyperNEATCODEC());

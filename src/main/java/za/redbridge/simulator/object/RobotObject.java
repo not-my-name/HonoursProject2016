@@ -327,14 +327,8 @@ public class RobotObject extends PhysicalObject {
         return sum/samplePolygonAreas.size();
     }
 
-    public void setBoundToResource(boolean isBoundToResource, int resSize) {
+    public void setBoundToResource(boolean isBoundToResource) {
         this.isBoundToResource = isBoundToResource;
-
-        //larger resource consumes more energy
-        if(resSize == 1) setModifier(1.2f);
-        else if(resSize == 2) setModifier(1.5f);
-        else if(resSize == 3) setModifier(2.0f);
-        else setModifier(1);
     }
 
     public void setColor(Color color) {

@@ -474,16 +474,31 @@ public class ContToDiscrSpace {
 
 		//Count up number of neighbours that need to be looked at
 		List<ResourceObject> nToCheck = new LinkedList<>();
-		ResourceObject[] neighbours = getResNeighbourhood(currRes);
-		int temp = neighbours.length;
+		ResourceObject[] newNeighbours = getResNeighbourhood(currRes);
+		//ResourceObject[] neighbours = currRes.getAdjacentList();
+
+		// System.out.println("");
+		// System.out.println("LOOK FOR THE CAPS LOCK");
+		// System.out.println("ContToDiscSpace: printing the neighbours for: " + currRes);
+		// System.out.println("ContToDiscrSpace: the new neighbours list = " + Arrays.toString(newNeighbours));
+		// System.out.println("ContToDiscrSpace: the neighbours list from YOUR method = " + Arrays.toString(neighbours));
+		// System.out.println("");
+
+		/*
+		create methods to set the neighbours of the resource once they have been connected to
+		another construction zone
+		after the generate traversal at some point
+		*/
+
+		int temp = newNeighbours.length;
 		String[] neighboursString = new String[temp];
 
 		for(int k = 0; k < temp; k++) {
-			if(neighbours[k] != null) {
+			if(newNeighbours[k] != null) {
 
-				String tempType = neighbours[k].getType();
+				String tempType = newNeighbours[k].getType();
 				if(tempType != null) {
-					neighboursString[k] = neighbours[k].getType();
+					neighboursString[k] = newNeighbours[k].getType();
 				}
 				else{
 					neighboursString[k] = "_";
@@ -491,19 +506,30 @@ public class ContToDiscrSpace {
 			}
 		}
 
+		/*
+		check that the fitness values are correct for each simulation
+		checkin that using the above hack to get the neighbours does not affect the
+		fitness calculations
+		*/
+
+		// System.out.println("ContToDiscrSpace: the newly created neighbours string = " + Arrays.toString(neighboursString) );
+		// System.out.println("ContToDiscrSpace: the string array from YOUR method = " + Arrays.toString(currRes.getAdjacentResources()));
+		// System.out.println("");
+
 		//int[] incorrectSides =  schema.getIncorrectAdjacentSides(schemaNumber, currRes.getType(), neighboursString);
-		int[] incorrectSides =  schema.getIncorrectAdjacentSides(schemaNumber, currRes.getType(), currRes.getAdjacentResources());
+		//int[] incorrectSides =  schema.getIncorrectAdjacentSides(schemaNumber, currRes.getType(), currRes.getAdjacentResources());
+		int[] incorrectSides =  schema.getIncorrectAdjacentSides(schemaNumber, currRes.getType(), neighboursString);
 		//System.out.println("ContToDiscrSpace: num incorrect sides = " + Arrays.toString(incorrectSides));
 		//System.out.println("ContToDiscrSpace: the neighbouring resources");
 		//System.out.println(Arrays.toString(neighbours));
 
-		for (int i = 0; i < neighbours.length; i++) {
+		for (int i = 0; i < newNeighbours.length; i++) {
 
-			if (neighbours[i] != null && !neighbours[i].getVisited() && incorrectSides[i] == 0 && !ignoreList.contains(neighbours[i])) {
-				nToCheck.add(neighbours[i]);
+			if (newNeighbours[i] != null && !newNeighbours[i].getVisited() && incorrectSides[i] == 0 && !ignoreList.contains(newNeighbours[i])) {
+				nToCheck.add(newNeighbours[i]);
 			}
-			else if (neighbours[i] != null && incorrectSides[i] == 1 && !ignoreList.contains(neighbours[i])) {
-				ignoreList.add(neighbours[i]);
+			else if (newNeighbours[i] != null && incorrectSides[i] == 1 && !ignoreList.contains(newNeighbours[i])) {
+				ignoreList.add(newNeighbours[i]);
 			}
 		}
 

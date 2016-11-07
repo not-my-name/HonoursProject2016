@@ -300,6 +300,9 @@ public class Simulation extends SimState {
         //get the final positions of the resources in the simulation
         ArrayList<ResourceObject> currentResources = resourceFactory.getPlacedResources();
 
+        //updating construction zones to join neighboursing ones before calculating the score
+        construction.updateConstructionZones();
+
         //creating the noveltyBehaviour object to be used in the fitness calculation
         NoveltyBehaviour noveltyBehaviour = new NoveltyBehaviour(currentRobots, currentResources, construction);
 
@@ -332,6 +335,8 @@ public class Simulation extends SimState {
 
         ArrayList<RobotObject> tempBots = robotFactory.getPlacedRobots();
         ArrayList<ResourceObject> tempResources = resourceFactory.getPlacedResources();
+
+        construction.updateConstructionZones();
 
         //THIS IS FOR THE OBJECTIVE FITNESS
         Behaviour behaviour = new Behaviour(construction, tempBots, tempResources, schemaConfigNum);

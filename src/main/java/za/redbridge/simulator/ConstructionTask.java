@@ -239,7 +239,6 @@ public class ConstructionTask implements Steppable{
                                           //alignResource(neighbour, resource, i); //WORKING
                                           alignResource(neighbour); //WORKING
                                       }
-                                    //}
                                 }
                             }
                         }
@@ -331,14 +330,18 @@ public class ConstructionTask implements Steppable{
 
     public void updateConstructionZones() {
 
-        System.out.println("ConstructionTask: checkng the traversals");
+        //System.out.println("ConstructionTask: checkng the traversals");
 
         ArrayList<ConstructionZone> newConstructionZones = new ArrayList<>();
+
+        // for(ResourceObject resObj : resources) {
+        //     resObj.updateAdjacent(resources);
+        // }
 
         // check if there are construction zones
         if (constructionZones.size() > 0) {
 
-            System.out.println("ConstructionTAsk: first if statement");
+            //System.out.println("ConstructionTAsk: first if statement");
 
             int czNum = 0;
             // go through every construction zone
@@ -346,7 +349,7 @@ public class ConstructionTask implements Steppable{
                 // list of possible traversals for a construction zone
                 ArrayList<ArrayList<ResourceObject>> generatedTraversals = new ArrayList<>();
 
-                System.out.println("ConstructionTask: num connected res in current construction zone = " + cz.getConnectionOrder().size());
+                //System.out.println("ConstructionTask: num connected res in current construction zone = " + cz.getConnectionOrder().size());
 
                 //For each resource (in order of construction)
                 for (ResourceObject res : cz.getConnectionOrder()) {
@@ -359,10 +362,10 @@ public class ConstructionTask implements Steppable{
                     //Generate the traversal
                     discreteGrid.generateTraversal(traversal, res, ignoreList);
 
-                    System.out.println("ConstructionTask: traversal size = " + traversal.size());
-                    System.out.println("ConstructionTask: printing the newly generated traversal");
-                    System.out.println(traversal);
-                    System.out.println("");
+                    // System.out.println("ConstructionTask: traversal size = " + traversal.size());
+                    // System.out.println("ConstructionTask: printing the newly generated traversal");
+                    // System.out.println(traversal);
+                    // System.out.println("");
 
                     //If there is no equivalent traversal already generated
                     if (!traversalsContains(traversal, generatedTraversals)) {
@@ -400,19 +403,20 @@ public class ConstructionTask implements Steppable{
                     czNum++;
                 }
             }
-            System.out.println("ConstructionTask: printing the old constructionzones");
-            for(ConstructionZone cz : constructionZones) {
-                System.out.println(cz.getConnectionOrder());
-            }
-            System.out.println("");
-            constructionZones.clear();
-            System.out.println("ConstructionTask: printing the new constructionZone");
-            for(ConstructionZone cz : newConstructionZones){
-                System.out.println(cz.getConnectionOrder());
-                constructionZones.add(cz);
-            }
-            System.out.println("");
-            System.out.println("");
+
+            // System.out.println("ConstructionTask: printing the old constructionzones");
+            // for(ConstructionZone cz : constructionZones) {
+            //     System.out.println(cz.getConnectionOrder());
+            // }
+            // System.out.println("");
+            // constructionZones.clear();
+            // System.out.println("ConstructionTask: printing the new constructionZone");
+            // for(ConstructionZone cz : newConstructionZones){
+            //     System.out.println(cz.getConnectionOrder());
+            //     constructionZones.add(cz);
+            // }
+            // System.out.println("");
+            // System.out.println("");
         }
     }
 
