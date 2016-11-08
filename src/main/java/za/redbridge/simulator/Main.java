@@ -85,7 +85,7 @@ public class Main {
 		envWidth = simConfig.getEnvironmentWidth();
 		envHeight = simConfig.getEnvironmentHeight();
 
-		schemaConfigIndex = 0;
+		schemaConfigIndex = simConfig.getConfigNumber();
 		ScoreCalculator scoreCalculator = new ScoreCalculator(simConfig, options.simulationRuns,
 						morphology, options.populationSize, schemaConfigIndex, envHeight, envWidth); //got this from the Main class in last years Controller Master folder
 
