@@ -90,10 +90,11 @@ public class ConstructionZone {
 
     public ConstructionZone(List<ResourceObject>updatedResources, int czNum) {
 
-        this.cZoneIndex = czNum;
+        //this.cZoneIndex = czNum;
         connectionOrder = new LinkedList<>();
         connectedResources = new HashSet<>();
         numConnected = 0;
+        cZoneIndex = czNum;
 
         Random rand = new Random();
         int randVal1 = rand.nextInt((255 - 1) + 1) + 1;
@@ -186,7 +187,7 @@ public class ConstructionZone {
     public void addResource(ResourceObject resource, boolean isFirstConnection) {
 
         //System.out.println("ConstructionZone: adding resource " + resource + " with adjacent list = " + Arrays.toString(resource.getAdjacentList()) );
-        
+
         double FResource = 0D;
         if (connectedResources.add(resource)) {
 
@@ -249,17 +250,17 @@ public class ConstructionZone {
         return total;
     }
 
-    public List<ResourceObject> updateCZNumber(int newCZNum) {
-
-        List<ResourceObject> returnResources = new LinkedList<>();
-        for (ResourceObject r : connectionOrder) {
-
-            r.setConstructionZoneID(newCZNum);
-            returnResources.add(r);
-        }
-
-        return returnResources;
-    }
+    // public List<ResourceObject> updateCZNumber() {
+    // 
+    //     List<ResourceObject> returnResources = new LinkedList<>();
+    //     for (ResourceObject r : connectionOrder) {
+    //
+    //         r.setConstructionZoneID(cZoneIndex);
+    //         returnResources.add(r);
+    //     }
+    //
+    //     return returnResources;
+    // }
 
     /**
     check that these new addResource methods do not conflict with each other

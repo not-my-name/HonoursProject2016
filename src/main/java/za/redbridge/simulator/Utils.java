@@ -52,7 +52,13 @@ public final class Utils {
 
     private static final Logger log = LoggerFactory.getLogger(Utils.class);
 
+    private static String directoryName;
+
     private Utils() {
+    }
+
+    public static void setDirectoryName(String newDirName) {
+        directoryName = newDirName;
     }
 
     public static double randomRange(MersenneTwisterFast rand, double from, double to) {
@@ -165,11 +171,11 @@ public final class Utils {
             hostname = "unknown";
         }
 
-        String objectiveFolder = "/ObjectiveResults/Schema_1/";
+        //String objectiveFolder = "/ObjectiveResults/Schema_1/";
         //String objectiveFolder = "/ObjectiveResults/Schema_2/";
         //String objectiveFolder = "/ObjectiveResults/Schema_3/";
 
-        return Paths.get("results", objectiveFolder);
+        return Paths.get("results", directoryName);
 
         // String date = new SimpleDateFormat("yyyyMMdd'T'HHmm").format(new Date());
         //
