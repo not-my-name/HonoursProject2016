@@ -396,14 +396,12 @@ public class ConstructionTask implements Steppable{
                 }
             }
 
-            if(newConstructionZones.size() > 0) {
+            if(newConstructionZones.size() > 0) { //writing the new constructionZones to the old list
                 constructionZones.clear();
                 for(ConstructionZone cZone : newConstructionZones) {
                     constructionZones.add(cZone);
                 }
             }
-
-
         }
     }
 

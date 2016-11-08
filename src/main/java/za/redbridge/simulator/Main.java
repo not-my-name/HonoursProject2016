@@ -114,7 +114,7 @@ public class Main {
 			scoreCalculator.setPerformNovelty(true);
 
 			final StatsRecorder statsRecorder = new StatsRecorder(trainer, scoreCalculator); //this is basically where the simulation runs
-			scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
+			//scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
 
 			for(int i = 0; i < options.numGenerations; i++) { //for(int i = trainer.getIteration(); i < numIterations; i++)
 				trainer.iteration(); //training the network for a single iteration
@@ -136,7 +136,7 @@ public class Main {
 			trainer.setThreadCount(0);
 
 			final StatsRecorder statsRecorder = new StatsRecorder(trainer, scoreCalculator); //this is basically where the simulation runs
-			scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
+			//scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
 
 			for(int i = 0; i < options.numGenerations; i++) { //for(int i = trainer.getIteration(); i < numIterations; i++)
 				trainer.iteration(); //training the network for a single iteration
@@ -149,7 +149,7 @@ public class Main {
 				}
 			}
 
-			scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
+			//scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
 			log.debug("Training Complete");
 		}
 	}
