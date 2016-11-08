@@ -82,7 +82,7 @@ public class PickupHeuristic extends Heuristic {
                 }
             }else if(SimStepCount >= MaxStepCounter){
                 // been holding this resourse for too long, detach from it and drive away
-                System.out.println("PickupHeuristic: the robot is about to detach");
+                //System.out.println("PickupHeuristic: the robot is about to detach");
                 currentResource.forceDetach();
                 resetCounter(currentResource);
 

@@ -30,6 +30,8 @@ import static za.redbridge.simulator.Utils.readObjectFromFile;
 
 import za.redbridge.simulator.Archive;
 
+import za.redbridge.simulator.Utils;
+
 public class Main {
 
 	private final static Logger log = LoggerFactory.getLogger(Main.class);
@@ -63,24 +65,27 @@ public class Main {
 			new JCommander(options, args);
 
 			log.info(options.toString());
+			int ind = k+1;
 
 			double connectionDensity = 0.5;
-
-			String simConfigFP = "configs/simConfig.yml";
-			String experimentConfigFP = "configs/experimentConfig.yml";
+			//fetching the correct simConfig for each experiment
+			String simConfigFP = "configs/simConfig" + Integer.toString(ind) + ".yml";
+			//String experimentConfigFP = "configs/experimentConfig.yml";
 			String morphologyConfigFP = "configs/morphologyConfig.yml";
+			String folderDir = "/ObjectiveResults/Schema_" + Integer.toString(ind) + "/FirstRun/";
+			Utils.setDirectoryName(folderDir);
 
 			MorphologyConfig morphologyConfig = new MorphologyConfig(morphologyConfigFP);
 			Morphology morphology = morphologyConfig.getMorphology(1);
 			numInputs = morphology.getNumSensors();
 
-			SimConfig simConfig;
-			if( !isBlank(options.configFile) ) {
-				simConfig = new SimConfig(options.configFile);
-			}
-			else {
-				simConfig = new SimConfig();
-			}
+			SimConfig simConfig = new SimConfig(simConfigFP);
+			// if( !isBlank(options.configFile) ) {
+			// 	simConfig = new SimConfig(options.configFile);
+			// }
+			// else {
+			// 	simConfig = new SimConfig();
+			// }
 
 			resConfig = options.environment;
 
@@ -183,13 +188,13 @@ public class Main {
         private String configFile = "configs/simConfig.yml";
 
         @Parameter(names = "-i", description = "Number of generations to train for")
-        private int numGenerations = 100;
+        private int numGenerations = 2;
 
         @Parameter(names = "-p", description = "Initial population size")
-        private int populationSize = 150;
+        private int populationSize = 3;
 
         @Parameter(names = "--sim-runs", description = "Number of simulation runs per iteration")
-        private int simulationRuns = 5;
+        private int simulationRuns = 2;
 
         @Parameter(names = "--conn-density", description = "Adjust the initial connection density"
                 + " for the population")

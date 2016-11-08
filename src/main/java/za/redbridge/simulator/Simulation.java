@@ -106,7 +106,7 @@ public class Simulation extends SimState {
         createWalls();
         robotFactory.placeInstances(placementArea.new ForType<>(), physicsWorld, config.getTargetAreaPlacement());
 
-        schema = new SchemaConfig("configs/schemaConfig.yml", 1, 3);
+        schema = new SchemaConfig("configs/schemaConfig.yml", 10, 3);
         //schema = new SchemaConfig("configs/schemaConfig.yml", 3, 3);
         discreteGrid = new ContToDiscrSpace(20,20,1D,1D, DISCR_GAP, schema, schemaConfigNum);
         resourceFactory.setResQuantity(schema.getResQuantity(config.getConfigNumber()));
