@@ -27,6 +27,8 @@ import za.redbridge.simulator.factories.ResourceFactory;
 
 import java.util.*;
 
+import za.redbridge.simulator.StatsRecorder;
+
 /**
  * Test runner for the simulation.
  *
@@ -41,10 +43,19 @@ public class ScoreCalculator implements CalculateScore {
     private final Morphology sensorMorphology;
 
     private int schemaConfigNum;
+    private int experimentRun; //keep track of which number experiment is being run
 
-    private final DescriptiveStatistics performanceStats = new SynchronizedDescriptiveStatistics();
-    private final DescriptiveStatistics scoreStats = new SynchronizedDescriptiveStatistics();
-    //private final DescriptiveStatistics sensorStats;
+    private final DescriptiveStatistics performanceStats = new SynchronizedDescriptiveStatistics(); //record the time duration
+    private final DescriptiveStatistics fitnessStats = new SynchronizedDescriptiveStatistics(); //record the fitness scores
+
+    //files to store the statistics regarding the number of different types of blocks that get connected
+    private final DescriptiveStatistics numAConnected_Stats = new SynchronizedDescriptiveStatistics(); //avg number of blocks connected per simulation
+    private final DescriptiveStatistics numBConnected_Stats = new SynchronizedDescriptiveStatistics();
+    private final DescriptiveStatistics numCConnected_Stats = new SynchronizedDescriptiveStatistics();
+    private final DescriptiveStatistics avgBlocksConnected_Stats = new SynchronizedDescriptiveStatistics(); //avg number of blocks connected per simulation
+    private final DescriptiveStatistics normNumBlocksConnected_Stats = new SynchronizedDescriptiveStatistics(); //number of blocks connected each simulation / divided by total number of blocks available average over each simulation run
+    //avg number of construction zones built per simulation run
+    private final DescriptiveStatistics numConstructionZones_Stats = new SynchronizedDescriptiveStatistics();
 
     private Archive archive;
 
@@ -71,22 +82,8 @@ public class ScoreCalculator implements CalculateScore {
         this.sensorMorphology = sensorMorphology;
         this.populationSize = populationSize;
 
-        //currentPopulation = new ArrayList<NoveltyBehaviour>();
-        currentBehaviour = 0;
-        numResults = populationSize * simulationRuns;
-        currentPopulation = new NoveltyBehaviour[numResults];
-
         this.envHeight = envHeight;
         this.envWidth = envWidth;
-
-        /**
-        need to set this from the main method in order to run the experiments
-        */
-        //PerformingNoveltyCalcs = true;
-
-        /**
-        need to change the schema config to work with the variables so that the config number can change
-        */
         this.schemaConfigNum = schemaConfigNum;
 
         //there is only one ScoreCalculator that gets used
@@ -115,49 +112,104 @@ public class ScoreCalculator implements CalculateScore {
             }
 
             double noveltyScore = beh.getPopulationScore();
-            scoreStats.addValue(noveltyScore);
+            fitnessStats.addValue(noveltyScore);
+            //scoreStats.addValue(noveltyScore);
             log.debug("NoveltyScore calculation completed: " + noveltyScore);
             return noveltyScore;
         }
         else { //FOR OBJECTIVE SEARCH
 
-            NEATNetwork neat_network = null;
-            RobotFactory robotFactory;
+            try {
+                NEATNetwork neat_network = null;
+                RobotFactory robotFactory;
 
-            neat_network = (NEATNetwork) method;
-            robotFactory = new HomogeneousRobotFactory(getPhenotypeForNetwork(neat_network),
-                        simConfig.getRobotMass(), simConfig.getRobotRadius(), simConfig.getRobotColour(),
-                        simConfig.getObjectsRobots());
+                neat_network = (NEATNetwork) method;
+                robotFactory = new HomogeneousRobotFactory(getPhenotypeForNetwork(neat_network),
+                            simConfig.getRobotMass(), simConfig.getRobotRadius(), simConfig.getRobotColour(),
+                            simConfig.getObjectsRobots());
 
-            // create new configurable resource factory
-            String [] resQuantity = {"0","0","0"};
-            ResourceFactory resourceFactory = new ConfigurableResourceFactory();
-            resourceFactory.configure(simConfig.getResources(), resQuantity);
+                // create new configurable resource factory
+                String [] resQuantity = {"0","0","0"};
+                ResourceFactory resourceFactory = new ConfigurableResourceFactory();
+                resourceFactory.configure(simConfig.getResources(), resQuantity);
 
-            Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory, PerformingNoveltyCalcs);
-            simulation.setSchemaConfigNumber(schemaConfigNum);
+                Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory, PerformingNoveltyCalcs);
+                simulation.setSchemaConfigNumber(schemaConfigNum);
+                //resetting the recorder values
+                double fitness = 0;
 
-            double fitness = 0;
-            for(int i = 0; i < simulationRuns; i++) {
+                AggregateBehaviour aggregateBehaviour = new AggregateBehaviour(simulationRuns);
 
-                ObjectiveFitness objectiveFitness = new ObjectiveFitness(schemaConfigNum, this.envWidth, this.envHeight);
-                Behaviour resultantBehaviour = simulation.runObjective();
-                double tempFitness = objectiveFitness.calculate(resultantBehaviour);
-                fitness += tempFitness;
+                for(int i = 0; i < simulationRuns; i++) {
+
+                    Behaviour resultantBehaviour = simulation.runObjective();
+                    int [] resTypeCount = simulation.getResTypeCount();
+                    int tempTotal = resTypeCount[0] + resTypeCount[1] + resTypeCount[2];
+                    aggregateBehaviour.setTotalNumRes(tempTotal);
+                    aggregateBehaviour.addBehaviour(resultantBehaviour);
+                    ObjectiveFitness objectiveFitness = new ObjectiveFitness(schemaConfigNum, resTypeCount);
+                    double tempFitness = objectiveFitness.calculate(resultantBehaviour);
+                    fitness += tempFitness;
+                }
+
+                aggregateBehaviour.setTotalNumRes(simulation.getTotalNumResources());
+                aggregateBehaviour.finishRecording();
+
+                double score = fitness / simulationRuns;
+
+                fitnessStats.addValue(score);
+                numAConnected_Stats.addValue(aggregateBehaviour.getAvgABlocksConnected());
+                numBConnected_Stats.addValue(aggregateBehaviour.getAvgBBlocksConnected());
+                numCConnected_Stats.addValue(aggregateBehaviour.getAvgCBlocksConnected());
+                avgBlocksConnected_Stats.addValue(aggregateBehaviour.getAvgNumBlocksConnected());
+                normNumBlocksConnected_Stats.addValue(aggregateBehaviour.getNormalisedNumConnected());
+                numConstructionZones_Stats.addValue(aggregateBehaviour.getAvgNumConstructionZones());
+
+                log.debug("Score calculation completed: " + score);
+
+                long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
+                performanceStats.addValue(duration);
+
+                return score;
             }
-
-            double score = fitness / simulationRuns;
-            scoreStats.addValue(score);
-
-            log.debug("Score calculation completed: " + score);
-
-            long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
-            performanceStats.addValue(duration);
-
-            return score;
-
+            catch(Exception e) {
+                System.out.println("ScoreCalculator: an error occurred");
+                e.printStackTrace();
+                return 0;
+            }
         }
+    }
 
+    public DescriptiveStatistics getPerformanceStatsFile() {
+        return performanceStats;
+    }
+
+    public DescriptiveStatistics getFitnessStatsFile() {
+        return fitnessStats;
+    }
+
+    public DescriptiveStatistics getConnectedAFile() {
+        return numAConnected_Stats;
+    }
+
+    public DescriptiveStatistics getConnectedBFile() {
+        return numBConnected_Stats;
+    }
+
+    public DescriptiveStatistics getConnectedCFile() {
+        return numCConnected_Stats;
+    }
+
+    public DescriptiveStatistics getAvgBlocksConnectedFile() {
+        return avgBlocksConnected_Stats;
+    }
+
+    public DescriptiveStatistics getNumConstructionZonesFile() {
+        return numConstructionZones_Stats;
+    }
+
+    public DescriptiveStatistics getNormNumConnectedFile() {
+        return normNumBlocksConnected_Stats;
     }
 
     public void demo(MLMethod method) {
@@ -266,13 +318,13 @@ public class ScoreCalculator implements CalculateScore {
         return false;
     }
 
-    public DescriptiveStatistics getPerformanceStatistics() {
-        return performanceStats;
-    }
+    // public DescriptiveStatistics getPerformanceStatistics() {
+    //     return performanceStats;
+    // }
 
-    public DescriptiveStatistics getScoreStatistics() {
-        return scoreStats;
-    }
+    // public DescriptiveStatistics getScoreStatistics() {
+    //     return scoreStats;
+    // }
 
     /*public DescriptiveStatistics getSensorStatistics() {
         return sensorStats;

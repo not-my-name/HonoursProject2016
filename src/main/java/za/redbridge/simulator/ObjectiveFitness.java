@@ -2,6 +2,7 @@ package za.redbridge.simulator;
 
 import za.redbridge.simulator.object.ResourceObject;
 import java.util.*;
+import za.redbridge.simulator.config.SchemaConfig;
 
 /*
 a class that will manage all the necessary calculations for the objective fitness of an individual
@@ -9,196 +10,74 @@ a class that will manage all the necessary calculations for the objective fitnes
 
 public class ObjectiveFitness {
 
-	//private AggregateBehaviour aggregateBehaviour;
-
-	private float robToResDistWeight;
-	private float numPickupWeight;
-	private float resToResDistWeight;
-	private float connectedResourcesWeight;
-	private float correctSchemaWeight;
-	private float avgResToCZoneWeight;
-	private float adjacentResourcesWeight;
-
 	//the weights that will reward the robots for connecting more complex resources
 	private float connectionAWeight;
 	private float connectionBWeight;
 	private float connectionCWeight;
 
-	private double maxDistance;
-	private int schemaNumber;
+	private SchemaConfig schemaConfig;
 
-	private double envWidth;
-	private double envHeight;
+	private int configIndex; //the schema config being used in this experiment
+	private int[] resTypeCount;
 
-	public ObjectiveFitness(int schemaNumber, double envWidth, double envHeight) {
+	public ObjectiveFitness(int configIndex, int[] resTypeCount) {
 
-		this.schemaNumber = schemaNumber;
+		this.schemaConfig = schemaConfig;
+		this.configIndex = configIndex;
+		this.resTypeCount = resTypeCount;
 
-		robToResDistWeight = 1;
-		resToResDistWeight = 1;
-		numPickupWeight = 1;
-		connectedResourcesWeight = 1;
-		correctSchemaWeight = 1;
-		avgResToCZoneWeight = 1;
-		adjacentResourcesWeight = 1;
-
-		connectionAWeight = 1;
-		connectionBWeight = 2;
-		connectionCWeight = 3;
-
-		this.envWidth = envWidth;
-		this.envHeight = envHeight;
-
-		/**
-		need to change this to work with the dimensions of the environment
-		needs to be the diagonal distance
-		*/
-		maxDistance = Math.sqrt(Math.pow(20, 2) + Math.pow(20, 2));
-
-
+		connectionAWeight = 0.3f;
+		connectionBWeight = 0.6f;
+		connectionCWeight = 1f;
 	}
 
-	//method to alter the values for the various weightings
-	public void setUpWeights() {
-
-	}
-
-	/*
-Method to evaluate the overall objective fitness of a simulation run:
-    A - average distance between robot and closest resource to it
-    B - average number of times that robots connected to resources (done)
-    C - average distance between resources (done)
-    D - the number of adjacent resources (number of resources that have been connected) getConstructionFitness()
-    E - the number of adjacent resources that are in the correct schema (check which of the connected resources are in the correct schema) checkSchemaFitness()
-    F - average distance between resources and the construction starting area (calculate the avg distance between )
-*/
-
-    /**
-    this is the code to normalise the values for the fitness function
-    */
-
-    /*
-    aveRobotDistance = (maxDistance - getAveRobotDistance())/maxDistance;
-    avePickupCount = getAveRobotPickups()/schema.getTotalRobotsRequired(schemaNumber);
-    aveResDistance = (maxDistance - getAveResourceDistance())/maxDistance; max distance between resources
-    numAdjacentResources = (double)getNumAdjacentResources()/resources.size();
-    numCorrectlyConnected = (double)constructionZone.getNumCorrectlyConnected(schema, schemaNumber)/constructionZone.getNumberOfConnectedResources();
-    if (getAveDistanceFromCZ() < 0) {
-        // System.out.println(aveRobotDistance + " " + avePickupCount + " " + aveResDistance + " " + numAdjacentResources);
-        return w[0]*aveRobotDistance + w[1]*avePickupCount + w[2]*aveResDistance + w[3]*numAdjacentResources;
-    }
-    else {
-        aveResDistanceFromCZ = 1/(1 + getAveDistanceFromCZ());
-        // System.out.println(aveRobotDistance + " " + avePickupCount + " " + aveResDistance + " " + numAdjacentResources + " " + numCorrectlyConnected + " " + aveResDistanceFromCZ);
-        // double constructionZoneFitness = constructionZone.getFitnessStats().getTeamFitness();
-        // constructionFitness += constructionZoneFitness;
-
-        return w[0]*aveRobotDistance + w[1]*avePickupCount + w[2]*aveResDistance + w[3]*numAdjacentResources + w[4]*numCorrectlyConnected + w[5]*aveResDistanceFromCZ;
-    */
 	public double calculate(Behaviour behaviour) {
 
 		double finalFitness = 0;
 
-		//System.out.println("ObjectiveFitness: about to calculate");
+		// System.out.println("ObjectiveFitness: printing the score criteria");
+		// System.out.println("Num A connected = " + behaviour.getConnectedA());
+		// System.out.println("Num B connected = " + behaviour.getConnectedB());
+		// System.out.println("Num C connected = " + behaviour.getConnectedC());
 
+		double scoreA = behaviour.getConnectedA() * connectionAWeight;
+		double scoreB = behaviour.getConnectedB() * connectionBWeight;
+		double scoreC = behaviour.getConnectedC() * connectionCWeight;
 
-		double temp1 = getAvgRobToResDist(behaviour) * robToResDistWeight;
-		double temp2 = getAvgPickupCount(behaviour) * numPickupWeight;
-		double temp3 = getAvgResToResDist(behaviour) * resToResDistWeight;
-		double temp4 = calcNumConnectedResources(behaviour) * connectedResourcesWeight;
-		double temp5 = getAvgResToConstZoneDist(behaviour) * avgResToCZoneWeight;
+		// System.out.println("Score for A connections = " + scoreA);
+		// System.out.println("Score for B connections = " + scoreB);
+		// System.out.println("Score for C connections = " + scoreC);
 
-		// finalFitness += getAvgRobToResDist(behaviour) * robToResDistWeight;
-		// //System.out.println("ObjectiveFitness: first calc");
-		// finalFitness += getAvgPickupCount(behaviour) * numPickupWeight;
-		// //System.out.println("ObjectiveFitness: second calc");
-		// finalFitness += getAvgResToResDist(behaviour) * resToResDistWeight;
-		// //System.out.println("ObjectiveFitness: third calc");
-		// finalFitness += calcNumConnectedResources(behaviour) * connectedResourcesWeight;
-		// //System.out.println("ObjectiveFitness: fourth calc");
-		// finalFitness += getAvgResToConstZoneDist(behaviour) * avgResToCZoneWeight;
+		//the different type of resource counts for the entire environment
+		int totalA = resTypeCount[0];
+		int totalB = resTypeCount[1];
+		int totalC = resTypeCount[2];
 
-		finalFitness = temp1 + temp2 + temp3 + temp4 + temp5;
+		// System.out.println("The total different types of blocks in the environment");
+		// System.out.println("Total A blocks = " + totalA);
+		// System.out.println("Total B blocks = " + totalB);
+		// System.out.println("Total C blocks = " + totalC);
+		// System.out.println("");
 
-		//System.out.println("ObjectiveFitness: finished the calculation");
-		//System.out.println("ObjectiveFitness: the finalFitness = " + finalFitness);
+		double idealA = totalA * connectionAWeight;
+		double idealB = totalB * connectionBWeight;
+		double idealC = totalC * connectionCWeight;
 
-		// System.out.println("Objective Fitness: the individual fitness components");
-		// System.out.println("Avg Dist between robot and resource = " + temp1);
-		// System.out.println("Avg pickup count = " + temp2);
-		// System.out.println("Avg dist between resources = " + temp3);
-		// System.out.println("Num connected blocks = " + temp4);
-		// System.out.println("Avg dist between res and cZone = " + temp5);
-		System.out.println("Final Fitness for this behaviour = " + finalFitness);
-		//System.out.println("");
+		// System.out.println("The maximum possible score for each type of block");
+		// System.out.println("Ideal A score = " + idealA);
+		// System.out.println("Ideal B score = " + idealB);
+		// System.out.println("Ideal C score = " + idealC);
+
+		double normalizationVal = idealA + idealB + idealC;
+
+		//System.out.println("Total ideal score = " + normalizationVal);
+
+		finalFitness = (scoreA + scoreB + scoreC) / normalizationVal;
+
+		// System.out.println("Final calculated and normalized fitness = " + finalFitness);
+		// System.out.println("");
+		// System.out.println("");
 
 		return finalFitness;
 	}
-
-	private double getAvgRobToResDist(Behaviour behaviour) {
-
-		double rawDist = behaviour.getRobToResDist(); //the non-normalised value
-		double normalised = (maxDistance - rawDist) / maxDistance; //as rawVal decreases (robots move closer to resources), the normalised value increases with max when rawVal = 0 will return 1
-
-		return normalised;
-	}
-
-	private double getAvgPickupCount(Behaviour behaviour) {
-
-		/**
-		change this maxPickups to work with a variable
-		*/
-		double maxPickups = 20;
-
-		double rawPickupCount = behaviour.getNumPickups(); //avg number of resources that each robot picked up
-		double normalised = rawPickupCount / maxPickups;
-
-		return normalised;
-	}
-
-	//method to calculate the average distance between robots and the resource nearest to them at the end of the simulation
-	private double getAvgResToResDist(Behaviour behaviour) {
-
-		double rawDist = behaviour.getAvgResToResDist();
-		double normalised = (maxDistance - rawDist) / maxDistance;
-
-		return normalised;
-	}
-
-	//method to check how many resources are connected
-	private double calcNumConnectedResources(Behaviour behaviour) {
-
-		double connectionScore = 0;
-
-		connectionScore += behaviour.getConnectedA() * connectionAWeight;
-		connectionScore += behaviour.getConnectedB() * connectionBWeight;
-		connectionScore += behaviour.getConnectedC() * connectionCWeight;
-
-		/*
-		calculate what the most ideal score is for if all the resources in the schema are connected
-		*/
-		double idealScore = behaviour.getConstructionTask().getIdealScore();
-
-		double normalised = connectionScore / idealScore;
-
-		return normalised;
-	}
-
-	/**
-	PROBLEM TO SOLVE
-	this method will return the same value for if all of the resources are connected
-	or if none of them are connected
-	should not get a perfect score if there are no construction zones
-	*/
-
-	private double getAvgResToConstZoneDist(Behaviour behaviour) {
-
-		double rawDist = behaviour.getAvgResToCZoneDist();
-		//System.out.println("ObjectiveFitness: the raw avg distance = " + rawDist);
-		//System.out.println("ObjectiveFitness: the maximum distance is = " + maxDistance);
-		double normalised = (maxDistance - rawDist) / maxDistance;
-
-		return normalised;
-	}
-
 }

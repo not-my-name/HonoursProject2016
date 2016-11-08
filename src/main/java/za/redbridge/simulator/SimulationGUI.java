@@ -60,7 +60,7 @@ public class SimulationGUI extends GUIState {
         Adds invisible MASON portrayals for each instance of the resource, robot and targetArea objects
         => double click on an object in the simulation and it'll show the inspector for that object
         **/
-        environmentPortrayal.setPortrayalForClass(ResourceObject.class, new RectanglePortrayal2D(new Color(0,0,0,0)));
+        environmentPortrayal.setPortrayalForClass(ResourceObject.class, new RectanglePortrayal2D(new Color(0,0,0)));
         environmentPortrayal.setPortrayalForClass(RobotObject.class, new OvalPortrayal2D(new Color(255,255,255,0)));
         environmentPortrayal.setPortrayalForClass(TargetAreaObject.class, new RectanglePortrayal2D(new Color(255,255,255,0)));
 

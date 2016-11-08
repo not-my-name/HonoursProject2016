@@ -135,65 +135,7 @@ public class Simulation extends SimState {
     public void finish() {
 
         super.finish();
-        // System.out.println("Simulation: calling the finish method");
-        //
-        // ArrayList<RobotObject> currentRobots = robotFactory.getPlacedRobots();
-        // //get the final positions of the resources in the simulation
-        // ArrayList<ResourceObject> currentResources = resourceFactory.getPlacedResources();
-        //
-        // //creating the noveltyBehaviour object to be used in the fitness calculation
-        // System.out.println("SImulation: creating the new NoveltyBehaviour");
-        // NoveltyBehaviour noveltyBehaviour = new NoveltyBehaviour(currentRobots, currentResources, construction);
-        // System.out.println("");
-        //
-        // int[][] testGrid = new int[][] {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,0,0,2,3,3,3,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        //                              {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
-        //
-        // System.out.println("Simulation: printing the test grid");
-        //
-        // for(int r = 0; r < 20; r++) {
-        //   for(int c = 0; c < 20; c++) {
-        //     System.out.print(testGrid[r][c] + " ");
-        //   }
-        //   System.out.println("");
-        // }
-        // System.out.println("");
-        //
-        // NoveltyFitness noveltyFitness = new NoveltyFitness();
-        //
-        // int[][] resultGrid = noveltyFitness.compareConstructionZones(noveltyBehaviour.getDiscreteConstructionZone(), testGrid);
-        //
-        // System.out.println("Simulation: Printing the resultant difference novelty grid");
-        //
-        // for(int r = 0; r < 20; r++) {
-        //   for(int c = 0; c < 20; c++) {
-        //     System.out.print(resultGrid[r][c] + " ");
-        //   }
-        //   System.out.println("");
-        // }
-        // System.out.println("");
-
-        //construction.updateCZones();
-        construction.updateConstructionZones();
+        //construction.updateConstructionZones();
     }
 
     public void setSchemaConfigNumber(int i) {
@@ -339,12 +281,23 @@ public class Simulation extends SimState {
         construction.updateConstructionZones();
 
         //THIS IS FOR THE OBJECTIVE FITNESS
-        Behaviour behaviour = new Behaviour(construction, tempBots, tempResources, schemaConfigNum);
+        Behaviour behaviour = new Behaviour(construction, schemaConfigNum);
 
         finish();
 
         return behaviour;
 
+    }
+
+    public int getTotalNumResources() {
+        return resourceFactory.getPlacedResources().size();
+    }
+
+    public int [] getResTypeCount() {
+        if(schema == null) {
+            System.out.println("Simulation: the schema is null");
+        }
+        return schema.getResQuantity(schemaConfigNum);
     }
 
     public ContToDiscrSpace getDiscreteGrid() {

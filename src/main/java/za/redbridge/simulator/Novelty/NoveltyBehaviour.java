@@ -263,9 +263,11 @@ public class NoveltyBehaviour {
 		float[] pathXCoords = new float[innerBound]; //store all the x coords of the positions along a trajectory
 		float[] pathYCoords = new float[innerBound]; //store all the y coords of the positions along a trajectory
 
+		//iterate over all the trajectories for this robot team
 		for(int k = 0; k < outerBound; k++) { //robotTrajectories.size() should == numRobots
 			LinkedList<Vec2> tempTrajectory = originalTrajectories.get(k);
 
+			//iterate over all the positions in the current trajectory
 			for(int j = 0; j < innerBound; j++) { //originalTrajectory.size() should == numRobotPosSamples
 				Vec2 tempPosition = tempTrajectory.get(j); //get the coords at the current time step
 

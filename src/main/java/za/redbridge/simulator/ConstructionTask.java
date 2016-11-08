@@ -139,7 +139,7 @@ public class ConstructionTask implements Steppable{
                         if(resource.pushedByMaxRobots() || neighbour.pushedByMaxRobots()) { //check that at least one of the resources are being pushed by the correct number of robots
 
                             if( checkSchema(resource) == resource.getNumConnected() &&
-                                    checkSchema(neighbour) == neighbour.getNumConnected()) { //check that the resources can be connected to each other according to the schema
+                                    checkSchema(neighbour) == neighbour.getNumConnected() ) { //check that the resources can be connected to each other according to the schema
 
                                 if(neighbour.isConstructed()) { //check if the neighbouring resource belongs to a construction zone
 
@@ -206,8 +206,8 @@ public class ConstructionTask implements Steppable{
 
                                     //if(discreteGrid.canBeConnected(resource, neighbour, i)) {
                                     //if(discreteGrid.canBeConnected(neighbour, resource, index)) { //WORKING
-                                    //if(constructionZones.size() < 3) { //limiting the number of construction zones for later calculations
-
+                                    if(constructionZones.size() < 3) { //limiting the number of construction zones for later calculations
+                                        updateConstructionZones();
                                       if(discreteGrid.canBeConnected(resource, neighbour, i)) {
 
                                           constructionZoneID++;
@@ -239,7 +239,8 @@ public class ConstructionTask implements Steppable{
                                           //alignResource(neighbour, resource, i); //WORKING
                                           alignResource(neighbour); //WORKING
                                       }
-                                }
+                                  }
+                              }
                             }
                         }
                     }
@@ -332,24 +333,20 @@ public class ConstructionTask implements Steppable{
 
         //System.out.println("ConstructionTask: checkng the traversals");
 
-        ArrayList<ConstructionZone> newConstructionZones = new ArrayList<>();
+        for(ResourceObject resObj : globalConstructionOrder) {
+            resObj.updateAdjacent(globalConstructionOrder);
+        }
 
-        // for(ResourceObject resObj : resources) {
-        //     resObj.updateAdjacent(resources);
-        // }
+        ArrayList<ConstructionZone> newConstructionZones = new ArrayList<>();
 
         // check if there are construction zones
         if (constructionZones.size() > 0) {
-
-            //System.out.println("ConstructionTAsk: first if statement");
 
             int czNum = 0;
             // go through every construction zone
             for(ConstructionZone cz : constructionZones){
                 // list of possible traversals for a construction zone
                 ArrayList<ArrayList<ResourceObject>> generatedTraversals = new ArrayList<>();
-
-                //System.out.println("ConstructionTask: num connected res in current construction zone = " + cz.getConnectionOrder().size());
 
                 //For each resource (in order of construction)
                 for (ResourceObject res : cz.getConnectionOrder()) {
@@ -361,11 +358,6 @@ public class ConstructionTask implements Steppable{
 
                     //Generate the traversal
                     discreteGrid.generateTraversal(traversal, res, ignoreList);
-
-                    // System.out.println("ConstructionTask: traversal size = " + traversal.size());
-                    // System.out.println("ConstructionTask: printing the newly generated traversal");
-                    // System.out.println(traversal);
-                    // System.out.println("");
 
                     //If there is no equivalent traversal already generated
                     if (!traversalsContains(traversal, generatedTraversals)) {
@@ -404,19 +396,14 @@ public class ConstructionTask implements Steppable{
                 }
             }
 
-            // System.out.println("ConstructionTask: printing the old constructionzones");
-            // for(ConstructionZone cz : constructionZones) {
-            //     System.out.println(cz.getConnectionOrder());
-            // }
-            // System.out.println("");
-            // constructionZones.clear();
-            // System.out.println("ConstructionTask: printing the new constructionZone");
-            // for(ConstructionZone cz : newConstructionZones){
-            //     System.out.println(cz.getConnectionOrder());
-            //     constructionZones.add(cz);
-            // }
-            // System.out.println("");
-            // System.out.println("");
+            if(newConstructionZones.size() > 0) {
+                constructionZones.clear();
+                for(ConstructionZone cZone : newConstructionZones) {
+                    constructionZones.add(cZone);
+                }
+            }
+
+
         }
     }
 

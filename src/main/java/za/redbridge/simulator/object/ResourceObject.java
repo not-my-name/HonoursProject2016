@@ -437,8 +437,8 @@ public class ResourceObject extends PhysicalObject {
             //     isAligned = true;
             // }
 
-            r1.setAdjacency(r2, r2.getType(), sideClosestToR2);
-            r2.setAdjacency(r1, r1.getType(), sideClosestToR1);
+            //r1.setAdjacency(r2, r2.getType(), sideClosestToR2);
+            //r2.setAdjacency(r1, r1.getType(), sideClosestToR1);
 
             return true;
         }
@@ -521,41 +521,26 @@ public class ResourceObject extends PhysicalObject {
     }
 
     public void updateAdjacent(ArrayList<ResourceObject> resourceArray){
-        // for(int i=0;i<adjacentResources.length;i++){
-        //     adjacentResources[i] = "0";
-        //     adjacentList[i] = null;
-        // }
 
-        // for(int j=0;j<resourceArray.size();j++){
-        //     if(this != resourceArray.get(j)){
-        //         Body resourceBody = resourceArray.get(j).getBody();
-        //         Vec2 resourcePosition = resourceBody.getPosition();
-        //         Vec2 resourcePositionLocal = getCachedLocalPoint(resourcePosition);
-        //         for(int i=0;i<adjacentResources.length;i++){
-        //             if (resourcePositionLocal.sub(detectionPoints[i].position).length() < 0.4f) {
-        //                 adjacentResources[i] = resourceArray.get(j).getType();
-        //             }
-        //         }
-        //     }
-        // }
+        //System.out.println("ResourceObject: updating the adjacent resources");
+
+        countConnected = 0;
 
         for(int i=0;i<adjacentResources.length;i++){
             adjacentResources[i] = "_";
             adjacentList[i] = null;
         }
 
-        // for(int k = 0; k < adjacentList.length; k++) {
-        //     adjacentList[k] = null;
-        // }
-
         for(int j=0;j<resourceArray.size();j++){
 
-            if(this != resourceArray.get(j)){
-
-                Body resourceBody = resourceArray.get(j).getBody();
-                Vec2 resourcePosition = resourceBody.getPosition();
+            if(this == resourceArray.get(j)){
+                continue;
+            }
+            else {
 
                 ResourceObject otherResource = resourceArray.get(j);
+                Body resourceBody = otherResource.getBody();
+                Vec2 resourcePosition = resourceBody.getPosition();
 
                 for(int i = 0; i < 4; i++) {
 
@@ -564,16 +549,18 @@ public class ResourceObject extends PhysicalObject {
                         int side = getSideNearestTo(resourcePosition);
 
                         if(side > -1) {
+                            // System.out.println("ResourceObject: printing the neighbours for: " + this);
                             // System.out.println("ResourceObject: PRINTING THE NEIGHBOURS BEFORE: " + Arrays.toString(adjacentList));
                             // System.out.println("ResourceObject: PRINTING THE NEIGHBOURS BEFORE: " + Arrays.toString(adjacentResources));
-                            isAdjacentAndAligned(this, otherResource);
-                            // System.out.println("ResourceObject: PRINTING THE NEIGHBOURS BEFORE: " + Arrays.toString(adjacentList));
-                            // System.out.println("ResourceObject: PRINTING THE NEIGHBOURS BEFORE: " + Arrays.toString(adjacentResources));
+                            if(isAdjacentAndAligned(this, otherResource)) {
+                                adjacentList[i] = otherResource;
+                                adjacentResources[i] = otherResource.getType();
+                                countConnected++;
+                            }
+                            // System.out.println("ResourceObject: PRINTING THE NEIGHBOURS AFTER: " + Arrays.toString(adjacentList));
+                            // System.out.println("ResourceObject: PRINTING THE NEIGHBOURS AFTER: " + Arrays.toString(adjacentResources));
                             // System.out.println("");
                         }
-
-                        // adjacentResources.set(side,resourceArray.get(j).getType());
-                        // adjacentList[side] = resourceArray.get(j);
                     }
                 }
             }
@@ -644,24 +631,7 @@ public class ResourceObject extends PhysicalObject {
         return adjacentResources[3];
     }
 
-    // /**
-    // what the hell is this method for
-    // */
-    // public void updateAlignment(){
-    //
-    // }
-
     public int getNumConnected() {
-
-        countConnected = 0;
-
-        for(int k = 0; k < adjacentResources.length; k++) {
-
-            if( !adjacentResources[k].equals("_") ) { //count how many resources are connected to current resource
-                countConnected++;
-            }
-        }
-
         return countConnected;
     }
 
@@ -670,7 +640,7 @@ public class ResourceObject extends PhysicalObject {
         int adjCount = 0;
         for(int k = 0; k < 4; k++) {
 
-            if( !adjacentResources[k].equals("0") ) { //if the adjacent side of the resource is not empty
+            if( !adjacentResources[k].equals("_") ) { //if the adjacent side of the resource is not empty
                 adjCount++;
             }
         }

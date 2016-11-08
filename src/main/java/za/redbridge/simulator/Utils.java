@@ -165,11 +165,17 @@ public final class Utils {
             hostname = "unknown";
         }
 
-        String date = new SimpleDateFormat("yyyyMMdd'T'HHmm").format(new Date());
+        String objectiveFolder = "/ObjectiveResults/Schema_1/";
+        //String objectiveFolder = "/ObjectiveResults/Schema_2/";
+        //String objectiveFolder = "/ObjectiveResults/Schema_3/";
 
-        String HexArrayCounter = System.getenv().get("PBS_ARRAYID");
+        return Paths.get("results", objectiveFolder);
 
-        return Paths.get("results", hostname + "-" + date + "_" + HexArrayCounter);
+        // String date = new SimpleDateFormat("yyyyMMdd'T'HHmm").format(new Date());
+        //
+        // String HexArrayCounter = System.getenv().get("PBS_ARRAYID");
+        //
+        // return Paths.get("results", hostname + "-" + date + "_" + HexArrayCounter);
     }
 
     public static String getLocalHostName() {

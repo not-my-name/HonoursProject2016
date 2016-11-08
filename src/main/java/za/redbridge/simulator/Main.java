@@ -35,7 +35,7 @@ public class Main {
 	private final static Logger log = LoggerFactory.getLogger(Main.class);
 	private final static double convergenceScore = 1000;
 
-	private final static boolean PerformingObjectiveSearch = false;
+	private final static boolean PerformingObjectiveSearch = true;
 	private final static boolean PerformingNoveltySearch = false;
 	private final static boolean PerformingHybridSearch = false;
 
@@ -109,12 +109,11 @@ public class Main {
 
 			NoveltyTrainEA trainer = NEATUtil.constructNoveltyTrainer(population, scoreCalculator);
 			trainer.addStrategy(new NoveltySearchStrategy(options.populationSize, scoreCalculator));
-			trainer.setThreadCount(1);
+			trainer.setThreadCount(0);
 
 			scoreCalculator.setPerformNovelty(true);
 
 			final StatsRecorder statsRecorder = new StatsRecorder(trainer, scoreCalculator); //this is basically where the simulation runs
-
 			scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
 
 			for(int i = 0; i < options.numGenerations; i++) { //for(int i = trainer.getIteration(); i < numIterations; i++)
@@ -134,24 +133,23 @@ public class Main {
 		else {
 
 			TrainEA trainer = NEATUtil.constructNEATTrainer(population, scoreCalculator);
-			trainer.setThreadCount(1);
+			trainer.setThreadCount(0);
 
 			final StatsRecorder statsRecorder = new StatsRecorder(trainer, scoreCalculator); //this is basically where the simulation runs
-
 			scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
 
-			// for(int i = 0; i < options.numGenerations; i++) { //for(int i = trainer.getIteration(); i < numIterations; i++)
-			// 	trainer.iteration(); //training the network for a single iteration
-			// 	statsRecorder.recordIterationStats();
-			//
-			// 	//once an individual has found an optimal solution, break out of the training loop
-			// 	if(trainer.getBestGenome().getScore() >= convergenceScore) {
-			// 		log.info("convergence reached at epoch(iteration): " + trainer.getIteration());
-			// 		break;
-			// 	}
-			// }
-			//
-			// scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
+			for(int i = 0; i < options.numGenerations; i++) { //for(int i = trainer.getIteration(); i < numIterations; i++)
+				trainer.iteration(); //training the network for a single iteration
+				statsRecorder.recordIterationStats();
+
+				//once an individual has found an optimal solution, break out of the training loop
+				if(trainer.getBestGenome().getScore() >= convergenceScore) {
+					log.info("convergence reached at epoch(iteration): " + trainer.getIteration());
+					break;
+				}
+			}
+
+			scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
 			log.debug("Training Complete");
 		}
 	}
@@ -161,22 +159,22 @@ public class Main {
         private String configFile = "configs/simConfig.yml";
 
         @Parameter(names = "-i", description = "Number of generations to train for")
-        private int numGenerations = 10;
+        private int numGenerations = 100;
 
         @Parameter(names = "-p", description = "Initial population size")
-        private int populationSize = 15;
+        private int populationSize = 150;
 
         @Parameter(names = "--sim-runs", description = "Number of simulation runs per iteration")
-        private int simulationRuns = 3;
+        private int simulationRuns = 5;
 
         @Parameter(names = "--conn-density", description = "Adjust the initial connection density"
                 + " for the population")
         private double connectionDensity = 0.5;
         @Parameter(names = "--demo", description = "Show a GUI demo of a given genome")
-        //private String genomePath = null;
+        private String genomePath = null;
         //private String genomePath = "results/Hex-20160920T2134_null__NEAT/best networks/epoch-5/network.ser";
         //private String genomePath = "results/ruben-GE72-2QD-20161030T1126_null/best networks/epoch-1/network.ser";
-        private String genomePath = "results/ruben-GE72-2QD-20161102T1342_null/best networks/epoch-1/network.ser";
+        //private String genomePath = "results/ruben-GE72-2QD-20161102T1342_null/best networks/epoch-1/network.ser";
 
         @Parameter(names = "--control", description = "Run with the control case")
         private boolean control = false;

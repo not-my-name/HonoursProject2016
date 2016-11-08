@@ -144,13 +144,13 @@ public class SchemaConfig extends Config{
             up = copyArray(u);
             down = copyArray(d);
 
-            System.out.println("");
-            System.out.println("SchemaConfig: printing the resource schema");
-            System.out.println("left = " + Arrays.toString(left));
-            System.out.println("right = " + Arrays.toString(right));
-            System.out.println("up = " + Arrays.toString(up));
-            System.out.println("down = " + Arrays.toString(down));
-            System.out.println("");
+            // System.out.println("");
+            // System.out.println("SchemaConfig: printing the resource schema");
+            // System.out.println("left = " + Arrays.toString(left));
+            // System.out.println("right = " + Arrays.toString(right));
+            // System.out.println("up = " + Arrays.toString(up));
+            // System.out.println("down = " + Arrays.toString(down));
+            // System.out.println("");
         }
 
         private String [] copyArray(String [] temp){

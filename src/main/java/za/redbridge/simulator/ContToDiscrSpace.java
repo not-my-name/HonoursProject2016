@@ -177,7 +177,6 @@ public class ContToDiscrSpace {
 
 		// System.out.println("NEIGHBOURHOOD FOR " + res);
 		int[] resGridPos = getGridPos(res.getBody().getPosition());
-		// System.out.println("\tRes gridPos: " + Arrays.toString(resGridPos));
 		Bag neighbours = getVonNeumannNeighbors(res);
 		Object[] nRes = neighbours.objs;
 		// System.out.println("\tNeoighbourhood: " + Arrays.toString(nRes));
@@ -476,13 +475,6 @@ public class ContToDiscrSpace {
 		List<ResourceObject> nToCheck = new LinkedList<>();
 		ResourceObject[] newNeighbours = getResNeighbourhood(currRes);
 		//ResourceObject[] neighbours = currRes.getAdjacentList();
-
-		// System.out.println("");
-		// System.out.println("LOOK FOR THE CAPS LOCK");
-		// System.out.println("ContToDiscSpace: printing the neighbours for: " + currRes);
-		// System.out.println("ContToDiscrSpace: the new neighbours list = " + Arrays.toString(newNeighbours));
-		// System.out.println("ContToDiscrSpace: the neighbours list from YOUR method = " + Arrays.toString(neighbours));
-		// System.out.println("");
 
 		/*
 		create methods to set the neighbours of the resource once they have been connected to
