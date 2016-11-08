@@ -60,17 +60,17 @@ public class NoveltyCodec extends HyperNEATCODEC {
 				return null;
 			}
 
-				List<NEATLink> connectionArray = new LinkedList<>();
-				NEATLink[] connections = decoded.getLinks();
+			List<NEATLink> connectionArray = new LinkedList<>();
+			NEATLink[] connections = decoded.getLinks();
 
-				for (int i = 0; i < connections.length; i++) {
-					connectionArray.add(connections[i]);
-				}
+			for (int i = 0; i < connections.length; i++) {
+				connectionArray.add(connections[i]);
+			}
 
-				//sets up the network class
-				novNetwork = new NoveltyNetwork(decoded.getInputCount(), decoded.getOutputCount(), connectionArray, decoded.getActivationFunctions());
-				genomePBMap.put(genome, scoreCalculator.getNoveltyBehaviour(novNetwork)); //run the network in the simulation to establish the resultant behaviour
-				genomeNNMap.put(genome, novNetwork);
+			//sets up the network class
+			novNetwork = new NoveltyNetwork(decoded.getInputCount(), decoded.getOutputCount(), connectionArray, decoded.getActivationFunctions());
+			genomePBMap.put(genome, scoreCalculator.getNoveltyBehaviour(novNetwork)); //run the network in the simulation to establish the resultant behaviour
+			genomeNNMap.put(genome, novNetwork);
 		}
 
 		return novNetwork;

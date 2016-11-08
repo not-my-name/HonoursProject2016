@@ -277,7 +277,7 @@ public class ScoreCalculator implements CalculateScore {
         resourceFactory.configure(simConfig.getResources(), resQuantity);
 
         Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory, PerformingNoveltyCalcs);
-
+        System.out.println("ScoreCalculator: setting the config number to = " + schemaConfigNum);
         simulation.setSchemaConfigNumber(schemaConfigNum);
 
         //creating an arraylist to store the novelty behaviours that are produced at the end of each simulation run

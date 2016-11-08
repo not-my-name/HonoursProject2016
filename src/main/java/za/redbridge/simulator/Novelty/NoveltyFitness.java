@@ -13,26 +13,6 @@ a class to monitor and manage all the necessary structures to calculate the nove
 
 public class NoveltyFitness{
 
-	/**
-	Notes from Josh
-
-	for comparing the trajectories to each other, compare each robot in a team to the same robot in the other team then sum the differences in an array
-	one array element corresponds to the total trajectory difference for a pair of robots
-
-	sum the values from that array into one double and then divide by the number of robots in a team (length of the array)
-
-	since each controller is run for several runs, find the most novel of all those runs and use that as the representative behaviour for that controller and use that to compare to
-	the other individuals in the population
-	the most novel individual in the population then gets compared to the archive and if its relatively novel compared to the archive then it gets added to the archive
-
-	add the morphology simplifications that daniel mentioned
-	**/
-
-	//order of construction zone connections (order resources are added)
-	//compare the construction zone itself
-	//resource's trajectory (save position every 5 time steps) regardless of whether or not its been picked up
-	//trajectory of the robot  (save position every 5 time steps) regardles of whether it picked up a robot
-
 	private float localNoveltyWeight;
 	private float archiveNoveltyWeight;
 
@@ -374,74 +354,6 @@ public class NoveltyFitness{
 	public NoveltyBehaviour[] getGeneration() {
 		return this.currentGeneration;
 	}
-
-	/**
-	check how to do these calculations
-	*/
-
-	/*
-	method to calculate the difference between the structures that
-	were constructed at the end of the simulation
-	*/
-	// private double compareConstructionZones(NoveltyBehaviour currentBehaviour, NoveltyBehaviour otherBehaviour) {
-
-	// 	ArrayList<String[]> currentAConnections = currentBehaviour.getAConnections();
-	// 	ArrayList<String[]> currentBConnections = currentBehaviour.getBConnections();
-	// 	ArrayList<String[]> currentCConnections = currentBehaviour.getCConnections();
-
-	// 	ArrayList<String[]> otherAConnections = otherBehaviour.getAConnections();
-	// 	ArrayList<String[]> otherBConnections = otherBehaviour.getBConnections();
-	// 	ArrayList<String[]> otherCConnections = otherBehaviour.getCConnections();
-
-	// 	//keep track of how many A blocks there are with unique connections
-	// 	int totalADiffs = 0;
-	// 	totalADiffs += compareConnections(currentAConnections, otherAConnections); //count how many differences in currentConnections
-
-	// 	int totalBDiffs = 0;
-	// 	totalBDiffs += compareConnections(currentBConnections, otherBConnections);
-
-	// 	int totalCDiffs = 0;
-	// 	totalCDiffs += compareConnections(currentCConnections, otherCConnections);
-
-	// 	int totalReturn = totalADiffs + totalBDiffs + totalCDiffs;
-
-	// 	return totalReturn;
-	// }
-
-	//method to count how many blocks in currentConnections have a unique set of connections
-	//compared to the otherConnections
-	// private int compareConnections(ArrayList<String[]> currentConnections, ArrayList<String[]> otherConnections) {
-
-	// 	int diffCounter = 0; //count how many resources have a unique collection of connections
-
-	// 	for(String[] current : currentConnections) { //iterate over all the resource connection configurations
-	// 		boolean found = false; //check if a resource with identical connections has been found
-
-	// 		for(String[] other : otherConnections) {
-
-	// 			int sideCounter = 0; //count how many of the connections are the same between the 2 resources
-
-	// 			for(int k = 0; k < 4; k++) {
-
-	// 				if( current[k].equals(other[k]) ) { //check if they have the same type of block connected to the same side
-
-	// 					sideCounter++;
-	// 				}
-	// 			}
-
-	// 			if(sideCounter == 4) { //if they share all the same connections
-	// 				found = true;
-	// 				break;
-	// 			}
-	// 		}
-
-	// 		if(!found) { //counting how many resources have a unique set of connections
-	// 			diffCounter++;
-	// 		}
-	// 	}
-
-	// 	return diffCounter;
-	// }
 
 	/**
 	the float being returned gets cast to a double in the compareRobotTrajectories method
