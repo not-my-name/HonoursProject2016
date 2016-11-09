@@ -87,6 +87,7 @@ public class Main {
 			envHeight = simConfig.getEnvironmentHeight();
 
 			schemaConfigIndex = simConfig.getConfigNumber();
+			System.out.println("Main: the new config number = " + schemaConfigIndex);
 			ScoreCalculator scoreCalculator = new ScoreCalculator(simConfig, options.simulationRuns,
 							morphology, options.populationSize, schemaConfigIndex, envHeight, envWidth); //got this from the Main class in last years Controller Master folder
 
