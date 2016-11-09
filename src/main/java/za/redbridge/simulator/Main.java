@@ -59,58 +59,52 @@ public class Main {
 
 	public static void main(String args[]) throws IOException, ParseException{
 
-		Args options = new Args();
-		new JCommander(options, args);
+		for(int k = 0; k < 3; k++) { //iterating over the necessary number of experiments
 
-		log.info(options.toString());
-		int k = 0;
-		int ind = k+1;
+			Args options = new Args();
+			new JCommander(options, args);
 
-		double connectionDensity = 0.5;
-		//fetching the correct simConfig for each experiment
-		String simConfigFP = "configs/simConfig" + Integer.toString(ind) + ".yml";
-		//String experimentConfigFP = "configs/experimentConfig.yml";
-		String morphologyConfigFP = "configs/morphologyConfig.yml";
-		String folderDir = "/ObjectiveResults/Schema_" + Integer.toString(ind) + "/FirstRun/";
-		Utils.setDirectoryName(folderDir);
+			log.info(options.toString());
+			int ind = k+1;
 
-		MorphologyConfig morphologyConfig = new MorphologyConfig(morphologyConfigFP);
-		Morphology morphology = morphologyConfig.getMorphology(1);
-		numInputs = morphology.getNumSensors();
+			double connectionDensity = 0.5;
+			//fetching the correct simConfig for each experiment
+			String simConfigFP = "configs/simConfig" + Integer.toString(ind) + ".yml";
+			//String experimentConfigFP = "configs/experimentConfig.yml";
+			String morphologyConfigFP = "configs/morphologyConfig.yml";
+			String folderDir = "/NoveltyResults/Schema_" + Integer.toString(ind) + "/";
+			Utils.setDirectoryName(folderDir);
 
-		SimConfig simConfig = new SimConfig(simConfigFP);
+			MorphologyConfig morphologyConfig = new MorphologyConfig(morphologyConfigFP);
+			Morphology morphology = morphologyConfig.getMorphology(1);
+			numInputs = morphology.getNumSensors();
 
-		resConfig = options.environment;
+			SimConfig simConfig = new SimConfig(simConfigFP);
 
-		envWidth = simConfig.getEnvironmentWidth();
-		envHeight = simConfig.getEnvironmentHeight();
+			resConfig = options.environment;
 
-		schemaConfigIndex = simConfig.getConfigNumber();
-		ScoreCalculator scoreCalculator = new ScoreCalculator(simConfig, options.simulationRuns,
-						morphology, options.populationSize, schemaConfigIndex, envHeight, envWidth); //got this from the Main class in last years Controller Master folder
+			envWidth = simConfig.getEnvironmentWidth();
+			envHeight = simConfig.getEnvironmentHeight();
 
-		if (!isBlank(options.genomePath)) {
-			NEATNetwork network = (NEATNetwork) readObjectFromFile(options.genomePath);
-			scoreCalculator.demo(network);
-			return;
-		}
+			schemaConfigIndex = simConfig.getConfigNumber();
+			ScoreCalculator scoreCalculator = new ScoreCalculator(simConfig, options.simulationRuns,
+							morphology, options.populationSize, schemaConfigIndex, envHeight, envWidth); //got this from the Main class in last years Controller Master folder
 
-		//defines the structure of the produced HyperNEAT network
-		Substrate substrate = SubstrateFactory.createSubstrate(numInputs,2);
+			if (!isBlank(options.genomePath)) {
+				NEATNetwork network = (NEATNetwork) readObjectFromFile(options.genomePath);
+				scoreCalculator.demo(network);
+				return;
+			}
 
-		//initialising the population
-		NEATPopulation population = new NEATPopulation(substrate, options.populationSize);
+			//defines the structure of the produced HyperNEAT network
+			Substrate substrate = SubstrateFactory.createSubstrate(numInputs,2);
 
-		population.setInitialConnectionDensity(options.connectionDensity); //set the density based on a value that gets passed through using that Args options nested class thing in Main.java
-		population.setActivationCycles(4); //THIS COULD BE IMPORTANT (FROM ONLINE EXAMPLE)
-		population.reset();
+			//initialising the population
+			NEATPopulation population = new NEATPopulation(substrate, options.populationSize);
 
-		//scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
-		log.debug("Training Complete");
-
-		if(PerformingNoveltySearch) {
-
-			Utils.setDirectoryName("/NoveltyResults/");
+			population.setInitialConnectionDensity(options.connectionDensity); //set the density based on a value that gets passed through using that Args options nested class thing in Main.java
+			population.setActivationCycles(4); //THIS COULD BE IMPORTANT (FROM ONLINE EXAMPLE)
+			population.reset();
 
 			NoveltyTrainEA trainer = NEATUtil.constructNoveltyTrainer(population, scoreCalculator);
 			trainer.addStrategy(new NoveltySearchStrategy(options.populationSize, scoreCalculator));
@@ -135,28 +129,26 @@ public class Main {
 			scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
 			log.debug("Training Complete");
 		}
-		else {
 
-			TrainEA trainer = NEATUtil.constructNEATTrainer(population, scoreCalculator);
-			trainer.setThreadCount(0);
-
-			final StatsRecorder statsRecorder = new StatsRecorder(trainer, scoreCalculator); //this is basically where the simulation runs
-			//scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
-
-			for(int i = 0; i < options.numGenerations; i++) { //for(int i = trainer.getIteration(); i < numIterations; i++)
-				trainer.iteration(); //training the network for a single iteration
-				statsRecorder.recordIterationStats();
-
-				//once an individual has found an optimal solution, break out of the training loop
-				if(trainer.getBestGenome().getScore() >= convergenceScore) {
-					log.info("convergence reached at epoch(iteration): " + trainer.getIteration());
-					break;
-				}
-			}
-
-			//scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
-			log.debug("Training Complete");
-		}
+		// TrainEA trainer = NEATUtil.constructNEATTrainer(population, scoreCalculator);
+		// trainer.setThreadCount(0);
+		//
+		// final StatsRecorder statsRecorder = new StatsRecorder(trainer, scoreCalculator); //this is basically where the simulation runs
+		// //scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
+		//
+		// for(int i = 0; i < options.numGenerations; i++) { //for(int i = trainer.getIteration(); i < numIterations; i++)
+		// 	trainer.iteration(); //training the network for a single iteration
+		// 	statsRecorder.recordIterationStats();
+		//
+		// 	//once an individual has found an optimal solution, break out of the training loop
+		// 	if(trainer.getBestGenome().getScore() >= convergenceScore) {
+		// 		log.info("convergence reached at epoch(iteration): " + trainer.getIteration());
+		// 		break;
+		// 	}
+		// }
+		//
+		// //scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
+		// log.debug("Training Complete");
 	}
 
 	private static class Args {
