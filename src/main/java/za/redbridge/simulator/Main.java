@@ -104,7 +104,7 @@ public class Main {
 			NEATPopulation population = new NEATPopulation(substrate, options.populationSize);
 
 			population.setInitialConnectionDensity(options.connectionDensity); //set the density based on a value that gets passed through using that Args options nested class thing in Main.java
-			population.setActivationCycles(4); //THIS COULD BE IMPORTANT (FROM ONLINE EXAMPLE)
+			population.setActivationCycles(4);
 			population.reset();
 
 			NoveltyTrainEA trainer = NEATUtil.constructNoveltyTrainer(population, scoreCalculator);
@@ -127,7 +127,7 @@ public class Main {
 				}
 			}
 
-			scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
+			//scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
 			log.debug("Training Complete");
 		}
 

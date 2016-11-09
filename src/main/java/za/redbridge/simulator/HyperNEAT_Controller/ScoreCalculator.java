@@ -296,7 +296,7 @@ public class ScoreCalculator implements CalculateScore {
         // double index = archive.findMostNovel(resultsArra);
         // return resultsArray(index);
         //OR
-        return archive.findMostNovel(resultsArray);
+        return archive.findMostNovel(resultsArray); //dont use an average value over the simulation results like in objective, use the most novel behaviour as the representative for this network
     }
 
     // public void setSchemaConfigNumber(int i) {

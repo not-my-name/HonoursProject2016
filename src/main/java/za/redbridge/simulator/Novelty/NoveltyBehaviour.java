@@ -327,22 +327,6 @@ public class NoveltyBehaviour {
 		return populationNoveltyScore;
 	}
 
-	/*
-	method to print out the discretised representation of the constructed structures
-	*/
-	// private void printGrid() {
-	//
-	// 	System.out.println("NoveltyBehaviour: Printing the grid");
-	//
-	// 	for(int r = 0; r < envHeight; r++) {
-	// 		for(int c = 0; c < envWidth; c++) {
-	// 			System.out.print(discreteConstructionZone[r][c] + " ");
-	// 		}
-	// 		System.out.println("");
-	// 	}
-	// 	System.out.println("");
-	// }
-
 	//check if the current Behaviour has been added to the archive
 	public boolean isArchived() {
 		return archived;
@@ -379,7 +363,11 @@ public class NoveltyBehaviour {
 	// 	return this.constructionZones;
 	// }
 
-	public double getPopulationScore() {
+	public double getSimulationNoveltyScore() {
+		return simulationNoveltyScore;
+	}
+
+	public double getPopulationNoveltyScore() {
 		return populationNoveltyScore;
 	}
 

@@ -79,10 +79,9 @@ public class NoveltyFitness{
 		this.maxDist = Math.sqrt( Math.pow(envHeight, 2) + Math.pow(envWidth, 2) );
 	}
 
-	//rewriting this method for the same reason the calculatePopulationNovelty method below was rewritten
-	/**
-	remember to add an int for the k nearest neighbours
-	*/
+	/*
+	method to calculate the local novelty of individuals within the current population (current generation)
+	relative to each other and return the behaviour with the greatest novelty score */
 	public NoveltyBehaviour calcSimulationLocalNovelty() {
 
 		for(int k = 0;k < numBehaviours; k++) {
@@ -135,44 +134,16 @@ public class NoveltyFitness{
 
 						NoveltyBehaviour otherBehaviour = currentGeneration[j];
 						double noveltyDistance = calculateNoveltyDistance(currentBehaviour, otherBehaviour);
-						currentBehaviour.addPopulationNeighbour(noveltyDistance);
+						currentBehaviour.addPopulationNeighbour(noveltyDistance); //add neighbour to appropriate list for behaviour
 					}
 				}
 			}
 		}
 
-		for(NoveltyBehaviour novBeh : currentGeneration) {
+		for(NoveltyBehaviour novBeh : currentGeneration) { //calculates the mean novelty distance between a behaviour and k-nearest neighbours
 			novBeh.calculatePopulationNovelty();
 		}
 	}
-
-	// public void calulatePopulationNovelty() {
-
-	// 	for(int k = 0; k < numBehaviours-1; k++) { //iterate over the idividuals in the current generation
-	// 		NoveltyBehaviour currentBehaviour = currentGeneration[k];
-
-	// 		for(int j = k+1; j < numBehaviours; j++) { //iterating over the remaining behaviours
-	// 			NoveltyBehaviour otherBehaviour = currentGeneration[j];
-
-	// 			if( currentBehaviour.isArchived() && otherBehaviour.isArchived() ) { //check that at least one of the behaviours is not in the archive (dont need to calc distance between 2 archived behaviours)
-	// 				continue;
-	// 			}
-	// 			else {
-
-	// 				double noveltyDistance = calculateNoveltyDistance(currentBehaviour, otherBehaviour);
-
-	// 				//record the nearest neighbours of all the individuals not in the  archive
-	// 				if(!currentBehaviour.isArchived()) {
-	// 					currentBehaviour.addPopulationNeighbour(otherBehaviour);
-	// 				}
-
-	// 				if(!otherBehaviour.isArchived()) {
-	// 					otherBehaviour.addPopulationNeighbour(currentBehaviour);
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
 
 	private double calculateNoveltyDistance(NoveltyBehaviour currentBehaviour, NoveltyBehaviour otherBehaviour) {
 

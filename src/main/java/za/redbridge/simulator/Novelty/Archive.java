@@ -20,6 +20,8 @@ check if there will be concurrency issues with accessing the archive
 
 public class Archive {
 
+	private final int MAX_ARCHIVE_SIZE = 150; //archvie can never be larger than population size
+
 	private ArrayList<NoveltyBehaviour> noveltyArchive;
 	private ArrayList<NoveltyBehaviour> currentGeneration; //arraylist to store the individual behaviours that are part of the same generation
 	private int numNearest; //number of nearest neighbours to use when calculating novelty
@@ -42,18 +44,8 @@ public class Archive {
 	*/
 	public NoveltyBehaviour findMostNovel(NoveltyBehaviour[] behaviourCollection) {
 
-
-		/**
-		when calculating an individuals final novelty score, use a population that consists of the individuals from the current generation
-		combined with the individuals from the archive
-		use this combined population to calculate the k nearest neighbours score for each individual in the current generation
-		*/
-
 		NoveltyFitness noveltyFitness = new NoveltyFitness(behaviourCollection);
-		/**
-		check that the novelty behaviour that gets sent back here is the same one that was selected in the NoveltyFitness class
-		do this by checking that its nearest neighbours arrays are populated
-		*/
+		System.out.println("Archive: finding the most novel");
 		NoveltyBehaviour mostNovel = noveltyFitness.calcSimulationLocalNovelty();
 		currentGeneration.add(mostNovel); //adding the most novel result from the simulation runs to the current generation
 
@@ -76,43 +68,106 @@ public class Archive {
 		//iterating over the novelty archive in order to
 		//populate the global collection
 		for(int k = 0; k < numNovelty; k++) {
-
-			//should there be a copy constructor
-			//first create the empty object and then assign?
 			currentPopulation[k] = noveltyArchive.get(k);
 		}
 
 		//repeat for the current generation
 		for(int k = 0; k < numGeneration; k++) {
-
 			currentPopulation[numNovelty+k] = currentGeneration.get(k);
 		}
 
 		NoveltyFitness noveltyFitness = new NoveltyFitness(currentPopulation);
-		/**
-		check that the values for the behaviours in currentPopulation have been changed accordingly after the calculate novelty method has
-		been called
-		check that they are modified by reference
-
-		add the most novel behaviour to the archive
-		calculate most novel in the NoveltyFitness method and return either an object or index to the current population
-		*/
-
-		System.out.println("Archive: printing fitness vals BEFORE:");
-		for(int k = 0; k < totalSize; k++) {
-			System.out.println("Behaviour " + k + " = " + currentPopulation[k].getPopulationScore() );
-		}
-		System.out.println("");
-
 		noveltyFitness.calculatePopulationNovelty();
+		currentPopulation = noveltyFitness.getGeneration(); //get the entire population instead of most novel because of the different ways to add to the archive
 
-		currentPopulation = noveltyFitness.getGeneration();
+		currentGeneration.clear()
+		//iterate over all the behaviours with novelty scores and add the not archived ones to the currentGeneration to keep track of the new scores
+		for(NoveltyBehaviour novBeh : currentPopulation) {
 
-		System.out.println("Archive: printing fitness vals AFTER:");
-		for(int k = 0; k < totalSize; k++) {
-			System.out.println("Behaviour " + k + " = " + currentPopulation[k].getPopulationScore() );
+			if(!novBeh.isArchived()) {
+				currentGeneration.add(novBeh);
+			}
 		}
 
+		//different methods on how to add to the archive
+		addToArchiveThreshold();
+		addToArchiveBatchThreshold();
+	}
+
+	/*
+	method to add the most novel behaviour from the currnet population
+	to the archive if its novelty score is larger than a certain threshold
+	currently using the novelty score of least novel in archive*/
+	private void addToArchiveThreshold() {
+
+		double thresholdVal = getLowestArchiveNovelty();
+
+		double max = 0;
+		NoveltyBehavior mostNovel;
+
+		//find the behaviour with the highest novelty score in the current generation
+		for(NoveltyBehaviour novBeh : currentGeneration) {
+
+			if(novBeh.getPopulationNoveltyScore() > max) {
+
+				max = novBeh.getPopulationNoveltyScore();
+				mostNovel = novBeh;
+			}
+		}
+
+		if(mostNovel != null) {
+
+			if(noveltyArchive.size() < MAX_ARCHIVE_SIZE) { //check if there is still space in the archive
+				noveltyArchive.add(mostNovel);
+			}
+			else if(mostNovel.getPopulationNoveltyScore() > thresholdVal) { //check if the most novel behaviour is more novel than the lowest archive value
+
+				noveltyArchive.add(mostNovel);
+				pruneArchive(); //in case archive exceeds in size
+			}
+		}
+	}
+
+	/*
+	method to add novel behaviours to the archive
+	iterate over all the individuals in the current generation and check
+	if their novelty score is greater than the threshold (lowest novelty score in archive)
+	add all behaviours that have novelty scores greater than the threshold
+	if the archive size gets too big, prune the bottom x behaviours */
+	private void addToArchiveBatchThreshold() {
+
+		double thresholdVal = getLowestArchiveNovelty();
+
+		for(NoveltyBehaviour novBeh : currentGeneration) { //iterate over all the individuals in the generation (not archived)
+
+			//add any behaviours with a novelty score higher than the threshold
+			if(novBeh.getPopulationNoveltyScore() > thresholdVal) {
+				noveltyArchive.add(novBeh);
+			}
+		}
+
+		pruneArchive();
+	}
+
+	/*
+	method that checks if the archive size is within the required bounds
+	if it is too big, remove the x least novel behaviours */
+	private void pruneArchive() {
+
+		while(noveltyArchive.size() > MAX_ARCHIVE_SIZE) {
+			noveltyArchive.poll();
+		}
+
+	}
+
+	/*
+	a method to return the novelty value of the least novel behaviour
+	in the archive
+	will be used when the priority queue is implemented
+	just a dummy return at the moment */
+	private double getLowestArchiveNovelty() {
+		double dummyReturn = 3;
+		return dummyReturn;
 	}
 
 	public double getNovelty(NoveltyBehaviour novBeh) {
