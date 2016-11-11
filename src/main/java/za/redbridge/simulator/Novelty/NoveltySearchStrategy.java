@@ -49,7 +49,7 @@ public class NoveltySearchStrategy implements Strategy {
 		this.mainTrain = (NoveltyTrainEA)train;
 		codec = (NoveltyCodec)mainTrain.getCODEC();
 	}
-	
+
 	/**
 	 * Called just before a training iteration. Generate all individuals in the population
 	 this method gets called from the TrainEA preIteration() method
@@ -61,21 +61,22 @@ public class NoveltySearchStrategy implements Strategy {
 			for (Species species : mainTrain.getPopulation().getSpecies()) {
 				for (Genome g : species.getMembers()) {
 
-					MLMethod method = codec.decode(g); //this method is just called in order to 
+					MLMethod method = codec.decode(g); //this method is just called in order to
 				}
 			}
-			
+
 			scoreCalculator.calculateNoveltyForPopulation();
 		}
 		else {
 			scoreCalculator.clearCurrentGeneration();
 		}
 	}
-	
+
 	/**
 	 * Called just after a training iteration.
 	 */
 	public void postIteration() {
-		
+
+		//scoreCalculator.printArchive();
 	}
 }

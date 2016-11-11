@@ -18,17 +18,11 @@ that are needed to calculate the novelty fitness of a solution
 
 public class NoveltyBehaviour {
 
-	//array list of linked lists, each linked list is a trajectory (linked list of positions)
-	private ArrayList<LinkedList<Vec2>> robotTrajectories;
-	private ArrayList<LinkedList<Vec2>> resourceTrajectories;
-
 	//arrays to be used to check the configurations of the blocks in the construction zone
 	private ArrayList<String[]> AConnectionsList;
 	private ArrayList<String[]> BConnectionsList;
 	private ArrayList<String[]> CConnectionsList;
 
-	private Vec2[] avgRobotTrajectory;
-	private Vec2[] avgResourceTrajectory;
 
 	//stores the final construction at the end of the simulation
 	//private ConstructionZone[] constructionZones;
@@ -39,8 +33,6 @@ public class NoveltyBehaviour {
 	private ArrayList<ResourceObject> connectionOrder;
 
 	//number of samples in a trajectory
-	private int numRobotPosSamples; //number of positions that get saved in order to prepresent a trajectory (size of each trajectory array)
-	private int numResPosSamples; //same as above but for the resources
 	private int numRobots;
 	private int numResources;
 
@@ -52,7 +44,11 @@ public class NoveltyBehaviour {
 	private ArrayList<Double> populationNeighbourhood;
 	private ArrayList<Double> archiveNeighbourhood;
 
+	private ArrayList<Vec2> robotEndPositions; //arrayList to keep track of the ending points of the robots at the end of each simulation
+
 	private boolean archived;
+
+	private final int numNearestNeighbours = 10;
 
 	private int envHeight = 20;
 	private int envWidth = 20;
@@ -61,22 +57,6 @@ public class NoveltyBehaviour {
 
 		this.numRobots = currentRobots.size();
 		this.numResources = currentResources.size();
-
-		robotTrajectories = new ArrayList<LinkedList<Vec2>>(); //num elements = num robots
-		resourceTrajectories = new ArrayList<LinkedList<Vec2>>(); //num elements = num resources
-
-		initRobotTrajectories(currentRobots);
-		initResourceTrajectories(currentResources);
-
-		//get the number of samples that were saved for each trajectory
-		this.numRobotPosSamples = robotTrajectories.get(0).size();
-		this.numResPosSamples = resourceTrajectories.get(0).size();
-
-		avgRobotTrajectory = new Vec2[numRobotPosSamples];
-		avgResourceTrajectory = new Vec2[numResPosSamples];
-
-		calcAvgTrajectory(numRobots, numRobotPosSamples, avgRobotTrajectory, robotTrajectories);
-		calcAvgTrajectory(numResources, numResPosSamples, avgResourceTrajectory, resourceTrajectories);
 
 		this.constructionTask = constructionTask;
 		this.connectionOrder = this.constructionTask.getConstructionOrder();
@@ -90,8 +70,12 @@ public class NoveltyBehaviour {
 		this.constructionZones = this.constructionTask.getConstructionZones();
 		this.discreteConstructionZone = this.constructionTask.getDiscreteGrid().getGrid();
 
+		robotEndPositions = new ArrayList<Vec2>();
+		for(RobotObject robObj : currentRobots) { //creating the collection of the robot team's end positions
+			robotEndPositions.add(robObj.getBody().getPosition());
+		}
 
-		//create the cumulative representation
+		//create the cumulative representation of the construction zones
 		populateConnections();
 		/**
 		change this to work with the variable environment dimensions
@@ -106,28 +90,6 @@ public class NoveltyBehaviour {
 		simulationNeighbourhood = new ArrayList<Double>();
 		populationNeighbourhood = new ArrayList<Double>();
 		archiveNeighbourhood = new ArrayList<Double>();
-
-	}
-
-	//method to populate the list of robot trajectories
-	private void initRobotTrajectories(ArrayList<RobotObject> robots) {
-
-		for(RobotObject r : robots) {
-
-			LinkedList<Vec2> trajectory = r.getTrajectory();
-			robotTrajectories.add(trajectory); //each element in the robotTrajectories list will be a LinkedList of Vec2
-		}
-
-	}
-
-	//method to populate the list of resource trajectories;
-	private void initResourceTrajectories(ArrayList<ResourceObject> resources) {
-
-		for(ResourceObject res : resources) {
-
-			LinkedList<Vec2> trajectory = res.getTrajectory();
-			resourceTrajectories.add(trajectory); //each element in the resourceTrajectories list will be a LinkedList of Vec2
-		}
 
 	}
 
@@ -171,140 +133,23 @@ public class NoveltyBehaviour {
 		}
 	}
 
-	//a method to create a combined representation of the structures in the various construction zones
-	//this method is done using arrays to represent the connections
-	// private void populateConnections() {
-
-	// 	//vars to store the total number of each respective resource
-	// 	//summed over all the existing construction zones
-	// 	int totalA = 0;
-	// 	int totalB = 0;
-	// 	int totalC = 0;
-
-	// 	int numConstructionZones = getNumConstructionZones();
-
-	// 	/**
-	// 	what if num construction zones == 0
-	// 	*/
-
-	// 	for(int k = 0; k < numConstructionZones; k++) {
-
-	// 		int[] typeCount = constructionZones[k].getResourceTypeCount();
-
-	// 		totalA += typeCount[0];
-	// 		totalB += typeCount[1];
-	// 		totalC += typeCount[2];
-	// 	}
-
-	// 	/**
-	// 	could possibly make the connection lists actual lists of int[4]
-	// 	*/
-
-	// 	//creating the respective lists of connected resources
-	// 	AConnections = new String[totalA][4];
-	// 	BConnections = new String[totalB][4];
-	// 	CConnections = new String[totalC][4];
-
-	// 	//now iterate over the construction zones and populate these arrays with the actual connections between resources
-	// 	int APos = 0;
-	// 	int BPos = 0;
-	// 	int CPos = 0;
-
-	// 	for(int k = 0; k < numConstructionZones; k++) { //iterate over the existing construction zones
-
-	// 		for(ResourceObject resObj : constructionZones[k].getConnectedResources()) { //iterate over the resources connected in the current construction zone
-
-	// 			//getting the connections on all sides of the current res object
-	// 			//neeed to write this to the connections array for the current resource
-	// 			String[] sides = resObj.getAdjacentResources();
-
-	// 			if(resObj.getType().equals("A")) { //check the type of the current object to know which array to add to
-
-	// 				for(int j = 0; j < sides.length; j++) {
-
-	// 					AConnections[APos][j] = sides[j];
-	// 					APos++;
-	// 				}
-	// 			}
-	// 			else if(resObj.getType().equals("B")) {
-
-	// 				for(int j = 0; j < sides.length; j++) {
-
-	// 					BConnections[BPos][j] = sides[j];
-	// 					BPos++;
-	// 				}
-	// 			}
-	// 			else if(resObj.getType().equals("C")) {
-
-	// 				for(int j = 0; j < sides.length; j++) {
-
-	// 					CConnections[CPos][j] = sides[j];
-	// 					CPos++;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-
-	// }
-
-	/*
-	method to calculate an average trajectory that represents the combined overall
-	trajectories of all the robots in the team
-	so that there is one average trajectory per controller that can be compared to
-	the trajectories of other controllers in the generation
-
-	iterate over the trajectories of each robot in a team
-	for each trajectory, sum the x and y coordinates at each respective position in the trajectory
-
-	eg. firstPositionAvgTrajectory = firstPositionFirstRobot + firstPositionSecondRobot + firstPositionThirdRobot + firstPositionFourthRobot etc / numRobots
-	*/
-	private void calcAvgTrajectory(int outerBound, int innerBound, Vec2[] avgTrajectory, ArrayList<LinkedList<Vec2>> originalTrajectories) {
-
-		float[] pathXCoords = new float[innerBound]; //store all the x coords of the positions along a trajectory
-		float[] pathYCoords = new float[innerBound]; //store all the y coords of the positions along a trajectory
-
-		//iterate over all the trajectories for this robot team
-		for(int k = 0; k < outerBound; k++) { //robotTrajectories.size() should == numRobots
-			LinkedList<Vec2> tempTrajectory = originalTrajectories.get(k);
-
-			//iterate over all the positions in the current trajectory
-			for(int j = 0; j < innerBound; j++) { //originalTrajectory.size() should == numRobotPosSamples
-				Vec2 tempPosition = tempTrajectory.get(j); //get the coords at the current time step
-
-				//summing the x and y values of the positions
-				pathXCoords[j] += tempPosition.x;
-				pathYCoords[j] += tempPosition.y;
-			}
-		}
-
-		for(int k = 0; k < innerBound; k++) { //constructing the representative trajectory
-
-			float avgXCoord = pathXCoords[k] / numRobots;
-			float avgYCoord = pathYCoords[k] / numRobots;
-
-			avgTrajectory[k] = new Vec2(avgXCoord, avgYCoord); //constructing the average trajectory
-		}
-	}
-
 	//method to calculate this behaviour's novelty compared to the other results obtained from the simulation
 	//find the average distance between its neighbours
 	public double calculateSimulationNovelty() {
 
 		simulationNoveltyScore = 0;
-		int numNeighbours = 0;
 
-		/**
-		change this to work with the k nearest neighbours instead of all individuals
-		same goes for the method below
-		*/
-
+		int neighbourCounter = 0;
 		for(double d : simulationNeighbourhood) { //iterate over the distances to its neighbours
 
+			if(neighbourCounter == numNearestNeighbours) {
+				break;
+			}
+			neighbourCounter++;
 			simulationNoveltyScore += d;
-			numNeighbours++;
 		}
 
-		simulationNoveltyScore = simulationNoveltyScore / numNeighbours;
+		simulationNoveltyScore = simulationNoveltyScore / numNearestNeighbours;
 		return simulationNoveltyScore;
 
 	}
@@ -313,15 +158,19 @@ public class NoveltyBehaviour {
 	public double calculatePopulationNovelty() {
 
 		populationNoveltyScore = 0;
-		int numNeighbours = 0;
 
+		int neighbourCounter = 0;
 		for(double d : populationNeighbourhood) { //iterate over the nearest neighbours in the population
 
+			if(neighbourCounter == numNearestNeighbours) {
+				break;
+			}
+
+			neighbourCounter++;
 			populationNoveltyScore += d;
-			numNeighbours++;
 		}
 
-		populationNoveltyScore = populationNoveltyScore / numNeighbours;
+		populationNoveltyScore = populationNoveltyScore / numNearestNeighbours;
 
 		//System.out.println("NoveltyBehaviour: finished calculating population score = " + populationNoveltyScore);
 		return populationNoveltyScore;
@@ -359,6 +208,14 @@ public class NoveltyBehaviour {
 		return this.numResources;
 	}
 
+	public ArrayList<Vec2> getRobotPositions() {
+		return this.robotEndPositions;
+	}
+
+	public int getNumRobots() {
+		return numRobots;
+	}
+
 	// public ConstructionZone[] getConstructionZone() {
 	// 	return this.constructionZones;
 	// }
@@ -379,29 +236,9 @@ public class NoveltyBehaviour {
 		return this.constructionTask;
 	}
 
-	public Vec2[] getResourceTrajectory() {
-		return avgResourceTrajectory;
-	}
-
-	public Vec2[] getRobotTrajectory() {
-		return avgRobotTrajectory;
-	}
-
 	public ObjectGrid2D getDiscreteConstructionZone() {
 		return discreteConstructionZone;
 	}
-
-	// public String[][] getAConnections() {
-	// 	return AConnections;
-	// }
-
-	// public String[][] getBConnections() {
-	// 	return BConnections;
-	// }
-
-	// public String[][] getCConnections() {
-	// 	return CConnections;
-	// }
 
 	public ArrayList<String[]> getAConnections() {
 		return AConnectionsList;

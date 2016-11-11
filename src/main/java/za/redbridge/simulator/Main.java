@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.text.ParseException;
 import org.encog.neural.neat.training.species.OriginalNEATSpeciation;
 
+import org.encog.Encog;
+
 import za.redbridge.simulator.phenotype.ChasingPhenotype;
 
 import org.encog.ml.train.strategy.Strategy;
@@ -72,7 +74,7 @@ public class Main {
 			String simConfigFP = "configs/simConfig" + Integer.toString(ind) + ".yml";
 			//String experimentConfigFP = "configs/experimentConfig.yml";
 			String morphologyConfigFP = "configs/morphologyConfig.yml";
-			String folderDir = "/NoveltyResults/Schema_" + Integer.toString(ind) + "/";
+			String folderDir = "/NoveltyResults/Schema_" + Integer.toString(ind) + "/FirstRun";
 			Utils.setDirectoryName(folderDir);
 
 			MorphologyConfig morphologyConfig = new MorphologyConfig(morphologyConfigFP);
@@ -129,6 +131,7 @@ public class Main {
 
 			//scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
 			log.debug("Training Complete");
+			Encog.getInstance().shutdown();
 		}
 
 		// TrainEA trainer = NEATUtil.constructNEATTrainer(population, scoreCalculator);
@@ -157,13 +160,13 @@ public class Main {
         private String configFile = "configs/simConfig.yml";
 
         @Parameter(names = "-i", description = "Number of generations to train for")
-        private int numGenerations = 2;
+        private int numGenerations = 100;
 
         @Parameter(names = "-p", description = "Initial population size")
-        private int populationSize = 3;
+        private int populationSize = 150;
 
         @Parameter(names = "--sim-runs", description = "Number of simulation runs per iteration")
-        private int simulationRuns = 2;
+        private int simulationRuns = 5;
 
         @Parameter(names = "--conn-density", description = "Adjust the initial connection density"
                 + " for the population")

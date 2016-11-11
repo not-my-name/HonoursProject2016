@@ -72,7 +72,7 @@ public class ScoreCalculator implements CalculateScore {
     /**
     need to set this from the main method in order to run the experiments
     */
-    private boolean PerformingNoveltyCalcs = false;
+    private boolean PerformingNoveltyCalcs = true;
 
     public ScoreCalculator(SimConfig simConfig, int simulationRuns,
             Morphology sensorMorphology, int populationSize, int schemaConfigNum, double envHeight, double envWidth) {
@@ -97,87 +97,21 @@ public class ScoreCalculator implements CalculateScore {
 
         long start = System.nanoTime();
 
-        /**
-        all of the actual simulation runs and score calculations are performed in the preIteration methods of the NoveltySStrategy class
-        when TrainEA calls iteration() and then calls .calculateScore() which should just return the score for the current behaviour
-        */
+        NoveltyNetwork novNet = (NoveltyNetwork)method;
+        NoveltyBehaviour beh = novNet.getNoveltyBehaviour();
 
-        if(PerformingNoveltyCalcs) { //need to have a way of checking when performing objective or novelty
-
-            NoveltyNetwork novNet = (NoveltyNetwork)method;
-            NoveltyBehaviour beh = novNet.getNoveltyBehaviour();
-
-            if(beh == null) { //check if this behaviour has already been "processed"
-                return 0;
-            }
-
-            double noveltyScore = beh.getPopulationScore();
-            fitnessStats.addValue(noveltyScore);
-            //scoreStats.addValue(noveltyScore);
-            log.debug("NoveltyScore calculation completed: " + noveltyScore);
-            return noveltyScore;
+        if(beh == null) { //check if this behaviour has already been "processed"
+            return 0;
         }
-        else { //FOR OBJECTIVE SEARCH
 
-            try {
-                NEATNetwork neat_network = null;
-                RobotFactory robotFactory;
-
-                neat_network = (NEATNetwork) method;
-                robotFactory = new HomogeneousRobotFactory(getPhenotypeForNetwork(neat_network),
-                            simConfig.getRobotMass(), simConfig.getRobotRadius(), simConfig.getRobotColour(),
-                            simConfig.getObjectsRobots());
-
-                // create new configurable resource factory
-                String [] resQuantity = {"0","0","0"};
-                ResourceFactory resourceFactory = new ConfigurableResourceFactory();
-                resourceFactory.configure(simConfig.getResources(), resQuantity);
-
-                Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory, PerformingNoveltyCalcs);
-                simulation.setSchemaConfigNumber(schemaConfigNum);
-                //resetting the recorder values
-                double fitness = 0;
-
-                AggregateBehaviour aggregateBehaviour = new AggregateBehaviour(simulationRuns);
-
-                for(int i = 0; i < simulationRuns; i++) {
-
-                    Behaviour resultantBehaviour = simulation.runObjective();
-                    int [] resTypeCount = simulation.getResTypeCount();
-                    int tempTotal = resTypeCount[0] + resTypeCount[1] + resTypeCount[2];
-                    aggregateBehaviour.setTotalNumRes(tempTotal);
-                    aggregateBehaviour.addBehaviour(resultantBehaviour);
-                    ObjectiveFitness objectiveFitness = new ObjectiveFitness(schemaConfigNum, resTypeCount);
-                    double tempFitness = objectiveFitness.calculate(resultantBehaviour);
-                    fitness += tempFitness;
-                }
-
-                aggregateBehaviour.setTotalNumRes(simulation.getTotalNumResources());
-                aggregateBehaviour.finishRecording();
-
-                double score = fitness / simulationRuns;
-
-                fitnessStats.addValue(score);
-                numAConnected_Stats.addValue(aggregateBehaviour.getAvgABlocksConnected());
-                numBConnected_Stats.addValue(aggregateBehaviour.getAvgBBlocksConnected());
-                numCConnected_Stats.addValue(aggregateBehaviour.getAvgCBlocksConnected());
-                avgBlocksConnected_Stats.addValue(aggregateBehaviour.getAvgNumBlocksConnected());
-                normNumBlocksConnected_Stats.addValue(aggregateBehaviour.getNormalisedNumConnected());
-                numConstructionZones_Stats.addValue(aggregateBehaviour.getAvgNumConstructionZones());
-
-                log.debug("Score calculation completed: " + score);
-
-                long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
-                performanceStats.addValue(duration);
-
-                return score;
-            }
-            catch(Exception e) {
-                System.out.println("ScoreCalculator: an error occurred");
-                e.printStackTrace();
-                return 0;
-            }
+        double noveltyScore = beh.getPopulationNoveltyScore();
+        if(noveltyScore == 0) {
+            System.out.println("ScoreCalculator: soemthing weird heppened");
         }
+        fitnessStats.addValue(noveltyScore);
+        //scoreStats.addValue(noveltyScore);
+        log.debug("NoveltyScore calculation completed: " + noveltyScore);
+        return noveltyScore;
     }
 
     public DescriptiveStatistics getPerformanceStatsFile() {
@@ -243,60 +177,73 @@ public class ScoreCalculator implements CalculateScore {
       PerformingNoveltyCalcs = flag;
     }
 
+    /*
+    method to calculate the novelty of the individuals in the current population */
     public void calculateNoveltyForPopulation() {
-        //have access to the archive
-        //in archive calculate novelty for each individual in the current generation
 
         archive.calculatePopulationNovelty();
-
-        //method in the Archive:
-        //iterate over all the behaviours in the current generation
-        //calculate their behavioural sparseness for each one
     }
 
     public void clearCurrentGeneration() {
         archive.clearGeneration();
     }
 
+    public void printArchive() {
+
+        ArrayList<NoveltyBehaviour> archiveList = archive.getArchiveList();
+
+        System.out.println("ScoreCalculator: the archive size is = " + archiveList.size());
+    }
+
     public NoveltyBehaviour getNoveltyBehaviour(MLMethod method) {
 
-        NEATNetwork neat_network = null;
-        RobotFactory robotFactory;
+        try {
 
-        //System.out.println("ScoreCalculator: PHENOTYPE for NEATNetwork: " + getPhenotypeForNetwork(neat_network));
-        neat_network = (NEATNetwork) method;
-        robotFactory = new HomogeneousRobotFactory(getPhenotypeForNetwork(neat_network),
-                    simConfig.getRobotMass(), simConfig.getRobotRadius(), simConfig.getRobotColour(),
-                    simConfig.getObjectsRobots());
+            NEATNetwork neat_network = null;
+            RobotFactory robotFactory;
 
-        // Create the simulation and run it
-        //System.out.println("ScoreCalculator: creating the simulation and starting the GUI");
-        // create new configurable resource factory
-        String [] resQuantity = {"0","0","0"};
-        ResourceFactory resourceFactory = new ConfigurableResourceFactory();
-        resourceFactory.configure(simConfig.getResources(), resQuantity);
+            //System.out.println("ScoreCalculator: PHENOTYPE for NEATNetwork: " + getPhenotypeForNetwork(neat_network));
+            neat_network = (NEATNetwork) method;
+            robotFactory = new HomogeneousRobotFactory(getPhenotypeForNetwork(neat_network),
+                        simConfig.getRobotMass(), simConfig.getRobotRadius(), simConfig.getRobotColour(),
+                        simConfig.getObjectsRobots());
 
-        Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory, PerformingNoveltyCalcs);
-        System.out.println("ScoreCalculator: setting the config number to = " + schemaConfigNum);
-        simulation.setSchemaConfigNumber(schemaConfigNum);
+            // Create the simulation and run it
+            //System.out.println("ScoreCalculator: creating the simulation and starting the GUI");
+            // create new configurable resource factory
+            String [] resQuantity = {"0","0","0"};
+            ResourceFactory resourceFactory = new ConfigurableResourceFactory();
+            resourceFactory.configure(simConfig.getResources(), resQuantity);
 
-        //creating an arraylist to store the novelty behaviours that are produced at the end of each simulation run
-        //this is used to calculate the most novel behaviour of the produced runs
-        ArrayList<NoveltyBehaviour> simulationResults = new ArrayList<NoveltyBehaviour>();
+            Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory, PerformingNoveltyCalcs);
+            simulation.setSchemaConfigNumber(schemaConfigNum);
 
-        for(int k = 0; k < simulationRuns; k++) {
+            //creating an arraylist to store the novelty behaviours that are produced at the end of each simulation run
+            //this is used to calculate the most novel behaviour of the produced runs
+            ArrayList<NoveltyBehaviour> simulationResults = new ArrayList<NoveltyBehaviour>();
 
-            //recording all the resultant behaviours that the network produced in the different simulation runs
-            simulationResults.add(simulation.runNovel());
+            for(int k = 0; k < simulationRuns; k++) {
+
+                //recording all the resultant behaviours that the network produced in the different simulation runs
+                simulationResults.add(simulation.runNovel());
+            }
+
+            NoveltyBehaviour[] resultsArray = new NoveltyBehaviour[simulationResults.size()];
+            simulationResults.toArray(resultsArray);
+
+            // double index = archive.findMostNovel(resultsArra);
+            // return resultsArray(index);
+            //OR
+            return archive.calculateSimulationNovelty(resultsArray);//dont use an average value over the simulation results like in objective, use the most novel behaviour as the representative for this network
+
+        }
+        catch(Exception e) {
+            System.out.println("ScoreCalculator getNoveltyBehaviour method: SOMETHING WENT HORRIBLY WRONG");
+            e.printStackTrace();
+            return null;
         }
 
-        NoveltyBehaviour[] resultsArray = new NoveltyBehaviour[simulationResults.size()];
-        simulationResults.toArray(resultsArray);
 
-        // double index = archive.findMostNovel(resultsArra);
-        // return resultsArray(index);
-        //OR
-        return archive.findMostNovel(resultsArray); //dont use an average value over the simulation results like in objective, use the most novel behaviour as the representative for this network
     }
 
     // public void setSchemaConfigNumber(int i) {

@@ -92,8 +92,6 @@ public class ResourceObject extends PhysicalObject {
     private String[] adjacentResources;
     private ResourceObject[] adjacentList;
 
-    private LinkedList<Vec2> resourceTrajectory = new LinkedList<Vec2>();
-
     private int countConnected; //var to count the number of resources connected
     private Vec2 initialPos; //starting location of the resource
 
@@ -104,11 +102,6 @@ public class ResourceObject extends PhysicalObject {
     private int constructionZoneID = -1; //keep track of which construction zone this resource is connected to
 
     private boolean visited; //variable to check whether or not this resource object has been traversed
-
-    //private Vec2 gridPosition; //variable to keep track of the resource's position in the grid for later comparison
-
-    // is a hack
-    // private ArrayList<ResourceObject> otherResources = new ArrayList<ResourceObject>();
 
     public ResourceObject(World world, Vec2 position, float angle, float width, float height,
             float mass, int pushingRobots, double value, String type) {
@@ -716,23 +709,6 @@ public class ResourceObject extends PhysicalObject {
                 }
             }
         }
-
-        //to get the position of the resource every 5 timesteps
-        //add the position of the resource to the collection
-        // if( (simState.schedule.getSteps() % 5 == 0) && (!isConstructed) ) {
-        //     Vec2 currentPosition = this.getBody().getPosition();
-        //     resourceTrajectory.add(currentPosition);
-        // }
-
-        if( simState.schedule.getSteps() % 5 == 0 ) {
-            Vec2 currentPosition = this.getBody().getPosition();
-            Vec2 resultantPosition = currentPosition.sub(new Vec2(initialX, initialY));
-            resourceTrajectory.add(resultantPosition);
-        }
-    }
-
-    public LinkedList<Vec2> getTrajectory() {
-        return this.resourceTrajectory;
     }
 
 
@@ -787,8 +763,6 @@ public class ResourceObject extends PhysicalObject {
         // Mark the anchor as taken and the robot as bound to a resource.
         closestAnchor.markTaken();
         robot.setBoundToResource(true);
-
-        robot.incPickups();
 
         return true;
     }

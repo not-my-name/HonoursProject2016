@@ -13,24 +13,17 @@ a class to monitor and manage all the necessary structures to calculate the nove
 
 public class NoveltyFitness{
 
-	private float localNoveltyWeight;
-	private float archiveNoveltyWeight;
+	// private float localNoveltyWeight;
+	// private float archiveNoveltyWeight;
 
-	private float robotTrajectoryWeight;
-	private float resourceTrajectoryWeight;
 	private float constructionOrderWeight;
 	private float constructionZonesWeight;
+	private float endpointPositionWeight;
 
 	private Archive archive; //the archive of novel behaviours
 
 	private NoveltyBehaviour[] currentGeneration; //keep track of individual controllers in the current generation of individuals
 	private int numBehaviours; //keep track of how many behaviours there are in a generation
-
-	//private double[][] robotTrajectoryDifferences; //an array to store the position differences at each sample point
-	//private double[][] resourceTrajectoryDifferences; //an array to store the position differences for resources at each sample point their respective trajectories
-
-	private int numRobotSamples; //number of position samples that make up the robots trajectory
-	private int numResSamples; //number of position samples that make up the trajectory of a resource
 	private int numResources; //the number of resources that were used in a simulation
 	private int populationSize; //keep track of how many results are in each generation
 
@@ -39,8 +32,7 @@ public class NoveltyFitness{
 	private double maxDist;
 
 	public NoveltyFitness() {
-		System.out.println("NoveltyFitness: calling the empty constructor");
-
+		//System.out.println("NoveltyFitness: calling the empty constructor");
 	}
 
 	/**
@@ -55,13 +47,9 @@ public class NoveltyFitness{
 	//currentGeneration -> collection of behaviours that are going to be used to compute the relative novelty of each behaviour
 	public NoveltyFitness(NoveltyBehaviour[] currentGeneration) {
 
-		localNoveltyWeight = 1;
-		archiveNoveltyWeight = 1;
-
-		robotTrajectoryWeight = 1;
-		resourceTrajectoryWeight = 1;
 		constructionOrderWeight = 1;
 		constructionZonesWeight = 1;
+		endpointPositionWeight = 1;
 
 		populationSize = currentGeneration.length;
 		numBehaviours = currentGeneration.length;
@@ -69,14 +57,6 @@ public class NoveltyFitness{
 		for(int k = 0; k < numBehaviours; k++) { //copying over the elements in the array to a local array
 			this.currentGeneration[k] = currentGeneration[k];
 		}
-
-		this.numRobotSamples = this.currentGeneration[0].getRobotTrajectory().length; //they should all have the same number of positions in their trajectories
-		//robotTrajectoryDifferences = new double[numBehaviours][numRobotSamples];
-
-		this.numResources = this.currentGeneration[0].getNumResources(); //all of the simulations within a generation were run using the same number of resources
-		this.numResSamples = this.currentGeneration[0].getResourceTrajectory().length; //the number of times the position was sampled to build the trajectory
-
-		this.maxDist = Math.sqrt( Math.pow(envHeight, 2) + Math.pow(envWidth, 2) );
 	}
 
 	/*
@@ -87,11 +67,22 @@ public class NoveltyFitness{
 		for(int k = 0;k < numBehaviours; k++) {
 			NoveltyBehaviour currentBehaviour = currentGeneration[k];
 
+			if(currentBehaviour == null) { //check if something went terribly wrong in the score calculator
+				System.out.println("NoveltyFitness: found a NULL element!!!!!!!");
+				continue;
+			}
+
 			for(int j = 0; j < numBehaviours; j++) {
 
 				if(j != k) {
 
 					NoveltyBehaviour otherBehaviour = currentGeneration[j];
+
+					if(otherBehaviour == null) {
+						System.out.println("NoveltyFitness: found a NULL element!!!!!!!");
+						continue;
+					}
+
 					double noveltyDistance = calculateNoveltyDistance(currentBehaviour, otherBehaviour);
 					currentBehaviour.addSimulationNeighbour(noveltyDistance);
 				}
@@ -102,6 +93,11 @@ public class NoveltyFitness{
 		int index = -1; //index of the most novel behaviour
 
 		for(int k = 0; k < numBehaviours; k++) {
+
+			if(currentGeneration[k] == null) {
+				System.out.println("NoveltyFitness: found a NULL element!!!!!!!");
+				continue;
+			}
 
 			double tempValue = currentGeneration[k].calculateSimulationNovelty();
 
@@ -123,6 +119,11 @@ public class NoveltyFitness{
 		for(int  k = 0; k < numBehaviours; k++) {
 			NoveltyBehaviour currentBehaviour = currentGeneration[k];
 
+			if(currentBehaviour == null) {
+				System.out.println("NoveltyFitness: found a NULL element!!!!!!!");
+				continue;
+			}
+
 			if(currentBehaviour.isArchived()) {
 				continue; //dont need to recalculate individuals already in the archive
 			}
@@ -133,6 +134,12 @@ public class NoveltyFitness{
 					if(j != k) { // so as not to compare the same behaviour with itself
 
 						NoveltyBehaviour otherBehaviour = currentGeneration[j];
+
+						if(otherBehaviour == null) {
+							System.out.println("NoveltyFitness: found a NULL element!!!!!!!");
+							continue;
+						}
+
 						double noveltyDistance = calculateNoveltyDistance(currentBehaviour, otherBehaviour);
 						currentBehaviour.addPopulationNeighbour(noveltyDistance); //add neighbour to appropriate list for behaviour
 					}
@@ -141,7 +148,13 @@ public class NoveltyFitness{
 		}
 
 		for(NoveltyBehaviour novBeh : currentGeneration) { //calculates the mean novelty distance between a behaviour and k-nearest neighbours
-			novBeh.calculatePopulationNovelty();
+
+			if(novBeh != null) {
+				novBeh.calculatePopulationNovelty();
+			}
+			else {
+				System.out.println("NoveltyFitness: found a NULL element!!!!!!!");
+			}
 		}
 	}
 
@@ -149,69 +162,35 @@ public class NoveltyFitness{
 
 		double dist = 0;
 
-		dist += compareRobotTrajectories(currentBehaviour, otherBehaviour) * robotTrajectoryWeight;
-		dist += compareResourceTrajectories(currentBehaviour, otherBehaviour) * resourceTrajectoryWeight;
+		//dist += compareRobotTrajectories(currentBehaviour, otherBehaviour) * robotTrajectoryWeight;
+		//dist += compareResourceTrajectories(currentBehaviour, otherBehaviour) * resourceTrajectoryWeight;
+		dist += compareRobotEndPositions(currentBehaviour, otherBehaviour) * endpointPositionWeight;
 		dist += compareConstructionOrder(currentBehaviour, otherBehaviour) * constructionOrderWeight;
 		dist += compareConstructionZones(currentBehaviour, otherBehaviour) * constructionZonesWeight;
-
-		System.out.println("");
 
 		return dist;
 	}
 
-	//method to calculate the average distance between the robot trajectories of these 2 behaviours
-	//sum the distance between each behaviour at each time step in the trajectories
-	private double compareRobotTrajectories(NoveltyBehaviour currentBehaviour, NoveltyBehaviour otherBehaviour) {
+	private double compareRobotEndPositions(NoveltyBehaviour currentBehaviour, NoveltyBehaviour otherBehaviour) {
 
-		//System.out.println("NoveltyFitness: comparing robot trajectories");
+		double endPositionScore = 0;
 
-		Vec2[] currentTrajectory = currentBehaviour.getRobotTrajectory();
-		Vec2[] otherTrajectory = otherBehaviour.getRobotTrajectory();
+		ArrayList<Vec2> currentEndPositions = currentBehaviour.getRobotPositions();
+		ArrayList<Vec2> otherEndPositions = otherBehaviour.getRobotPositions();
 
-		double totalDistance = 0; //total difference between these trajectories (sum of distance between each point in the trajectory)
+		int numRobots = currentBehaviour.getNumRobots();
 
-		for(int k = 0; k < numRobotSamples; k++) { //iterate over all timesteps
+		for(int k = 0; k < numRobots; k++) {
 
-			Vec2 origin = currentTrajectory[k];
-			Vec2 destination = otherTrajectory[k];
-			totalDistance += calculateDistance(origin, destination);
+			Vec2 currentPosition = currentEndPositions.get(k);
+			Vec2 otherPosition = otherEndPositions.get(k);
+
+			endPositionScore += calculateDistance(currentPosition, otherPosition);
 		}
 
-		totalDistance = totalDistance / numRobotSamples; //avg distance per time step in the trajectory
+		endPositionScore = endPositionScore / numRobots;
 
-		System.out.println("NoveltyFItness compareRobotTrajectories = " + totalDistance);
-
-		return totalDistance;
-	}
-
-	//method to calculate the average distance between the resource trajectory of these 2 behaviours
-	private double compareResourceTrajectories(NoveltyBehaviour currentBehaviour, NoveltyBehaviour otherBehaviour) {
-		/**
-		there might be a problem when comparing the resource trajectories since they might not all be the same length
-		check the conditional statement in ResourceObject on line 420, usually it checks if the resource is constructed or not
-		changed this statement to keep updating the trajectory even if its in a constructionzone
-		temporary fix
-		*/
-
-		//System.out.println("NoveltyFitness: comparing resource trajectories");
-
-		Vec2[] currentTrajectory = currentBehaviour.getResourceTrajectory();
-		Vec2[] otherTrajectory = otherBehaviour.getResourceTrajectory();
-
-		double totalDistance = 0;
-
-		for(int k = 0; k < numResSamples; k++) {
-
-			Vec2 origin = currentTrajectory[k];
-			Vec2 destination = otherTrajectory[k];
-			totalDistance += calculateDistance(origin, destination);
-		}
-
-		totalDistance = totalDistance / numResSamples;
-
-		System.out.println("NoveltyFItness compareResourceTrajectories = " + totalDistance);
-
-		return totalDistance;
+		return endPositionScore;
 	}
 
 	/**
@@ -252,43 +231,8 @@ public class NoveltyFitness{
 			}
 		}
 
-		System.out.println("NoveltyFitness: compareConstructionOrder = " + differenceScore);
-
 		return differenceScore;
 	}
-
-	// public int[][] compareConstructionZones(int[][] currentDiscreteGrid, int[][] otherDiscreteGrid) {
-	//
-	// 	double totalDifferenceScore = 0;
-	// 	double perfectScore = 0;
-	//
-	// 	int[][] returnGrid = new int[20][20];
-	//
-	// 	for(int k = 0; k < 20; k++) {
-	// 		for(int j = 0; j < 20; j++) {
-	// 			returnGrid[k][j] = 0;
-	// 		}
-	// 	}
-	//
-	// 	for(int k = 0; k < 20; k++) {
-	// 		for(int j = 0; j < 20; j++) {
-	//
-	// 			if(currentDiscreteGrid[k][j] != otherDiscreteGrid[k][j]) {
-	// 				returnGrid[k][j] = 9;
-	// 			}
-	// 			else {
-	// 				returnGrid[k][j] = 0;
-	// 			}
-	// 		}
-	// 	}
-	//
-	// 	return returnGrid;
-	// }
-
-	/**
-	writing this method to work with the discrete construction zones
-	check which of these methods work better
-	*/
 
 	private double compareConstructionZones(NoveltyBehaviour currentBehaviour, NoveltyBehaviour otherBehaviour) {
 
@@ -299,6 +243,7 @@ public class NoveltyFitness{
 
 		double totalDifferenceScore = 0;
 
+		//iterating over the positions in the dicretized grid
 		for(int k = 0; k < 20; k++) {
 			for(int j = 0; j < 20; j++) {
 
@@ -317,19 +262,12 @@ public class NoveltyFitness{
 			}
 		}
 
-		System.out.println("NoveltyFitness: compareConstructionZones = " + totalDifferenceScore);
-
 		return totalDifferenceScore;
 	}
 
 	public NoveltyBehaviour[] getGeneration() {
 		return this.currentGeneration;
 	}
-
-	/**
-	the float being returned gets cast to a double in the compareRobotTrajectories method
-	check that this does not cause some sort of error
-	*/
 
 	/*
 	method to calculate the distance between 2 points
@@ -342,12 +280,8 @@ public class NoveltyFitness{
 		double destinationX = destination.x;
 		double destinationY = destination.y;
 
-		// float distance = (float) (Math.pow(destinationX - originX, 2) +
-		// 				 								  Math.pow(destinationY - originY, 2));
-
-		float distance = (float) Math.sqrt(
-										Math.pow(destinationX - originX, 2) +
-										Math.pow(destinationY - originY, 2));
+		float distance = (float) (Math.pow(destinationX - originX, 2) +
+						 								  Math.pow(destinationY - originY, 2));
 
 		return distance;
 

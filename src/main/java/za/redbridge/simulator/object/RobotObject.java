@@ -79,14 +79,12 @@ public class RobotObject extends PhysicalObject {
     private float consumption_modifier = 0;
     private float motor_consumption;
 
-    private double numPickups;
+    //private double numPickups;
 
     //variables to store the initial starting location of the robot object
     //used to compare for the trajectories
     private final float initialX;
     private final float initialY;
-
-    private LinkedList<Vec2> robotTrajectory = new LinkedList<Vec2>();
 
     public RobotObject(World world, Vec2 position, float angle, double radius, double mass,
             Color color, Phenotype phenotype, SimConfig.Direction targetAreaPlacement) {
@@ -109,8 +107,6 @@ public class RobotObject extends PhysicalObject {
         energy_level = init_energy_level;
         motor_consumption = default_motor_consumption;
 
-        numPickups = 0;
-
         Vec2 initialPos = getBody().getPosition(); //creating an empty Vec2 to store the updated positions of the robot
         initialX = initialPos.x;
         initialY = initialPos.y;
@@ -118,15 +114,6 @@ public class RobotObject extends PhysicalObject {
 
     public String getActiveHeuristic() {
         return heuristicPhenotype.getActiveHeuristic();
-    }
-
-    public void incPickups() {
-        //System.out.println("RobotObject: resource picked up");
-        numPickups++;
-    }
-
-    public double getNumPickups() {
-        return numPickups;
     }
 
     private void initSensors() {
@@ -230,20 +217,6 @@ public class RobotObject extends PhysicalObject {
                 samplePoints.clear();
             }
         }
-
-        //storing the position of the robot every 5 timesteps to be used for novelty calculation
-        if( sim.schedule.getSteps() % 5 == 0 ) {
-            Vec2 currentPosition = this.getBody().getPosition();
-            Vec2 resultantPosition = currentPosition.sub(new Vec2(initialX, initialY));
-            robotTrajectory.add(resultantPosition);
-        }
-
-        // System.out.println("Pos: "+this.getBody().getPosition().x+" "+this.getBody().getPosition().y);
-//        consumeEnergy();
-    }
-
-    public LinkedList<Vec2> getTrajectory() {
-        return this.robotTrajectory;
     }
 
     private void applyWheelDrive(float wheelDrive, Vec2 wheelPosition) {
