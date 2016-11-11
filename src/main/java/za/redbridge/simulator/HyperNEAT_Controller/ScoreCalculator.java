@@ -242,8 +242,6 @@ public class ScoreCalculator implements CalculateScore {
             e.printStackTrace();
             return null;
         }
-
-
     }
 
     // public void setSchemaConfigNumber(int i) {
