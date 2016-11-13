@@ -23,6 +23,8 @@ public class NoveltyBehaviour {
 	private ArrayList<String[]> BConnectionsList;
 	private ArrayList<String[]> CConnectionsList;
 
+	private AggregateBehaviour aggregateBehaviour;
+
 
 	//stores the final construction at the end of the simulation
 	//private ConstructionZone[] constructionZones;
@@ -188,6 +190,10 @@ public class NoveltyBehaviour {
 		return constructionZones.size();
 	}
 
+	public void setAggregateBehaviour(AggregateBehaviour aggregaetBehaviour) {
+		this.aggregateBehaviour = aggregateBehaviour;
+	}
+
 	//method to indicate that the current behaviour has been added to the archive
 	public void setArchived() {
 		archived = true;
@@ -212,6 +218,10 @@ public class NoveltyBehaviour {
 
 	public ArrayList<Vec2> getRobotPositions() {
 		return this.robotEndPositions;
+	}
+
+	public AggregateBehaviour getAggregateBehaviour() {
+		return aggregateBehaviour;
 	}
 
 	public int getNumRobots() {

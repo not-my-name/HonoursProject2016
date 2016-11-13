@@ -109,6 +109,16 @@ public class ScoreCalculator implements CalculateScore {
             System.out.println("ScoreCalculator: soemthing weird heppened");
         }
         fitnessStats.addValue(noveltyScore);
+
+        AggregateBehaviour aggregateBehaviour = beh.getAggregateBehaviour();
+
+        numAConnected_Stats.addValue(aggregateBehaviour.getAvgABlocksConnected());
+        numBConnected_Stats.addValue(aggregateBehaviour.getAvgBBlocksConnected());
+        numCConnected_Stats.addValue(aggregateBehaviour.getAvgCBlocksConnected());
+        avgBlocksConnected_Stats.addValue(aggregateBehaviour.getAvgNumBlocksConnected());
+        normNumBlocksConnected_Stats.addValue(aggregateBehaviour.getNormalisedNumConnected());
+        numConstructionZones_Stats.addValue(aggregateBehaviour.getAvgNumConstructionZones());
+
         //scoreStats.addValue(noveltyScore);
         log.debug("NoveltyScore calculation completed: " + noveltyScore);
         return noveltyScore;
@@ -220,22 +230,33 @@ public class ScoreCalculator implements CalculateScore {
 
             //creating an arraylist to store the novelty behaviours that are produced at the end of each simulation run
             //this is used to calculate the most novel behaviour of the produced runs
+            //ArrayList<NoveltyBehaviour> simulationResults = new ArrayList<NoveltyBehaviour>();
+
             ArrayList<NoveltyBehaviour> simulationResults = new ArrayList<NoveltyBehaviour>();
+            AggregateBehaviour aggregateBehaviour = new AggregateBehaviour(simulationRuns);
+            System.out.println("ScoreCalculator: num resources = " + resourceFactory.getPlacedResources().size());
+            aggregateBehaviour.setTotalNumRes(simulation.getTotalNumResources());
 
             for(int k = 0; k < simulationRuns; k++) {
 
                 //recording all the resultant behaviours that the network produced in the different simulation runs
-                simulationResults.add(simulation.runNovel());
+                NoveltyBehaviour resultantBehaviour = simulation.runNovel();
+                simulationResults.add(resultantBehaviour);
+                Behaviour objectiveBeh = new Behaviour(resultantBehaviour.getConstructionTask(), schemaConfigNum);
+                aggregateBehaviour.addBehaviour(objectiveBeh);
             }
+
+            aggregateBehaviour.finishRecording();
 
             NoveltyBehaviour[] resultsArray = new NoveltyBehaviour[simulationResults.size()];
             simulationResults.toArray(resultsArray);
 
-            // double index = archive.findMostNovel(resultsArra);
-            // return resultsArray(index);
-            //OR
-            return archive.calculateSimulationNovelty(resultsArray);//dont use an average value over the simulation results like in objective, use the most novel behaviour as the representative for this network
+            //find and store the most novel behaviour produced in the various simulation runs
+            NoveltyBehaviour finalNovelBehaviour = archive.calculateSimulationNovelty(resultsArray);
 
+            finalNovelBehaviour.setAggregateBehaviour(aggregateBehaviour);
+
+            return finalNovelBehaviour;
         }
         catch(Exception e) {
             System.out.println("ScoreCalculator getNoveltyBehaviour method: SOMETHING WENT HORRIBLY WRONG");
