@@ -188,7 +188,7 @@ public class NoveltyBehaviour {
 		return constructionZones.size();
 	}
 
-	public void setAggregateBehaviour(AggregateBehaviour aggregaetBehaviour) {
+	public void setAggregateBehaviour(AggregateBehaviour aggregateBehaviour) {
 		this.aggregateBehaviour = aggregateBehaviour;
 	}
 

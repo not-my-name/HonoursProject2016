@@ -69,6 +69,13 @@ public class NoveltyCodec extends HyperNEATCODEC {
 
 			//sets up the network class
 			novNetwork = new NoveltyNetwork(decoded.getInputCount(), decoded.getOutputCount(), connectionArray, decoded.getActivationFunctions());
+
+			NoveltyBehaviour novBeh = scoreCalculator.getNoveltyBehaviour(novNetwork);
+
+			// if(novBeh.getAggregateBehaviour() == null) {
+			// 	System.out.println("NoveltyCodec: this is the problem");
+			// }
+
 			genomePBMap.put(genome, scoreCalculator.getNoveltyBehaviour(novNetwork)); //run the network in the simulation to establish the resultant behaviour
 			genomeNNMap.put(genome, novNetwork);
 		}

@@ -112,6 +112,9 @@ public class ScoreCalculator implements CalculateScore {
 
         AggregateBehaviour aggregateBehaviour = beh.getAggregateBehaviour();
 
+        if(aggregateBehaviour == null) {
+            System.out.println("ScoreCalculator: the error is still there");
+        }
         numAConnected_Stats.addValue(aggregateBehaviour.getAvgABlocksConnected());
         numBConnected_Stats.addValue(aggregateBehaviour.getAvgBBlocksConnected());
         numCConnected_Stats.addValue(aggregateBehaviour.getAvgCBlocksConnected());
