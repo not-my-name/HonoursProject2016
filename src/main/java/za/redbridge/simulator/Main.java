@@ -139,13 +139,13 @@ public class Main {
         private String configFile = "configs/simConfig.yml";
 
         @Parameter(names = "-i", description = "Number of generations to train for")
-        private int numGenerations = 3;
+        private int numGenerations = 100;
 
         @Parameter(names = "-p", description = "Initial population size")
-        private int populationSize = 2;
+        private int populationSize = 150;
 
         @Parameter(names = "--sim-runs", description = "Number of simulation runs per iteration")
-        private int simulationRuns = 3;
+        private int simulationRuns = 5;
 
         @Parameter(names = "--conn-density", description = "Adjust the initial connection density"
                 + " for the population")
