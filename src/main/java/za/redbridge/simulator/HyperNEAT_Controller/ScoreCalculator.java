@@ -95,6 +95,7 @@ public class ScoreCalculator implements CalculateScore {
     @Override
     public double calculateScore(MLMethod method) {
 
+
         long start = System.nanoTime();
 
         NoveltyNetwork novNet = (NoveltyNetwork)method;
@@ -108,9 +109,21 @@ public class ScoreCalculator implements CalculateScore {
         if(noveltyScore == 0) {
             System.out.println("ScoreCalculator: soemthing weird heppened");
         }
-        fitnessStats.addValue(noveltyScore);
-        //scoreStats.addValue(noveltyScore);
-        log.debug("NoveltyScore calculation completed: " + noveltyScore);
+        fitnessStats.addValue(hybridScore);
+
+        AggregateBehaviour aggregateBehaviour = beh.getAggregateBehaviour();
+
+        if(aggregateBehaviour == null) {
+            System.out.println("ScoreCalculator: the error is still there");
+        }
+        numAConnected_Stats.addValue(aggregateBehaviour.getAvgABlocksConnected());
+        numBConnected_Stats.addValue(aggregateBehaviour.getAvgBBlocksConnected());
+        numCConnected_Stats.addValue(aggregateBehaviour.getAvgCBlocksConnected());
+        avgBlocksConnected_Stats.addValue(aggregateBehaviour.getAvgNumBlocksConnected());
+        normNumBlocksConnected_Stats.addValue(aggregateBehaviour.getNormalisedNumConnected());
+        numConstructionZones_Stats.addValue(aggregateBehaviour.getAvgNumConstructionZones());
+
+        log.debug("HybridScore calculation completed: " + noveltyScore);
         return noveltyScore;
     }
 
@@ -246,14 +259,7 @@ public class ScoreCalculator implements CalculateScore {
             //find and store the most novel behaviour produced in the various simulation runs
             HybridBehaviour finalHybridBehaviour = archive.calculateSimulationNovelty(resultsArray);
             finalHybridBehaviour.setObjectiveScore(objectiveScore);
-
-            fitnessStats.addValue(objectiveScore);
-            numAConnected_Stats.addValue(aggregateBehaviour.getAvgABlocksConnected());
-            numBConnected_Stats.addValue(aggregateBehaviour.getAvgBBlocksConnected());
-            numCConnected_Stats.addValue(aggregateBehaviour.getAvgCBlocksConnected());
-            avgBlocksConnected_Stats.addValue(aggregateBehaviour.getAvgNumBlocksConnected());
-            normNumBlocksConnected_Stats.addValue(aggregateBehaviour.getNormalisedNumConnected());
-            numConstructionZones_Stats.addValue(aggregateBehaviour.getAvgNumConstructionZones());
+            
         }
     }
 
