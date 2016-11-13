@@ -234,14 +234,16 @@ public class ScoreCalculator implements CalculateScore {
 
             ArrayList<NoveltyBehaviour> simulationResults = new ArrayList<NoveltyBehaviour>();
             AggregateBehaviour aggregateBehaviour = new AggregateBehaviour(simulationRuns);
-            System.out.println("ScoreCalculator: num resources = " + resourceFactory.getPlacedResources().size());
-            aggregateBehaviour.setTotalNumRes(simulation.getTotalNumResources());
 
             for(int k = 0; k < simulationRuns; k++) {
 
                 //recording all the resultant behaviours that the network produced in the different simulation runs
                 NoveltyBehaviour resultantBehaviour = simulation.runNovel();
                 simulationResults.add(resultantBehaviour);
+
+                int [] resTypeCount = simulation.getResTypeCount();
+                int tempTotal = resTypeCount[0] + resTypeCount[1] + resTypeCount[2];
+                aggregateBehaviour.setTotalNumRes(tempTotal);
                 Behaviour objectiveBeh = new Behaviour(resultantBehaviour.getConstructionTask(), schemaConfigNum);
                 aggregateBehaviour.addBehaviour(objectiveBeh);
             }
