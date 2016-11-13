@@ -74,7 +74,7 @@ public class Main {
 			String simConfigFP = "configs/simConfig" + Integer.toString(ind) + ".yml";
 			//String experimentConfigFP = "configs/experimentConfig.yml";
 			String morphologyConfigFP = "configs/morphologyConfig.yml";
-			String folderDir = "/NoveltyResults/Schema_" + Integer.toString(ind) + "/FirstRun";
+			String folderDir = "/HybridResults/Schema_" + Integer.toString(ind) + "/FirstRun";
 			Utils.setDirectoryName(folderDir);
 
 			MorphologyConfig morphologyConfig = new MorphologyConfig(morphologyConfigFP);
@@ -89,7 +89,6 @@ public class Main {
 			envHeight = simConfig.getEnvironmentHeight();
 
 			schemaConfigIndex = simConfig.getConfigNumber();
-			System.out.println("Main: the new config number = " + schemaConfigIndex);
 			ScoreCalculator scoreCalculator = new ScoreCalculator(simConfig, options.simulationRuns,
 							morphology, options.populationSize, schemaConfigIndex, envHeight, envWidth); //got this from the Main class in last years Controller Master folder
 
@@ -133,26 +132,6 @@ public class Main {
 			log.debug("Training Complete");
 			Encog.getInstance().shutdown();
 		}
-
-		// TrainEA trainer = NEATUtil.constructNEATTrainer(population, scoreCalculator);
-		// trainer.setThreadCount(0);
-		//
-		// final StatsRecorder statsRecorder = new StatsRecorder(trainer, scoreCalculator); //this is basically where the simulation runs
-		// //scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
-		//
-		// for(int i = 0; i < options.numGenerations; i++) { //for(int i = trainer.getIteration(); i < numIterations; i++)
-		// 	trainer.iteration(); //training the network for a single iteration
-		// 	statsRecorder.recordIterationStats();
-		//
-		// 	//once an individual has found an optimal solution, break out of the training loop
-		// 	if(trainer.getBestGenome().getScore() >= convergenceScore) {
-		// 		log.info("convergence reached at epoch(iteration): " + trainer.getIteration());
-		// 		break;
-		// 	}
-		// }
-		//
-		// //scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
-		// log.debug("Training Complete");
 	}
 
 	private static class Args {
