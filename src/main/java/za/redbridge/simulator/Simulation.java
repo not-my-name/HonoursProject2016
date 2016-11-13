@@ -220,9 +220,31 @@ public class Simulation extends SimState {
         return environment;
     }
 
-    /**
-    remeber that some of these might need to be changed if we use the postiteration method that josh mentioned
-    */
+    public HybridBehaviour runHybrid() {
+        final int iterations = config.getSimulationIterations();
+        return hybridSimulation(iterations);
+    }
+
+    private HybridBehaviour hybridSimulation(int n) {
+
+        start();
+
+        for(int k = 0; k < n; k++) {
+            schedule.step(this);
+        }
+
+        ArrayList<RobotObject> tempBots = robotFactory.getPlacedRobots();
+        ArrayList<ResourceObject> tempResources = resourceFactory.getPlacedResources();
+
+        construction.updateConstructionZones();
+
+        //THIS IS FOR THE OBJECTIVE FITNESS
+        Behaviour behaviour = new Behaviour(construction, schemaConfigNum);
+
+        HybridBehaviour hybridBehaviour = new HybridBehaviour(behaviour);
+
+        finish();
+    }
 
     public NoveltyBehaviour runNovel() {
         final int iterations = config.getSimulationIterations();

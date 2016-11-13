@@ -195,6 +195,48 @@ public class ScoreCalculator implements CalculateScore {
         System.out.println("ScoreCalculator: the archive size is = " + archiveList.size());
     }
 
+    public HybridBehaviour getHybridBehaviour(MLMethod method) {
+
+        try {
+
+            NEATNetwork neat_network = null;
+            RobotFactory robotFactory;
+
+            //System.out.println("ScoreCalculator: PHENOTYPE for NEATNetwork: " + getPhenotypeForNetwork(neat_network));
+            neat_network = (NEATNetwork) method;
+            robotFactory = new HomogeneousRobotFactory(getPhenotypeForNetwork(neat_network),
+                        simConfig.getRobotMass(), simConfig.getRobotRadius(), simConfig.getRobotColour(),
+                        simConfig.getObjectsRobots());
+
+            // Create the simulation and run it
+            //System.out.println("ScoreCalculator: creating the simulation and starting the GUI");
+            // create new configurable resource factory
+            String [] resQuantity = {"0","0","0"};
+            ResourceFactory resourceFactory = new ConfigurableResourceFactory();
+            resourceFactory.configure(simConfig.getResources(), resQuantity);
+
+            Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory, PerformingNoveltyCalcs);
+            simulation.setSchemaConfigNumber(schemaConfigNum);
+
+            //creating an arraylist to store the novelty behaviours that are produced at the end of each simulation run
+            //this is used to calculate the most novel behaviour of the produced runs
+            ArrayList<NoveltyBehaviour> simulationResults = new ArrayList<NoveltyBehaviour>();
+
+            for(int k = 0; k < simulationRuns; k++) {
+
+                //recording all the resultant behaviours that the network produced in the different simulation runs
+                simulationResults.add(simulation.runNovel());
+            }
+
+            NoveltyBehaviour[] resultsArray = new NoveltyBehaviour[simulationResults.size()];
+            simulationResults.toArray(resultsArray);
+
+            //find and store the most novel behaviour produced in the various simulation runs 
+            NoveltyBehaviour finalNovelBehaviour = archive.calculateSimulationNovelty(resultsArray);
+
+        }
+    }
+
     public NoveltyBehaviour getNoveltyBehaviour(MLMethod method) {
 
         try {
@@ -244,14 +286,6 @@ public class ScoreCalculator implements CalculateScore {
         }
     }
 
-    // public void setSchemaConfigNumber(int i) {
-    //     schemaConfigNum = i;
-    // }
-
-    // public void setArchive(Archive archive) {
-    //     this.archive = archive;
-    // }
-
     //HyperNEAT uses the NEATnetwork as well
     private Phenotype getPhenotypeForNetwork(NEATNetwork network) {
         //System.out.println("ScoreCalculator: network input = " + network.getInputCount());
@@ -262,18 +296,6 @@ public class ScoreCalculator implements CalculateScore {
     public boolean isEvolvingMorphology() {
         return false;
     }
-
-    // public DescriptiveStatistics getPerformanceStatistics() {
-    //     return performanceStats;
-    // }
-
-    // public DescriptiveStatistics getScoreStatistics() {
-    //     return scoreStats;
-    // }
-
-    /*public DescriptiveStatistics getSensorStatistics() {
-        return sensorStats;
-    }*/
 
     @Override
     public boolean shouldMinimize() {
