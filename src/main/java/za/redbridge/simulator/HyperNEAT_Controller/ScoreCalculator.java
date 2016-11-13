@@ -222,7 +222,9 @@ public class ScoreCalculator implements CalculateScore {
             //this is used to calculate the most novel behaviour of the produced runs
             //ArrayList<NoveltyBehaviour> simulationResults = new ArrayList<NoveltyBehaviour>();
 
-            ArrayList<HybridBehaviour> smiulationResults = new ArrayList<HybridBehaviour>();
+            ArrayList<HybridBehaviour> simulationResults = new ArrayList<HybridBehaviour>();
+
+            ObjectiveFitness objectiveFitness = new ObjectiveFitness
 
             for(int k = 0; k < simulationRuns; k++) {
 
