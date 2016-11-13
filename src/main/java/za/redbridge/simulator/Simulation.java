@@ -240,8 +240,9 @@ public class Simulation extends SimState {
 
         //THIS IS FOR THE OBJECTIVE FITNESS
         Behaviour behaviour = new Behaviour(construction, schemaConfigNum);
+        NoveltyBehaviour noveltyBehaviour = new NoveltyBehaviour(tempBots, tempResources, construction);
 
-        HybridBehaviour hybridBehaviour = new HybridBehaviour(behaviour);
+        HybridBehaviour hybridBehaviour = new HybridBehaviour(tempBots, tempResources, construction, behaviour);
 
         finish();
     }

@@ -220,18 +220,20 @@ public class ScoreCalculator implements CalculateScore {
 
             //creating an arraylist to store the novelty behaviours that are produced at the end of each simulation run
             //this is used to calculate the most novel behaviour of the produced runs
-            ArrayList<NoveltyBehaviour> simulationResults = new ArrayList<NoveltyBehaviour>();
+            //ArrayList<NoveltyBehaviour> simulationResults = new ArrayList<NoveltyBehaviour>();
+
+            ArrayList<HybridBehaviour> smiulationResults = new ArrayList<HybridBehaviour>();
 
             for(int k = 0; k < simulationRuns; k++) {
 
                 //recording all the resultant behaviours that the network produced in the different simulation runs
-                simulationResults.add(simulation.runNovel());
+                simulationResults.add(simulation.runHybrid());
             }
 
-            NoveltyBehaviour[] resultsArray = new NoveltyBehaviour[simulationResults.size()];
+            HybridBehaviour[] resultsArray = new HybridBehaviour[simulationResults.size()];
             simulationResults.toArray(resultsArray);
 
-            //find and store the most novel behaviour produced in the various simulation runs 
+            //find and store the most novel behaviour produced in the various simulation runs
             NoveltyBehaviour finalNovelBehaviour = archive.calculateSimulationNovelty(resultsArray);
 
         }
