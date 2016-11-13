@@ -55,6 +55,8 @@ public class NoveltyBehaviour {
 
 	public NoveltyBehaviour(ArrayList<RobotObject> currentRobots, ArrayList<ResourceObject> currentResources, ConstructionTask constructionTask) {
 
+		System.out.println("NoveltyBehaviour: creating a new behaviour");
+
 		this.numRobots = currentRobots.size();
 		this.numResources = currentResources.size();
 
