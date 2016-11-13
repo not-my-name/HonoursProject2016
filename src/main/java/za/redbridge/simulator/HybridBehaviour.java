@@ -7,10 +7,16 @@ and the objective behaviours for an individual*/
 public class HybridBehaviour extends NoveltyBehaviour {
 
     private Behaviour objectiveBehaviour;
+    private double objectiveFitness;
+    private Objectiv
 
     public HybridBehaviour(ArrayList<RobotObject> currentRobots, ArrayList<ResourceObject> currentResources,
                                 ConstructionTask constructionTask, Behaviour objectiveBehaviour) {
 
+    }
+
+    public Behaviour getObjectiveBehaviour() {
+        return objectiveBehaviour;
     }
 
 

@@ -224,13 +224,17 @@ public class ScoreCalculator implements CalculateScore {
 
             ArrayList<HybridBehaviour> simulationResults = new ArrayList<HybridBehaviour>();
 
-            ObjectiveFitness objectiveFitness = new ObjectiveFitness
-
+            ObjectiveFitness objectiveFitness = new ObjectiveFitness(schemaConfigNum, simulation.getResTypeCount());
+            double objectiveScore = 0;
             for(int k = 0; k < simulationRuns; k++) {
 
                 //recording all the resultant behaviours that the network produced in the different simulation runs
-                simulationResults.add(simulation.runHybrid());
+                HybridBehaviour resultantBehaviour = simulation.runHybrid();
+                simulationResults.add(resultantBehaviour);
+                objectiveScore += objectiveFitness.calculate(resultantBehaviour.getObjectiveBehaviour())
             }
+
+            objectiveScore = objectiveScore / simulationRuns;
 
             HybridBehaviour[] resultsArray = new HybridBehaviour[simulationResults.size()];
             simulationResults.toArray(resultsArray);
@@ -238,6 +242,13 @@ public class ScoreCalculator implements CalculateScore {
             //find and store the most novel behaviour produced in the various simulation runs
             NoveltyBehaviour finalNovelBehaviour = archive.calculateSimulationNovelty(resultsArray);
 
+            fitnessStats.addValue(score);
+            numAConnected_Stats.addValue(aggregateBehaviour.getAvgABlocksConnected());
+            numBConnected_Stats.addValue(aggregateBehaviour.getAvgBBlocksConnected());
+            numCConnected_Stats.addValue(aggregateBehaviour.getAvgCBlocksConnected());
+            avgBlocksConnected_Stats.addValue(aggregateBehaviour.getAvgNumBlocksConnected());
+            normNumBlocksConnected_Stats.addValue(aggregateBehaviour.getNormalisedNumConnected());
+            numConstructionZones_Stats.addValue(aggregateBehaviour.getAvgNumConstructionZones());
         }
     }
 
