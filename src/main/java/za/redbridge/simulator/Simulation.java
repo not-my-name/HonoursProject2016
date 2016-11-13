@@ -220,33 +220,6 @@ public class Simulation extends SimState {
         return environment;
     }
 
-    public HybridBehaviour runHybrid() {
-        final int iterations = config.getSimulationIterations();
-        return hybridSimulation(iterations);
-    }
-
-    private HybridBehaviour hybridSimulation(int n) {
-
-        start();
-
-        for(int k = 0; k < n; k++) {
-            schedule.step(this);
-        }
-
-        ArrayList<RobotObject> tempBots = robotFactory.getPlacedRobots();
-        ArrayList<ResourceObject> tempResources = resourceFactory.getPlacedResources();
-
-        construction.updateConstructionZones();
-
-        //THIS IS FOR THE OBJECTIVE FITNESS
-        Behaviour behaviour = new Behaviour(construction, schemaConfigNum);
-        NoveltyBehaviour noveltyBehaviour = new NoveltyBehaviour(tempBots, tempResources, construction);
-
-        HybridBehaviour hybridBehaviour = new HybridBehaviour(tempBots, tempResources, construction, behaviour);
-
-        finish();
-    }
-
     public NoveltyBehaviour runNovel() {
         final int iterations = config.getSimulationIterations();
         return noveltySimulation(iterations);
@@ -269,7 +242,7 @@ public class Simulation extends SimState {
         construction.updateConstructionZones();
 
         //creating the noveltyBehaviour object to be used in the fitness calculation
-        NoveltyBehaviour noveltyBehaviour = new NoveltyBehaviour(currentRobots, currentResources, construction);
+        NoveltyBehaviour noveltyBehaviour = new NoveltyBehaviour(currentRobots, construction);
 
         finish();
 

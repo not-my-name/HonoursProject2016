@@ -23,6 +23,8 @@ public class NoveltyBehaviour {
 	private ArrayList<String[]> BConnectionsList;
 	private ArrayList<String[]> CConnectionsList;
 
+	private AggregateBehaviour aggregateBehaviour;
+	private double objectiveScore; //used for the hybrid calculation
 
 	//stores the final construction at the end of the simulation
 	//private ConstructionZone[] constructionZones;
@@ -33,7 +35,7 @@ public class NoveltyBehaviour {
 	private ArrayList<ResourceObject> connectionOrder;
 
 	//number of samples in a trajectory
-	// private int numRobots;
+	private int numRobots;
 	// private int numResources;
 
 	private double populationNoveltyScore; //var to store the novelty of behaviour as compared to the rest of the individuals in the generation
@@ -56,7 +58,7 @@ public class NoveltyBehaviour {
 	//public NoveltyBehaviour(ArrayList<RobotObject> currentRobots, ArrayList<ResourceObject> currentResources, ConstructionTask constructionTask) {
 	public NoveltyBehaviour(ArrayList<RobotObject> currentRobots, ConstructionTask constructionTask) {
 
-		// this.numRobots = currentRobots.size();
+		this.numRobots = currentRobots.size();
 		// this.numResources = currentResources.size();
 
 		this.constructionTask = constructionTask;
@@ -134,6 +136,22 @@ public class NoveltyBehaviour {
 		}
 	}
 
+	public void setObjectiveScore(double objectiveScore) {
+		this.objectiveScore = objectiveScore;
+	}
+
+	public double getObjectiveScore() {
+		return objectiveScore;
+	}
+
+	public void setAggregateBehaviour(AggregateBehaviour aggregateBehaviour) {
+		this.aggregateBehaviour = aggregateBehaviour;
+	}
+
+	public AggregateBehaviour getAggregateBehaviour() {
+		return aggregateBehaviour;
+	}
+
 	//method to calculate this behaviour's novelty compared to the other results obtained from the simulation
 	//find the average distance between its neighbours
 	public double calculateSimulationNovelty() {
@@ -205,9 +223,9 @@ public class NoveltyBehaviour {
 		archiveNeighbourhood.add(newNeighbour);
 	}
 
-	public int getNumResources() {
-		return this.numResources;
-	}
+	// public int getNumResources() {
+	// 	return this.numResources;
+	// }
 
 	public ArrayList<Vec2> getRobotPositions() {
 		return this.robotEndPositions;
