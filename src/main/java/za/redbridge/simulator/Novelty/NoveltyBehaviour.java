@@ -33,8 +33,8 @@ public class NoveltyBehaviour {
 	private ArrayList<ResourceObject> connectionOrder;
 
 	//number of samples in a trajectory
-	private int numRobots;
-	private int numResources;
+	// private int numRobots;
+	// private int numResources;
 
 	private double populationNoveltyScore; //var to store the novelty of behaviour as compared to the rest of the individuals in the generation
 	private double archiveNoveltyScore; //var to store the novelty of behaviour compared to behaviours stored in the archive
@@ -53,12 +53,11 @@ public class NoveltyBehaviour {
 	private int envHeight = 20;
 	private int envWidth = 20;
 
-	public NoveltyBehaviour(ArrayList<RobotObject> currentRobots, ArrayList<ResourceObject> currentResources, ConstructionTask constructionTask) {
+	//public NoveltyBehaviour(ArrayList<RobotObject> currentRobots, ArrayList<ResourceObject> currentResources, ConstructionTask constructionTask) {
+	public NoveltyBehaviour(ArrayList<RobotObject> currentRobots, ConstructionTask constructionTask) {
 
-		System.out.println("NoveltyBehaviour: creating a new behaviour");
-
-		this.numRobots = currentRobots.size();
-		this.numResources = currentResources.size();
+		// this.numRobots = currentRobots.size();
+		// this.numResources = currentResources.size();
 
 		this.constructionTask = constructionTask;
 		this.connectionOrder = this.constructionTask.getConstructionOrder();

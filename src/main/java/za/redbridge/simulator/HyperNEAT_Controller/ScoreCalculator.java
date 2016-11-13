@@ -223,6 +223,8 @@ public class ScoreCalculator implements CalculateScore {
             //ArrayList<NoveltyBehaviour> simulationResults = new ArrayList<NoveltyBehaviour>();
 
             ArrayList<HybridBehaviour> simulationResults = new ArrayList<HybridBehaviour>();
+            AggregateBehaviour aggregateBehaviour = new AggregateBehaviour(simulationRuns);
+            aggregateBehaviour.setTotalNumRes(simulation.getTotalNumResources);
 
             ObjectiveFitness objectiveFitness = new ObjectiveFitness(schemaConfigNum, simulation.getResTypeCount());
             double objectiveScore = 0;
@@ -231,18 +233,21 @@ public class ScoreCalculator implements CalculateScore {
                 //recording all the resultant behaviours that the network produced in the different simulation runs
                 HybridBehaviour resultantBehaviour = simulation.runHybrid();
                 simulationResults.add(resultantBehaviour);
+                aggregateBehaviour.addBehaviour(resultantBehaviour.getObjectiveBehaviour());
                 objectiveScore += objectiveFitness.calculate(resultantBehaviour.getObjectiveBehaviour())
             }
 
+            aggregateBehaviour.finishRecording();
             objectiveScore = objectiveScore / simulationRuns;
 
             HybridBehaviour[] resultsArray = new HybridBehaviour[simulationResults.size()];
             simulationResults.toArray(resultsArray);
 
             //find and store the most novel behaviour produced in the various simulation runs
-            NoveltyBehaviour finalNovelBehaviour = archive.calculateSimulationNovelty(resultsArray);
+            HybridBehaviour finalHybridBehaviour = archive.calculateSimulationNovelty(resultsArray);
+            finalHybridBehaviour.setObjectiveScore(objectiveScore);
 
-            fitnessStats.addValue(score);
+            fitnessStats.addValue(objectiveScore);
             numAConnected_Stats.addValue(aggregateBehaviour.getAvgABlocksConnected());
             numBConnected_Stats.addValue(aggregateBehaviour.getAvgBBlocksConnected());
             numCConnected_Stats.addValue(aggregateBehaviour.getAvgCBlocksConnected());

@@ -10,9 +10,8 @@ public class HybridBehaviour extends NoveltyBehaviour {
     private double objectiveFitness;
     private Objectiv
 
-    public HybridBehaviour(ArrayList<RobotObject> currentRobots, ArrayList<ResourceObject> currentResources,
-                                ConstructionTask constructionTask, Behaviour objectiveBehaviour) {
-
+    public HybridBehaviour(ArrayList<RobotObject> currentRobots, ConstructionTask constructionTask, Behaviour objectiveBehaviour) {
+        super(currentRobots, constructionTask);
     }
 
     public Behaviour getObjectiveBehaviour() {
