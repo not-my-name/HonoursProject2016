@@ -83,4 +83,8 @@ public class Behaviour {
 	public int getConnectedC() {
 		return this.connectedC;
 	}
+
+	public int getTotalConnected() {
+		return (connectedA + connectedB + connectedC);
+	}
 }

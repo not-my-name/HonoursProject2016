@@ -258,17 +258,14 @@ public class Simulation extends SimState {
      */
     public Behaviour runObjective() {
         //System.out.println("Simulation runObjective(): running method");
-        final int iterations = config.getSimulationIterations();
+        final int iterations = 15000;
         return objectiveSimulation(iterations);
     }
 
     //just a temp method to test another way of implementing the fitness functions
     private Behaviour objectiveSimulation(int n) {
 
-        //System.out.println("Simulation: running objective simulation");
-
         start();
-        double distanceTravelled = 0;
 
         for(int i = 0; i < n; i++) {
 

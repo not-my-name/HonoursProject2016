@@ -91,12 +91,6 @@ public class StatsRecorder {
 
 	private void initStatsFiles() {
 
-		performance_StatsFile = rootDirectory.resolve("performanceStats.csv");
-		initStatsFile(performance_StatsFile);
-
-		fitness_StatsFile = evaluationDirectory.resolve("fitnessStats.csv");
-		initStatsFile(fitness_StatsFile);
-
 		numAConnected_StatsFile = evaluationDirectory.resolve("numConnectedAStats.csv");
 		initStatsFile(numAConnected_StatsFile);
 
@@ -108,9 +102,6 @@ public class StatsRecorder {
 
 		totalBlocksConnected_StatsFile = evaluationDirectory.resolve("totalBlocksConnected.csv");
 		initStatsFile(totalBlocksConnected_StatsFile);
-
-		numConstructionZones_StatsFile = evaluationDirectory.resolve("numConstructionZones.csv");
-		initStatsFile(numConstructionZones_StatsFile);
 
 		normNumBlocksConnected_StatsFile = evaluationDirectory.resolve("normalisedTotalNumBlocksConnected.csv");
 		initStatsFile(normNumBlocksConnected_StatsFile);
@@ -132,28 +123,16 @@ public class StatsRecorder {
 	    }
 	}
 
-	public void recordIterationStats() {
-	    int generation = trainer.getIteration();
+	public void recordIterationStats(int generation) {
+	    //int generation = trainer.getIteration();
 	    log.info("generation " + generation + " complete");
 
-	    recordStats(calculator.getPerformanceStatsFile(), generation, performance_StatsFile);
-	    recordStats(calculator.getFitnessStatsFile(), generation, fitness_StatsFile);
 	    recordStats(calculator.getConnectedAFile(), generation, numAConnected_StatsFile);
 	    recordStats(calculator.getConnectedBFile(), generation, numBConnected_StatsFile);
 	    recordStats(calculator.getConnectedCFile(), generation, numCConnected_StatsFile);
 	    recordStats(calculator.getAvgBlocksConnectedFile(), generation, totalBlocksConnected_StatsFile);
-	    recordStats(calculator.getNumConstructionZonesFile(), generation, numConstructionZones_StatsFile);
 	    recordStats(calculator.getNormNumConnectedFile(), generation, normNumBlocksConnected_StatsFile);
 
-        //savePopulation((NEATPopulation) trainer.getPopulation(), generation);
-
-        // Check if new best network and save it if so
-        NEATGenome newBestGenome = (NEATGenome) trainer.getBestGenome();
-        // System.out.println("Best genome: " + trainer.getBestGenome());
-        if (newBestGenome != currentBestGenome) {
-            saveGenome(newBestGenome, generation);
-            currentBestGenome = newBestGenome;
-        }
 	}
 
 	private void savePopulation(Population population, int generation) {
