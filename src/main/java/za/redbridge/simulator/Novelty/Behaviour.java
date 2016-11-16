@@ -27,6 +27,8 @@ public class Behaviour {
 	private int connectedB;
 	private int connectedC;
 
+	private int totalConnected;
+
 	private int schemaConfigNum;
 
 	//variables to hold the respective scores for evaluating the constructoin zones of the behaviour
@@ -43,6 +45,7 @@ public class Behaviour {
 		connectedA = 0;
 		connectedB = 0;
 		connectedC = 0;
+		totalConnected = 0;
 
 		countConnected();
 	}
@@ -52,12 +55,26 @@ public class Behaviour {
 	connected across all the construction zones */
 	private void countConnected() {
 
-		for(ConstructionZone cZone : constructionZones) {
-
-			connectedA += cZone.getACount();
-			connectedB += cZone.getBCount();
-			connectedC += cZone.getCCount();
+		for (ResourceObject resObj : constructionTask.getUniqueResources()) {
+			if(resObj.getType().equals("A")) {
+				connectedA += 1;
+			}
+			else if(resObj.getType().equals("B")) {
+				connectedB += 1;
+			}
+			else if(resObj.getType().equals("C")) {
+				connectedC += 1;
+			}
 		}
+
+		totalConnected = connectedA + connectedB + connectedC;
+
+		//for(ConstructionZone cZone : constructionZones) {
+
+			//connectedA += cZone.getACount();
+			//connectedB += cZone.getBCount();
+			//connectedC += cZone.getCCount();
+		//}
 	}
 
 	public ArrayList<ConstructionZone> getConstructionZones() {
@@ -85,6 +102,6 @@ public class Behaviour {
 	}
 
 	public int getTotalConnected() {
-		return (connectedA + connectedB + connectedC);
+		return totalConnected;
 	}
 }

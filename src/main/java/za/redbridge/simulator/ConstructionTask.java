@@ -57,6 +57,8 @@ public class ConstructionTask implements Steppable{
 
     private ArrayList<ResourceObject> globalConstructionOrder;
 
+    private Set<ResourceObject> uniqueResources = new HashSet<ResourceObject>();
+
     private double idealScore; //variable to store the total score possible by connecting all the resources in the simulation
     private double maxDistance; //max possible distance between two entities in the environment
 
@@ -148,6 +150,8 @@ public class ConstructionTask implements Steppable{
                                         constructionZones.get(neighbour.getConstructionZoneID()-1).addResource(resource); //adding the resource to the existing construction zone
                                         globalConstructionOrder.add(resource);
 
+					uniqueResources.add(resource);
+
                                         alignResource(resource);
                                     }
 
@@ -165,6 +169,9 @@ public class ConstructionTask implements Steppable{
                                           constructionZones.add(newZone);
                                           globalConstructionOrder.add(resource);
                                           globalConstructionOrder.add(neighbour);
+
+					  uniqueResources.add(resource);
+					  uniqueResources.add(neighbour);
 
                                           alignResource(resource);
                                           alignResource(neighbour); //WORKING
@@ -331,12 +338,20 @@ public class ConstructionTask implements Steppable{
                 }
             }
 
+		//System.out.println("ConstructionTask: updating the construcion zones");
+		//System.out.println("ConstructionTask: total resources before = " + getTotalResourcesConnected());
+
             if(newConstructionZones.size() > 0) { //writing the new constructionZones to the old list
                 constructionZones.clear();
                 for(ConstructionZone cZone : newConstructionZones) {
                     constructionZones.add(cZone);
+		    for(ResourceObject resTemp : cZone.getConnectedResources()) {
+			uniqueResources.add(resTemp);
+		    }
                 }
             }
+
+		//System.out.println("ConstructionTask: total resources after = " + getTotalResourcesConnected());
         }
     }
 
@@ -443,6 +458,14 @@ public class ConstructionTask implements Steppable{
         }
 
         return doesContain;
+    }
+
+    public int getFinalResCount() {
+	return uniqueResources.size();
+    }
+
+    public Set<ResourceObject> getUniqueResources() {
+	return uniqueResources;
     }
 
     // //method to compare the generated traversal with previous traversals

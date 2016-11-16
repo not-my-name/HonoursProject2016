@@ -65,7 +65,7 @@ public class Main {
 		new JCommander(options, args);
 
 		log.info(options.toString());
-		int ind = 2;
+		int ind = 1;
 
 		double connectionDensity = 0.5;
 		//fetching the correct simConfig for each experiment
@@ -90,7 +90,7 @@ public class Main {
 		ScoreCalculator scoreCalculator = new ScoreCalculator(simConfig, options.simulationRuns,
 						morphology, options.populationSize, schemaConfigIndex, envHeight, envWidth); //got this from the Main class in last years Controller Master folder
 
-		NEATNetwork network = (NEATNetwork) readObjectFromFile("/home/p/pttand010/Desktop/HonoursExperimentResults/EvaluationResults/FinalEvalResults/Schema_2/BestObjectiveNetwork/Run_7/epoch-87/network.ser");
+		NEATNetwork network = (NEATNetwork) readObjectFromFile("/home/p/pttand010/Desktop/HonoursExperimentResults/EvaluationResults/FinalEvalResults/Schema_1/BestNoveltyNetwork/Run_2/epoch-87/network.ser");
 
 		final StatsRecorder statsRecorder = new StatsRecorder(scoreCalculator); //this is basically where the simulation runs
 

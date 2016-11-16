@@ -135,6 +135,20 @@ public class Simulation extends SimState {
     public void finish() {
 
         super.finish();
+
+	//ArrayList<RobotObject> tempBots = robotFactory.getPlacedRobots();
+        //ArrayList<ResourceObject> tempResources = resourceFactory.getPlacedResources();
+
+        construction.updateConstructionZones();
+
+        //THIS IS FOR THE OBJECTIVE FITNESS
+        //Behaviour behaviour = new Behaviour(construction, schemaConfigNum);
+
+	//System.out.println("Simulation: The stats after the demo");
+	//System.out.println("Simulation: num A = " + behaviour.getConnectedA());
+	//System.out.println("Simulation: num B = " + behaviour.getConnectedB());
+	//System.out.println("Simulation: num C = " + behaviour.getConnectedC());
+
         //construction.updateConstructionZones();
     }
 
