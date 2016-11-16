@@ -160,7 +160,7 @@ public class ScoreCalculator implements CalculateScore {
     in the simulator in order to evaluate its average performance*/
     public void runEvaluation(MLMethod method) {
 
-        NEATNetwork neat_network = null;
+        NEATNetwork neat_network = (NEATNetwork)method;
         RobotFactory robotFactory;
 
         //System.out.println("ScoreCalculator: PHENOTYPE for NEATNetwork: " + getPhenotypeForNetwork(neat_network));
