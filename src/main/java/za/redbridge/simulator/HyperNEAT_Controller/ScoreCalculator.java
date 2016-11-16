@@ -160,8 +160,10 @@ public class ScoreCalculator implements CalculateScore {
     in the simulator in order to evaluate its average performance*/
     public void runEvaluation(MLMethod method) {
 
-        NEATNetwork neat_network = (NEATNetwork)method;
+        NEATNetwork neat_network = null;
         RobotFactory robotFactory;
+
+	final StatsRecorder statsRecorder = new StatsRecorder(this); //this is basically where the simulation runs
 
         //System.out.println("ScoreCalculator: PHENOTYPE for NEATNetwork: " + getPhenotypeForNetwork(neat_network));
         neat_network = (NEATNetwork) method;
@@ -179,16 +181,26 @@ public class ScoreCalculator implements CalculateScore {
         Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory, false);
         simulation.setSchemaConfigNumber(schemaConfigNum);
 
-        Behaviour resultantBehaviour = simulation.runObjective();
-        int [] resTypeCount = simulation.getResTypeCount();
-        int totalResCount = resTypeCount[0] + resTypeCount[1] + resTypeCount[2];
+	for(int k = 0; k < 20; k++) {
 
-        numAConnected_Stats.addValue(resultantBehaviour.getConnectedA());
-        numBConnected_Stats.addValue(resultantBehaviour.getConnectedB());
-        numCConnected_Stats.addValue(resultantBehaviour.getConnectedC());
-        avgBlocksConnected_Stats.addValue(resultantBehaviour.getTotalConnected());
-        double resConnectedRatio = resultantBehaviour.getTotalConnected() / totalResCount;
-        normNumBlocksConnected_Stats.addValue(resConnectedRatio);
+		Behaviour resultantBehaviour = simulation.runObjective();
+        	int [] resTypeCount = simulation.getResTypeCount();
+        	int totalResCount = resTypeCount[0] + resTypeCount[1] + resTypeCount[2];
+		
+		//System.out.println("ScoreCalculator: total connected A = " + resultantBehaviour.getConnectedA());
+		//System.out.println("ScoreCalculator: total connected B = " + resultantBehaviour.getConnectedB());
+		//System.out.println("ScoreCalculator: total connected C = " + resultantBehaviour.getConnectedC());
+		//System.out.println("ScoreCalculator: total connected = " + totalResCount);
+	
+		numAConnected_Stats.addValue(resultantBehaviour.getConnectedA());
+		numBConnected_Stats.addValue(resultantBehaviour.getConnectedB());
+		numCConnected_Stats.addValue(resultantBehaviour.getConnectedC());
+		avgBlocksConnected_Stats.addValue(resultantBehaviour.getTotalConnected());
+		double resConnectedRatio = resultantBehaviour.getTotalConnected() / totalResCount;
+		normNumBlocksConnected_Stats.addValue(resConnectedRatio);
+		
+		statsRecorder.recordIterationStats(k);
+	}
     }
 
     public void demo(MLMethod method) {

@@ -97,6 +97,9 @@ public class RobotObject extends PhysicalObject {
         directionPortrayal.setPaint(invertColor(color));
 
         heuristicPhenotype = new HeuristicPhenotype(phenotype, this);
+
+	//System.out.println("RobotObject: constructor creating a new robot");
+
         initSensors();
 
         float wheelDistance = (float) (radius * WHEEL_DISTANCE);
@@ -229,13 +232,6 @@ public class RobotObject extends PhysicalObject {
                 samplePolygonAreas.add(calculatePolygonArea(samplePoints));
                 samplePoints.clear();
             }
-        }
-
-        //storing the position of the robot every 5 timesteps to be used for novelty calculation
-        if( sim.schedule.getSteps() % 5 == 0 ) {
-            Vec2 currentPosition = this.getBody().getPosition();
-            Vec2 resultantPosition = currentPosition.sub(new Vec2(initialX, initialY));
-            robotTrajectory.add(resultantPosition);
         }
 
         // System.out.println("Pos: "+this.getBody().getPosition().x+" "+this.getBody().getPosition().y);

@@ -65,14 +65,14 @@ public class Main {
 		new JCommander(options, args);
 
 		log.info(options.toString());
-		int ind = 1;
+		int ind = 2;
 
 		double connectionDensity = 0.5;
 		//fetching the correct simConfig for each experiment
 		String simConfigFP = "configs/simConfig" + Integer.toString(ind) + ".yml";
 		//String experimentConfigFP = "configs/experimentConfig.yml";
 		String morphologyConfigFP = "configs/morphologyConfig.yml";
-		String folderDir = "/EvaluationResults/Schema_" + Integer.toString(ind) + "/FirstRun";
+		String folderDir = "/Results";
 		Utils.setDirectoryName(folderDir);
 
 		MorphologyConfig morphologyConfig = new MorphologyConfig(morphologyConfigFP);
@@ -90,14 +90,18 @@ public class Main {
 		ScoreCalculator scoreCalculator = new ScoreCalculator(simConfig, options.simulationRuns,
 						morphology, options.populationSize, schemaConfigIndex, envHeight, envWidth); //got this from the Main class in last years Controller Master folder
 
-		NEATNetwork network = (NEATNetwork) readObjectFromFile("some directory");
+		NEATNetwork network = (NEATNetwork) readObjectFromFile("/home/p/pttand010/Desktop/HonoursExperimentResults/EvaluationResults/FinalEvalResults/Schema_2/BestObjectiveNetwork/Run_7/epoch-87/network.ser");
 
 		final StatsRecorder statsRecorder = new StatsRecorder(scoreCalculator); //this is basically where the simulation runs
 
-		for(int i = 0; i < 20; i++) {
-			scoreCalculator.runEvaluation(network);
-			statsRecorder.recordIterationStats(i);
-		}
+		//scoreCalculator.demo(network);
+
+		scoreCalculator.runEvaluation(network);
+
+		//for(int i = 0; i < 20; i++) {
+			//scoreCalculator.runEvaluation(network);
+			//statsRecorder.recordIterationStats(i);
+		//}
 		Encog.getInstance().shutdown();
 	}
 
