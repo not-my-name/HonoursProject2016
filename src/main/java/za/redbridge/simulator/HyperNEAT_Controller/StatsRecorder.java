@@ -60,6 +60,14 @@ public class StatsRecorder {
 	    initFiles();
 	}
 
+	public StatsRecorder(ScoreCalculator scoreCalculator) {
+
+		this.calculator = scoreCalculator;
+		this.trainer = null;
+
+		initFiles();
+	}
+
 	private void initFiles() {
 	    initDirectories();
 	    initStatsFiles();

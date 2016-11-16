@@ -87,41 +87,41 @@ public class ScoreCalculator implements CalculateScore {
         this.archive = new Archive();
     }
 
-    // @Override
-    // public double calculateScore(MLMethod method) {
-    //
-    //     long start = System.nanoTime();
-    //
-    //     NoveltyNetwork novNet = (NoveltyNetwork)method;
-    //     NoveltyBehaviour beh = novNet.getNoveltyBehaviour();
-    //
-    //     if(beh == null) { //check if this behaviour has already been "processed"
-    //         return 0;
-    //     }
-    //
-    //     double noveltyScore = beh.getPopulationNoveltyScore();
-    //     double objectiveScore = beh.getObjectiveScore();
-    //     double hybridScore = (noveltyScore + objectiveScore) / 2;
-    //     if(noveltyScore == 0) {
-    //         System.out.println("ScoreCalculator: soemthing weird heppened");
-    //     }
-    //     fitnessStats.addValue(hybridScore);
-    //
-    //     AggregateBehaviour aggregateBehaviour = beh.getAggregateBehaviour();
-    //
-    //     if(aggregateBehaviour == null) {
-    //         System.out.println("ScoreCalculator: the error is still there");
-    //     }
-    //     numAConnected_Stats.addValue(aggregateBehaviour.getAvgABlocksConnected());
-    //     numBConnected_Stats.addValue(aggregateBehaviour.getAvgBBlocksConnected());
-    //     numCConnected_Stats.addValue(aggregateBehaviour.getAvgCBlocksConnected());
-    //     avgBlocksConnected_Stats.addValue(aggregateBehaviour.getAvgNumBlocksConnected());
-    //     normNumBlocksConnected_Stats.addValue(aggregateBehaviour.getNormalisedNumConnected());
-    //     numConstructionZones_Stats.addValue(aggregateBehaviour.getAvgNumConstructionZones());
-    //
-    //     log.debug("HybridScore calculation completed: " + hybridScore);
-    //     return hybridScore;
-    // }
+    @Override
+    public double calculateScore(MLMethod method) {
+
+        // long start = System.nanoTime();
+        //
+        // NoveltyNetwork novNet = (NoveltyNetwork)method;
+        // NoveltyBehaviour beh = novNet.getNoveltyBehaviour();
+        //
+        // if(beh == null) { //check if this behaviour has already been "processed"
+        //     return 0;
+        // }
+        //
+        // double noveltyScore = beh.getPopulationNoveltyScore();
+        // double objectiveScore = beh.getObjectiveScore();
+        // double hybridScore = (noveltyScore + objectiveScore) / 2;
+        // if(noveltyScore == 0) {
+        //     System.out.println("ScoreCalculator: soemthing weird heppened");
+        // }
+        // fitnessStats.addValue(hybridScore);
+        //
+        // AggregateBehaviour aggregateBehaviour = beh.getAggregateBehaviour();
+        //
+        // if(aggregateBehaviour == null) {
+        //     System.out.println("ScoreCalculator: the error is still there");
+        // }
+        // numAConnected_Stats.addValue(aggregateBehaviour.getAvgABlocksConnected());
+        // numBConnected_Stats.addValue(aggregateBehaviour.getAvgBBlocksConnected());
+        // numCConnected_Stats.addValue(aggregateBehaviour.getAvgCBlocksConnected());
+        // avgBlocksConnected_Stats.addValue(aggregateBehaviour.getAvgNumBlocksConnected());
+        // normNumBlocksConnected_Stats.addValue(aggregateBehaviour.getNormalisedNumConnected());
+        // numConstructionZones_Stats.addValue(aggregateBehaviour.getAvgNumConstructionZones());
+        //
+        // log.debug("HybridScore calculation completed: " + hybridScore);
+        return 0;
+    }
 
     public DescriptiveStatistics getPerformanceStatsFile() {
         return performanceStats;
@@ -236,77 +236,78 @@ public class ScoreCalculator implements CalculateScore {
 
     public void printArchive() {
 
-        ArrayList<NoveltyBehaviour> archiveList = archive.getArchiveList();
-
-        System.out.println("ScoreCalculator: the archive size is = " + archiveList.size());
+        // ArrayList<NoveltyBehaviour> archiveList = archive.getArchiveList();
+        //
+        // System.out.println("ScoreCalculator: the archive size is = " + archiveList.size());
     }
 
     public NoveltyBehaviour getNoveltyBehaviour(MLMethod method) {
 
-        try {
-
-            NEATNetwork neat_network = null;
-            RobotFactory robotFactory;
-
-            //System.out.println("ScoreCalculator: PHENOTYPE for NEATNetwork: " + getPhenotypeForNetwork(neat_network));
-            neat_network = (NEATNetwork) method;
-            robotFactory = new HomogeneousRobotFactory(getPhenotypeForNetwork(neat_network),
-                        simConfig.getRobotMass(), simConfig.getRobotRadius(), simConfig.getRobotColour(),
-                        simConfig.getObjectsRobots());
-
-            // Create the simulation and run it
-            //System.out.println("ScoreCalculator: creating the simulation and starting the GUI");
-            // create new configurable resource factory
-            String [] resQuantity = {"0","0","0"};
-            ResourceFactory resourceFactory = new ConfigurableResourceFactory();
-            resourceFactory.configure(simConfig.getResources(), resQuantity);
-
-            Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory, PerformingNoveltyCalcs);
-            simulation.setSchemaConfigNumber(schemaConfigNum);
-
-            //creating an arraylist to store the novelty behaviours that are produced at the end of each simulation run
-            //this is used to calculate the most novel behaviour of the produced runs
-            //ArrayList<NoveltyBehaviour> simulationResults = new ArrayList<NoveltyBehaviour>();
-
-            ArrayList<NoveltyBehaviour> simulationResults = new ArrayList<NoveltyBehaviour>();
-            AggregateBehaviour aggregateBehaviour = new AggregateBehaviour(simulationRuns);
-
-            double objectiveScore = 0;
-
-            for(int k = 0; k < simulationRuns; k++) {
-
-                NoveltyBehaviour resultantBehaviour = simulation.runNovel();
-                simulationResults.add(resultantBehaviour);
-
-                int [] resTypeCount = simulation.getResTypeCount();
-                int tempTotal = resTypeCount[0] + resTypeCount[1] + resTypeCount[2];
-                aggregateBehaviour.setTotalNumRes(tempTotal);
-                ObjectiveFitness objectiveFitness = new ObjectiveFitness(schemaConfigNum, simulation.getResTypeCount());
-                Behaviour objectiveBeh = new Behaviour(resultantBehaviour.getConstructionTask(), schemaConfigNum);
-                aggregateBehaviour.addBehaviour(objectiveBeh);
-
-                objectiveScore += objectiveFitness.calculate(objectiveBeh);
-            }
-
-            aggregateBehaviour.finishRecording();
-            objectiveScore = objectiveScore / simulationRuns;
-
-            NoveltyBehaviour[] resultsArray = new NoveltyBehaviour[simulationResults.size()];
-            simulationResults.toArray(resultsArray);
-
-            //find and store the most novel behaviour produced in the various simulation runs
-            NoveltyBehaviour finalNovelBehaviour = archive.calculateSimulationNovelty(resultsArray);
-            finalNovelBehaviour.setObjectiveScore(objectiveScore);
-            finalNovelBehaviour.setAggregateBehaviour(aggregateBehaviour);
-
-            return finalNovelBehaviour;
-
-        }
-        catch(Exception e) {
-            System.out.println("ScoreCalculator getNoveltyBehaviour method: SOMETHING WENT HORRIBLY WRONG");
-            e.printStackTrace();
-            return null;
-        }
+        // try {
+        //
+        //     NEATNetwork neat_network = null;
+        //     RobotFactory robotFactory;
+        //
+        //     //System.out.println("ScoreCalculator: PHENOTYPE for NEATNetwork: " + getPhenotypeForNetwork(neat_network));
+        //     neat_network = (NEATNetwork) method;
+        //     robotFactory = new HomogeneousRobotFactory(getPhenotypeForNetwork(neat_network),
+        //                 simConfig.getRobotMass(), simConfig.getRobotRadius(), simConfig.getRobotColour(),
+        //                 simConfig.getObjectsRobots());
+        //
+        //     // Create the simulation and run it
+        //     //System.out.println("ScoreCalculator: creating the simulation and starting the GUI");
+        //     // create new configurable resource factory
+        //     String [] resQuantity = {"0","0","0"};
+        //     ResourceFactory resourceFactory = new ConfigurableResourceFactory();
+        //     resourceFactory.configure(simConfig.getResources(), resQuantity);
+        //
+        //     Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory, PerformingNoveltyCalcs);
+        //     simulation.setSchemaConfigNumber(schemaConfigNum);
+        //
+        //     //creating an arraylist to store the novelty behaviours that are produced at the end of each simulation run
+        //     //this is used to calculate the most novel behaviour of the produced runs
+        //     //ArrayList<NoveltyBehaviour> simulationResults = new ArrayList<NoveltyBehaviour>();
+        //
+        //     ArrayList<NoveltyBehaviour> simulationResults = new ArrayList<NoveltyBehaviour>();
+        //     AggregateBehaviour aggregateBehaviour = new AggregateBehaviour(simulationRuns);
+        //
+        //     double objectiveScore = 0;
+        //
+        //     for(int k = 0; k < simulationRuns; k++) {
+        //
+        //         NoveltyBehaviour resultantBehaviour = simulation.runNovel();
+        //         simulationResults.add(resultantBehaviour);
+        //
+        //         int [] resTypeCount = simulation.getResTypeCount();
+        //         int tempTotal = resTypeCount[0] + resTypeCount[1] + resTypeCount[2];
+        //         aggregateBehaviour.setTotalNumRes(tempTotal);
+        //         ObjectiveFitness objectiveFitness = new ObjectiveFitness(schemaConfigNum, simulation.getResTypeCount());
+        //         Behaviour objectiveBeh = new Behaviour(resultantBehaviour.getConstructionTask(), schemaConfigNum);
+        //         aggregateBehaviour.addBehaviour(objectiveBeh);
+        //
+        //         objectiveScore += objectiveFitness.calculate(objectiveBeh);
+        //     }
+        //
+        //     aggregateBehaviour.finishRecording();
+        //     objectiveScore = objectiveScore / simulationRuns;
+        //
+        //     NoveltyBehaviour[] resultsArray = new NoveltyBehaviour[simulationResults.size()];
+        //     simulationResults.toArray(resultsArray);
+        //
+        //     //find and store the most novel behaviour produced in the various simulation runs
+        //     NoveltyBehaviour finalNovelBehaviour = archive.calculateSimulationNovelty(resultsArray);
+        //     finalNovelBehaviour.setObjectiveScore(objectiveScore);
+        //     finalNovelBehaviour.setAggregateBehaviour(aggregateBehaviour);
+        //
+        //     return finalNovelBehaviour;
+        //
+        // }
+        // catch(Exception e) {
+        //     System.out.println("ScoreCalculator getNoveltyBehaviour method: SOMETHING WENT HORRIBLY WRONG");
+        //     e.printStackTrace();
+        //     return null;
+        // }
+        return null;
     }
 
     //HyperNEAT uses the NEATnetwork as well

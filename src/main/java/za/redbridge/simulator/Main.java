@@ -92,10 +92,10 @@ public class Main {
 
 		NEATNetwork network = (NEATNetwork) readObjectFromFile("some directory");
 
-		final StatsRecorder statsRecorder = new StatsRecorder(trainer, scoreCalculator); //this is basically where the simulation runs
+		final StatsRecorder statsRecorder = new StatsRecorder(scoreCalculator); //this is basically where the simulation runs
 
 		for(int i = 0; i < 20; i++) {
-			scoreCalculator.runEvaluation(network)
+			scoreCalculator.runEvaluation(network);
 			statsRecorder.recordIterationStats(i);
 		}
 		Encog.getInstance().shutdown();
