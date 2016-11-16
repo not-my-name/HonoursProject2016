@@ -178,11 +178,10 @@ public class ScoreCalculator implements CalculateScore {
 
         Simulation simulation = new Simulation(simConfig, robotFactory, resourceFactory, false);
         simulation.setSchemaConfigNumber(schemaConfigNum);
-        AggregateBehaviour aggregateBehaviour = new AggregateBehaviour(simulationRuns);
 
+        Behaviour resultantBehaviour = simulation.runObjective();
         int [] resTypeCount = simulation.getResTypeCount();
         int totalResCount = resTypeCount[0] + resTypeCount[1] + resTypeCount[2];
-        Behaviour resultantBehaviour = simulation.runObjective();
 
         numAConnected_Stats.addValue(resultantBehaviour.getConnectedA());
         numBConnected_Stats.addValue(resultantBehaviour.getConnectedB());
