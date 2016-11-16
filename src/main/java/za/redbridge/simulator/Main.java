@@ -65,7 +65,7 @@ public class Main {
 		new JCommander(options, args);
 
 		log.info(options.toString());
-		int ind = k+1;
+		int ind = 1;
 
 		double connectionDensity = 0.5;
 		//fetching the correct simConfig for each experiment
@@ -96,9 +96,12 @@ public class Main {
 			return;
 		}
 
+		NEATNetwork network = (NEATNetwork) readObjectFromFile("some directory");
+
 		final StatsRecorder statsRecorder = new StatsRecorder(trainer, scoreCalculator); //this is basically where the simulation runs
 
 		for(int i = 0; i < 20; i++) {
+			scoreCalculator.runEvaluation()
 			statsRecorder.recordIterationStats();
 		}
 		Encog.getInstance().shutdown();
