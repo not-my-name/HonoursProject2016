@@ -125,7 +125,7 @@ public class StatsRecorder {
 
 	public void recordIterationStats(int generation) {
 	    //int generation = trainer.getIteration();
-	    log.info("generation " + generation + " complete");
+	    log.info("run " + generation + " complete");
 
 	    recordStats(calculator.getConnectedAFile(), generation, numAConnected_StatsFile);
 	    recordStats(calculator.getConnectedBFile(), generation, numBConnected_StatsFile);

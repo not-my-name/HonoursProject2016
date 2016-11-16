@@ -90,19 +90,13 @@ public class Main {
 		ScoreCalculator scoreCalculator = new ScoreCalculator(simConfig, options.simulationRuns,
 						morphology, options.populationSize, schemaConfigIndex, envHeight, envWidth); //got this from the Main class in last years Controller Master folder
 
-		if (!isBlank(options.genomePath)) {
-			NEATNetwork network = (NEATNetwork) readObjectFromFile(options.genomePath);
-			scoreCalculator.demo(network);
-			return;
-		}
-
 		NEATNetwork network = (NEATNetwork) readObjectFromFile("some directory");
 
 		final StatsRecorder statsRecorder = new StatsRecorder(trainer, scoreCalculator); //this is basically where the simulation runs
 
 		for(int i = 0; i < 20; i++) {
-			scoreCalculator.runEvaluation()
-			statsRecorder.recordIterationStats();
+			scoreCalculator.runEvaluation(network)
+			statsRecorder.recordIterationStats(i);
 		}
 		Encog.getInstance().shutdown();
 	}
