@@ -69,16 +69,6 @@ public class ExperimentConfig extends Config {
             }
         }
 
-        /*
-        Map phenotype = (Map) config.get("phenotype");
-        if (checkFieldPresent(phenotype, "phenotype")) {
-
-            String fact = (String) phenotype.get("factory");
-            if (checkFieldPresent(fact, "phenotype:factory")) {
-                factory = fact;
-            }
-        }*/
-
         Map ea = (Map) config.get("evolutionaryAlgorithm");
         if (checkFieldPresent(ea, "evolutionaryAlgorithm")) {
 

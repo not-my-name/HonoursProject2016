@@ -87,7 +87,6 @@ public class SimConfig extends Config {
             e.printStackTrace();
         }
 
-        // This is fairly horrible
         long seed = DEFAULT_SIMULATION_SEED;
         int iterations = DEFAULT_SIMULATION_ITERATIONS;
         int width = DEFAULT_ENVIRONMENT_WIDTH;

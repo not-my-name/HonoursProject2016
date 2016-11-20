@@ -63,16 +63,6 @@ public class SchemaConfig extends Config{
         return configs[i].getIncorrectAdjacentSides(type, adjacent);
     }
 
-    // public int getTotalResources(int i) {
-    //     int [] rq = configs[i].getResQuantity();
-    //     return rq[0] + rq[1] + rq[2];
-    // }
-
-    // public int getTotalRobotsRequired(int i) {
-    //     int [] rq = configs[i].getResQuantity();
-    //     return rq[0] + 2*rq[1] + 3*rq[2];
-    // }
-
     private static class Config{
         private HashMap<String,ResourceSchema> schema;
         private int [] resQuantityArray;
@@ -143,14 +133,6 @@ public class SchemaConfig extends Config{
             right = copyArray(r);
             up = copyArray(u);
             down = copyArray(d);
-
-            // System.out.println("");
-            // System.out.println("SchemaConfig: printing the resource schema");
-            // System.out.println("left = " + Arrays.toString(left));
-            // System.out.println("right = " + Arrays.toString(right));
-            // System.out.println("up = " + Arrays.toString(up));
-            // System.out.println("down = " + Arrays.toString(down));
-            // System.out.println("");
         }
 
         private String [] copyArray(String [] temp){
