@@ -72,7 +72,8 @@ public class Main {
 			String simConfigFP = "configs/simConfig" + Integer.toString(ind) + ".yml";
 			//String experimentConfigFP = "configs/experimentConfig.yml";
 			String morphologyConfigFP = "configs/morphologyConfig.yml";
-			String folderDir = "/ObjectiveResults/Schema_" + Integer.toString(ind) + "/FirstRun/";
+			//String folderDir = "/ObjectiveResults/Schema_" + Integer.toString(ind) + "/FirstRun/";
+			String folderDir = "/ObjectiveResults/FirstRun/Schema_" + Integer.toString(ind) + "/";
 			Utils.setDirectoryName(folderDir);
 
 			MorphologyConfig morphologyConfig = new MorphologyConfig(morphologyConfigFP);
