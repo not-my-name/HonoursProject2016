@@ -81,7 +81,7 @@ public class Main {
 				//String experimentConfigFP = "configs/experimentConfig.yml";
 				String morphologyConfigFP = "configs/morphologyConfig.yml";
 				//String folderDir = "/HybridResults/Schema_" + Integer.toString(ind) + "/FirstRun";
-				String folderDir = "/HybridResults/Morphology_" + Integer.toString(curMorph) + "Schema_" + Integer.toString(ind) + "/";
+				String folderDir = "/HybridResults/Morphology_" + Integer.toString(curMorph) + "/Schema_" + Integer.toString(ind) + "/";
 				Utils.setDirectoryName(folderDir);
 
 				MorphologyConfig morphologyConfig = new MorphologyConfig(morphologyConfigFP);
