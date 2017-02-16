@@ -10,4 +10,5 @@ while os.path.exists(procPath):
 	time.sleep(1) #checks every 5 minutes if the process is still running 
 
 print("The thing has finished")
-os.system("pwd")
+os.system("cd /home/ruben/HonoursContinuedTests/HyperNEAT/Novelty")
+os.system("./gradlew run")
