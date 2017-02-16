@@ -7,8 +7,9 @@ pid = input("Enter the process ID: ")
 procPath = "/proc/" + str(pid)
 
 while os.path.exists(procPath):
-	time.sleep(1) #checks every 5 minutes if the process is still running 
+	time.sleep(3600) #checks every hour if the process is still running 
 
-print("The thing has finished")
-os.system("cd /home/ruben/HonoursContinuedTests/HyperNEAT/Novelty")
+os.chdir("/home/p/pttand010/Desktop/Experiments_Rerun/Novelty/Run_1/HonoursProject2016")
+os.system("rm -rf ~/.gradle/caches")
+os.system("pwd")
 os.system("./gradlew run")
