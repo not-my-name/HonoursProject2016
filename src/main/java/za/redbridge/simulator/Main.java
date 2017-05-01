@@ -67,6 +67,9 @@ public class Main {
 
 			int curMorph = sensorMorphologies[j];
 
+			System.out.println("Main: starting a new sensor morphology");
+			System.out.println("Main: the current sensor morph is: " + curMorph);
+
 			for(int k = 0; k < 3; k++) { //iterating over the number of construction schemas
 
 				Args options = new Args();
@@ -100,11 +103,11 @@ public class Main {
 				ScoreCalculator scoreCalculator = new ScoreCalculator(simConfig, options.simulationRuns,
 								morphology, options.populationSize, schemaConfigIndex, envHeight, envWidth); //got this from the Main class in last years Controller Master folder
 
-				if (!isBlank(options.genomePath)) {
-					NEATNetwork network = (NEATNetwork) readObjectFromFile(options.genomePath);
-					scoreCalculator.demo(network);
-					return;
-				}
+				// if (!isBlank(options.genomePath)) {
+				// 	NEATNetwork network = (NEATNetwork) readObjectFromFile(options.genomePath);
+				// 	scoreCalculator.demo(network);
+				// 	return;
+				// }
 
 				//defines the structure of the produced HyperNEAT network
 				Substrate substrate = SubstrateFactory.createSubstrate(numInputs,2);
@@ -128,6 +131,8 @@ public class Main {
 				for(int i = 0; i < options.numGenerations; i++) { //for(int i = trainer.getIteration(); i < numIterations; i++)
 					trainer.iteration(); //training the network for a single iteration
 					statsRecorder.recordIterationStats();
+
+					System.out.println("Main: a generation is complete");
 
 					//once an individual has found an optimal solution, break out of the training loop
 					if(trainer.getBestGenome().getScore() >= convergenceScore) {

@@ -36,6 +36,8 @@ public class NoveltyCodec extends HyperNEATCODEC {
 	@Override
 	public MLMethod decode(final Genome genome) {
 
+		System.out.println("NoveltyCodec (decode line 39): starting the decode method");
+
 		NoveltyNetwork novNetwork;
 
 		/*
@@ -47,6 +49,8 @@ public class NoveltyCodec extends HyperNEATCODEC {
 		*/
 
 		if( genomePBMap.containsKey(genome) ) { //check if the genome has already been decoded before during the current generation
+
+			System.out.println("NoveltyCodec (line 53): returning the already existing novelty behaviour in order to retrieve the hybrid score");
 
 			novNetwork = genomeNNMap.get(genome); //fetches the existing network for the current genome
 			novNetwork.setNoveltyBehaviour(genomePBMap.get(genome)); //places the existing behaviour for the genome (associates it with respective network)
@@ -67,11 +71,15 @@ public class NoveltyCodec extends HyperNEATCODEC {
 				connectionArray.add(connections[i]);
 			}
 
+			System.out.println("NoveltyCoded (line 72): made it past the only for loop");
+
 			//sets up the network class
 			novNetwork = new NoveltyNetwork(decoded.getInputCount(), decoded.getOutputCount(), connectionArray, decoded.getActivationFunctions());
 			genomePBMap.put(genome, scoreCalculator.getNoveltyBehaviour(novNetwork)); //run the network in the simulation to establish the resultant behaviour
 			genomeNNMap.put(genome, novNetwork);
 		}
+
+		System.out.println("NoveltyCodec (line 80): finished the decode method");
 
 		return novNetwork;
 	}

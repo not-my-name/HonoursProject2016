@@ -57,7 +57,7 @@ public class NoveltyBasicEA extends BasicEA {
 
 	/**
 	 * Calculate the score adjustment, based on adjusters.
-	 * 
+	 *
 	 * @param genome
 	 *            The genome to adjust.
 	 * @param adjusters
@@ -202,12 +202,12 @@ public class NoveltyBasicEA extends BasicEA {
 	 * Holds rewrite and constraint rules.
 	 */
 	private RuleHolder rules;
-	
+
 	private int maxOperationErrors = 500;
 
 	/**
 	 * Construct an EA.
-	 * 
+	 *
 	 * @param thePopulation
 	 *            The population.
 	 * @param theScoreFunction
@@ -239,7 +239,7 @@ public class NoveltyBasicEA extends BasicEA {
 						genome.getBirthGeneration()));
 			}
 		}
-		
+
 		// Set a best genome, just so it is not null.
 		// We won't know the true best genome until the first iteration.
 		if( this.population.getSpecies().size()>0 && this.population.getSpecies().get(0).getMembers().size()>0 ) {
@@ -249,7 +249,7 @@ public class NoveltyBasicEA extends BasicEA {
 
 	/**
 	 * Add a child to the next iteration.
-	 * 
+	 *
 	 * @param genome
 	 *            The child.
 	 * @return True, if the child was added successfully.
@@ -405,8 +405,8 @@ public class NoveltyBasicEA extends BasicEA {
 			if( !Double.isNaN(err) ) {
 				return err;
 			}
-		} 
-		
+		}
+
 		// otherwise, assume the worst!
 		if (getScoreFunction().shouldMinimize()) {
 			return Double.POSITIVE_INFINITY;
@@ -547,7 +547,10 @@ public class NoveltyBasicEA extends BasicEA {
 	@Override
 	public void iteration() {
 
+		System.out.println("NoveltyBasicEA (iteration() line 550): starting the iteration in the super class");
+
 		if (this.actualThreadCount == -1) {
+			System.out.println("NoveltyBasicEA (line 553): have to redo the preiteration because threads = -1");
 			preIteration();
 		}
 
@@ -646,11 +649,11 @@ public class NoveltyBasicEA extends BasicEA {
 		for (Genome gen : currentPopulation) {
 
 			calculateScore(gen);
-			addChild(gen);			
+			addChild(gen);
 		}
 
 		this.speciation.performSpeciation(this.newPopulation);
-		
+
         // purge invalid genomes
         this.population.purgeInvalidGenomes();
 	}
@@ -716,14 +719,14 @@ public class NoveltyBasicEA extends BasicEA {
 		// speciate
 		final List<Genome> genomes = getPopulation().flatten();
 		this.speciation.performSpeciation(genomes);
-		
+
 		// purge invalid genomes
         this.population.purgeInvalidGenomes();
 	}
 
 	/**
 	 * Called by a thread to report an error.
-	 * 
+	 *
 	 * @param t
 	 *            The error reported.
 	 */
@@ -737,7 +740,7 @@ public class NoveltyBasicEA extends BasicEA {
 
 	/**
 	 * Set the comparator.
-	 * 
+	 *
 	 * @param theComparator
 	 *            The comparator.
 	 */
@@ -756,7 +759,7 @@ public class NoveltyBasicEA extends BasicEA {
 
 	/**
 	 * Set the CODEC to use.
-	 * 
+	 *
 	 * @param theCodec
 	 *            The CODEC to use.
 	 */
@@ -774,7 +777,7 @@ public class NoveltyBasicEA extends BasicEA {
 
 	/**
 	 * Set the current iteration number.
-	 * 
+	 *
 	 * @param iteration
 	 *            The iteration number.
 	 */
@@ -876,7 +879,7 @@ public class NoveltyBasicEA extends BasicEA {
 	public void setMaxOperationErrors(int maxOperationErrors) {
 		this.maxOperationErrors = maxOperationErrors;
 	}
-	
-	
+
+
 
 }
