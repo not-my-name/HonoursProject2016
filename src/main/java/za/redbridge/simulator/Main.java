@@ -136,7 +136,7 @@ public class Main {
 
 				//scoreCalculator.demo(trainer.getCODEC().decode(trainer.getBestGenome()));
 				log.debug("Training Complete");
-				//Encog.getInstance().shutdown();
+				Encog.getInstance().shutdown();
 			}
 
 		}
